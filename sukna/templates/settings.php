@@ -1,6 +1,5 @@
 <?php
 global $wpdb;
-$staff = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}sukna_staff ORDER BY id DESC" );
 $settings = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}sukna_settings", OBJECT_K );
 $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789';
 ?>
@@ -12,124 +11,68 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
 <div class="sukna-settings-wrapper">
 
     <div class="sukna-tabs" style="display:flex; gap:10px; margin-bottom:25px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
-        <button class="sukna-tab-btn active" data-tab="tab-staff"><?php _e('طاقم العمل', 'sukna'); ?></button>
-        <button class="sukna-tab-btn" data-tab="tab-identity"><?php _e('هوية النظام', 'sukna'); ?></button>
+        <button class="sukna-tab-btn active" data-tab="tab-identity"><?php _e('هوية النظام', 'sukna'); ?></button>
         <button class="sukna-tab-btn" data-tab="tab-pwa"><?php _e('تطبيق الجوال', 'sukna'); ?></button>
         <button class="sukna-tab-btn" data-tab="tab-audit"><?php _e('سجل النشاطات', 'sukna'); ?></button>
     </div>
 
-    <!-- Section 1: Staff Management -->
-    <div id="tab-staff" class="sukna-tab-content active">
-    <div class="sukna-card" style="margin-bottom:30px; border-top: 4px solid #4a5568;">
-        <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:25px;">
-            <span class="dashicons dashicons-admin-users"></span> <?php _e('إدارة طاقم العمل والمستخدمين', 'sukna'); ?>
-        </h3>
-
-        <form id="sukna-staff-form" style="background:#f8fafc; padding:20px; border:1px solid #e2e8f0; margin-bottom:25px;">
-            <input type="hidden" name="id" id="staff-id">
-            <div class="sukna-grid" style="grid-template-columns: repeat(2, 1fr); gap:15px;">
-                <div class="sukna-form-group">
-                    <input type="text" name="staff_username" placeholder="<?php _e('اسم المستخدم للولوج', 'sukna'); ?>" required>
-                </div>
-                <div class="sukna-form-group">
-                    <input type="password" name="staff_password" placeholder="<?php _e('كلمة المرور الجديدة', 'sukna'); ?>" required>
-                </div>
-                <div class="sukna-form-group">
-                    <input type="text" name="staff_name" placeholder="<?php _e('الاسم بالكامل', 'sukna'); ?>" required>
-                </div>
-                <div class="sukna-form-group">
-                    <select name="staff_role">
-                        <option value="employee"><?php _e('موظف', 'sukna'); ?></option>
-                        <option value="manager"><?php _e('مدير (صلاحية الحذف)', 'sukna'); ?></option>
-                        <option value="admin"><?php _e('مدير نظام كامل', 'sukna'); ?></option>
-                    </select>
-                </div>
-            </div>
-            <button type="submit" class="sukna-btn" style="width:100%; margin-top:10px; background:#4a5568;">
-                <?php _e('إضافة مستخدم جديد للنظام', 'sukna'); ?>
-            </button>
-        </form>
-
-        <table class="sukna-table">
-            <thead>
-                <tr>
-                    <th><?php _e('المستخدم', 'sukna'); ?></th>
-                    <th><?php _e('الاسم', 'sukna'); ?></th>
-                    <th><?php _e('الصلاحية', 'sukna'); ?></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach($staff as $s): ?>
-                    <tr>
-                        <td><strong><?php echo esc_html($s->username); ?></strong></td>
-                        <td><?php echo esc_html($s->name); ?></td>
-                        <td><span class="sukna-capsule capsule-info"><?php
-                            $roles = array('admin' => 'مدير نظام', 'manager' => 'مدير', 'employee' => 'موظف');
-                            echo $roles[$s->role] ?? $s->role;
-                        ?></span></td>
-                        <td style="text-align:left;">
-                            <div style="display:flex; gap:5px; justify-content: flex-end;">
-                                <button class="sukna-btn sukna-edit-staff" data-staff='<?php echo json_encode($s); ?>' style="padding:4px 8px; font-size:0.7rem; background:#3b82f6;"><span class="dashicons dashicons-edit"></span></button>
-                                <?php if($s->username != 'admin'): ?>
-                                    <button class="sukna-btn sukna-delete-staff" data-id="<?php echo $s->id; ?>" style="padding:4px 8px; font-size:0.7rem; background:#ef4444;"><span class="dashicons dashicons-trash"></span></button>
-                                <?php endif; ?>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-
-    </div>
-
     <div class="sukna-tab-content-container">
-        <!-- Section 2: System Identity -->
-        <div id="tab-identity" class="sukna-tab-content" style="display:none;">
+        <!-- Section 1: System Identity -->
+        <div id="tab-identity" class="sukna-tab-content active">
         <div class="sukna-card" style="border-top: 4px solid #2563eb;">
             <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
                 <span class="dashicons dashicons-id"></span> <?php _e('هوية النظام والشركة', 'sukna'); ?>
             </h3>
-            <form class="sukna-system-settings-form">
+            <form id="sukna-identity-form" class="sukna-system-settings-form">
                 <div class="sukna-form-group">
-                    <input type="text" name="system_name" value="<?php echo esc_attr($settings['system_name']->setting_value ?? ''); ?>" placeholder="<?php _e('اسم النظام (يظهر في القائمة)', 'sukna'); ?>">
+                    <label><?php _e('اسم النظام', 'sukna'); ?></label>
+                    <input type="text" name="system_name" value="<?php echo esc_attr($settings['system_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('اسم النظام (يظهر في القائمة)', 'sukna'); ?>">
                 </div>
                 <div class="sukna-form-group">
-                    <input type="text" name="company_name" value="<?php echo esc_attr($settings['company_name']->setting_value ?? ''); ?>" placeholder="<?php _e('اسم الشركة / المؤسسة', 'sukna'); ?>">
+                    <label><?php _e('اسم الشركة', 'sukna'); ?></label>
+                    <input type="text" name="company_name" value="<?php echo esc_attr($settings['company_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('اسم الشركة / المؤسسة', 'sukna'); ?>">
                 </div>
                 <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div class="sukna-form-group"><input type="text" name="company_phone" value="<?php echo esc_attr($settings['company_phone']->setting_value ?? ''); ?>" placeholder="<?php _e('رقم الهاتف', 'sukna'); ?>"></div>
-                    <div class="sukna-form-group"><input type="email" name="company_email" value="<?php echo esc_attr($settings['company_email']->setting_value ?? ''); ?>" placeholder="<?php _e('البريد الإلكتروني', 'sukna'); ?>"></div>
+                    <div class="sukna-form-group">
+                        <label><?php _e('رقم الهاتف', 'sukna'); ?></label>
+                        <input type="text" name="company_phone" value="<?php echo esc_attr($settings['company_phone']->setting_value ?? ''); ?>" placeholder="<?php _e('رقم الهاتف', 'sukna'); ?>">
+                    </div>
+                    <div class="sukna-form-group">
+                        <label><?php _e('البريد الإلكتروني', 'sukna'); ?></label>
+                        <input type="email" name="company_email" value="<?php echo esc_attr($settings['company_email']->setting_value ?? ''); ?>" placeholder="<?php _e('البريد الإلكتروني', 'sukna'); ?>">
+                    </div>
                 </div>
                 <div class="sukna-form-group">
+                    <label><?php _e('العنوان', 'sukna'); ?></label>
                     <textarea name="company_address" rows="2" placeholder="<?php _e('العنوان بالتفصيل ليظهر في التقارير', 'sukna'); ?>"><?php echo esc_textarea($settings['company_address']->setting_value ?? ''); ?></textarea>
                 </div>
                 <div class="sukna-form-group">
-                    <label style="font-size:0.75rem;"><?php _e('شعار الشركة', 'sukna'); ?></label>
+                    <label><?php _e('شعار الشركة', 'sukna'); ?></label>
                     <div style="display:flex; gap:5px;">
                         <input type="text" name="company_logo" id="company-logo-url" value="<?php echo esc_attr($settings['company_logo']->setting_value ?? ''); ?>" placeholder="<?php _e('رابط الشعار', 'sukna'); ?>">
                         <button type="button" class="sukna-upload-btn sukna-btn" style="background:#64748b; padding:0 10px;"><span class="dashicons dashicons-upload"></span></button>
                     </div>
+                    <div id="logo-preview-container" style="margin-top: 10px; <?php echo empty($settings['company_logo']->setting_value) ? 'display:none;' : ''; ?>">
+                        <img id="logo-preview" src="<?php echo esc_url($settings['company_logo']->setting_value ?? ''); ?>" style="max-height: 100px; border: 1px solid #e2e8f0; padding: 5px;">
+                    </div>
                 </div>
                 <div class="sukna-form-group">
-                    <label style="font-size:0.75rem;"><?php _e('أيقونة التطبيق (PWA Icon)', 'sukna'); ?></label>
+                    <label><?php _e('أيقونة التطبيق (PWA Icon)', 'sukna'); ?></label>
                     <div style="display:flex; gap:5px;">
                         <input type="text" name="pwa_icon_url" id="pwa-icon-url" value="<?php echo esc_attr($settings['pwa_icon_url']->setting_value ?? ''); ?>" placeholder="URL">
                         <button type="button" class="sukna-upload-btn sukna-btn" style="background:#64748b; padding:0 10px;"><span class="dashicons dashicons-upload"></span></button>
                     </div>
                 </div>
-                <div class="sukna-form-group" style="background:#fef2f2; padding:15px; border-radius:6px; border:1px solid #fee2e2;">
+                <div class="sukna-form-group" style="background:#fee2e2; padding:15px; border-radius:6px; border:1px solid #fee2e2;">
                     <label style="color:#991b1b; font-weight:700;"><?php _e('أمن ملء الشاشة', 'sukna'); ?></label>
                     <input type="text" name="fullscreen_password" value="<?php echo esc_attr($fullscreen_pass); ?>" placeholder="<?php _e('كلمة مرور الخروج', 'sukna'); ?>">
                 </div>
                 <button type="submit" class="sukna-btn" style="width:100%; height:45px; background:#2563eb;"><?php _e('حفظ التعديلات', 'sukna'); ?></button>
             </form>
         </div>
-
         </div>
 
-        <!-- Section 3: PWA & Mobile App Settings -->
+        <!-- Section 2: PWA & Mobile App Settings -->
         <div id="tab-pwa" class="sukna-tab-content" style="display:none;">
         <div class="sukna-card" style="border-top: 4px solid #805ad5; margin-bottom: 25px;">
             <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
@@ -159,10 +102,9 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
                 <button type="submit" class="sukna-btn" style="width:100%; height:40px; background:#805ad5;"><?php _e('تحديث إعدادات التطبيق', 'sukna'); ?></button>
             </form>
         </div>
-
         </div>
 
-        <!-- Section 5: Activity Audit Log -->
+        <!-- Section 3: Activity Audit Log -->
         <div id="tab-audit" class="sukna-tab-content" style="display:none;">
             <div class="sukna-card" style="border-top: 4px solid #f59e0b;">
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:20px;">
@@ -183,7 +125,7 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
                         </thead>
                         <tbody id="sukna-audit-logs-body">
                             <?php
-                            $action_map = array('login' => 'دخول', 'failed_login' => 'فشل دخول', 'add_customer' => 'إضافة عميل', 'edit_customer' => 'تعديل بيانات عميل');
+                            $action_map = array('login' => 'دخول', 'failed_login' => 'فشل دخول', 'add_user' => 'إضافة مستخدم', 'edit_user' => 'تعديل مستخدم');
                             $audit_logs = Sukna_Audit::get_logs();
                             foreach($audit_logs as $log): ?>
                                 <tr>
@@ -193,7 +135,7 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
                                     <td><small><?php echo esc_html($log->device_type); ?> / <?php echo esc_html($log->ip_address); ?></small></td>
                                     <td><?php echo date('Y-m-d H:i', strtotime($log->action_date)); ?></td>
                                     <td>
-                                        <?php if(in_array($log->action_type, array('delete_customer'))): ?>
+                                        <?php if(in_array($log->action_type, array('delete_user'))): ?>
                                             <button class="sukna-btn undo-action" data-id="<?php echo $log->id; ?>" style="padding:2px 8px; font-size:0.7rem; background:#f59e0b;"><?php _e('تراجع', 'sukna'); ?></button>
                                         <?php endif; ?>
                                     </td>
@@ -247,36 +189,11 @@ jQuery(document).ready(function($) {
         html2pdf().set(opt).from(element).save();
     });
 
-    // Shared Staff/Settings submit logic
-    $('#sukna-staff-form').on('submit', function(e) {
-        e.preventDefault();
-        const action = $('#staff-id').val() ? 'sukna_save_staff' : 'sukna_add_staff';
-        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=' + action + '&nonce=' + sukna_ajax.nonce, function(res) {
-            if(res.success) location.reload(); else alert(res.data);
-        });
-    });
-
-    $(document).on('click', '.sukna-edit-staff', function() {
-        const s = $(this).data('staff');
-        $('#staff-id').val(s.id);
-        $('input[name="staff_username"]').val(s.username);
-        $('input[name="staff_name"]').val(s.name);
-        $('select[name="staff_role"]').val(s.role);
-        $('input[name="staff_password"]').attr('placeholder', '<?php _e('اتركه فارغاً للحفاظ على الحالي', 'sukna'); ?>').prop('required', false);
-        $('#sukna-staff-form button').text('<?php _e('تحديث بيانات الموظف', 'sukna'); ?>');
-        window.scrollTo(0, 0);
-    });
-
     $('.sukna-system-settings-form').on('submit', function(e) {
         e.preventDefault();
         $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_settings&nonce=' + sukna_ajax.nonce, function(res) {
             if(res.success) alert('<?php _e('تم الحفظ بنجاح', 'sukna'); ?>');
         });
-    });
-
-    $(document).on('click', '.sukna-delete-staff', function() {
-        if(!confirm('حذف؟')) return;
-        $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_staff', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => location.reload());
     });
 });
 </script>

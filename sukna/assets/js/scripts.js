@@ -64,22 +64,43 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Customer Save
-    $('#sukna-customer-form').on('submit', function(e) {
+    // User Save
+    $('#sukna-user-form').on('submit', function(e) {
         e.preventDefault();
-        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_customer&nonce=' + sukna_ajax.nonce, function(res) {
+        const action = $('#user-id').val() ? 'sukna_save_user' : 'sukna_add_user';
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=' + action + '&nonce=' + sukna_ajax.nonce, function(res) {
             if (res.success) location.reload();
+            else alert(res.data || 'Error');
         });
     });
 
-    $(document).on('click', '.sukna-delete-customer', function(e) {
+    $(document).on('click', '.sukna-delete-user', function(e) {
         if (!confirm('حذف؟')) return;
-        $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_customer', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => location.reload());
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_user', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => location.reload());
     });
 
     // Logout
     $('#sukna-logout-btn, #sukna-mobile-logout-btn').on('click', function() {
         $.post(sukna_ajax.ajax_url, { action: 'sukna_logout', nonce: sukna_ajax.nonce }, () => location.reload());
+    });
+
+    // Image Upload Handler
+    $(document).on('click', '.sukna-upload-btn', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const frame = wp.media({ title: 'اختر صورة', multiple: false }).open();
+        frame.on('select', function() {
+            const attachment = frame.state().get('selection').first().toJSON();
+            const target = btn.parent().find('input[type="text"]');
+            if (target.length) {
+                target.val(attachment.url);
+                // Specifically for company logo
+                if (target.attr('id') === 'company-logo-url') {
+                    $('#logo-preview').attr('src', attachment.url);
+                    $('#logo-preview-container').fadeIn();
+                }
+            }
+        });
     });
 
     // PWA Install Prompt Logic

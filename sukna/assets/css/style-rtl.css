@@ -2,7 +2,7 @@
     --ac-primary: #2563eb;
     --ac-secondary: #f8fafc;
     --ac-text: #0f172a;
-    --ac-sidebar-bg: #0f172a;
+    --ac-sidebar-bg: #000000;
     --ac-sidebar-hover: #1e293b;
     --ac-sidebar-text: #f1f5f9;
     --ac-border: #e2e8f0;
@@ -40,7 +40,7 @@
 /* Vertical Sidebar - Stable, Slightly Reduced Width */
 .sukna-sidebar {
     width: 220px;
-    background: #1e293b;
+    background: #000000;
     color: var(--ac-sidebar-text);
     flex-shrink: 0;
     display: flex;
@@ -67,7 +67,7 @@
 
 .sukna-sidebar-logo {
     padding: 25px 15px;
-    background: #1e293b;
+    background: #000000;
     text-align: center;
 }
 
@@ -191,7 +191,7 @@
         left: 0;
         width: 100%;
         height: 65px;
-        background: #1e293b;
+        background: #000000;
         z-index: 10005;
         justify-content: space-around;
         align-items: center;
@@ -227,9 +227,9 @@
     }
 
     /* Hide non-critical sections on mobile */
-    .sukna-sidebar-nav a[href*="ac_view=payroll"],
-    .sukna-sidebar-nav a[href*="ac_view=sales-history"],
-    .sukna-sidebar-nav a[href*="ac_view=inventory"] {
+    .sukna-sidebar-nav a[href*="sukna_view=payroll"],
+    .sukna-sidebar-nav a[href*="sukna_view=sales-history"],
+    .sukna-sidebar-nav a[href*="sukna_view=inventory"] {
         display: none !important;
     }
 
@@ -645,4 +645,39 @@
 @keyframes popIn {
     0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
     100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* Ensure sidebar is black and fixed */
+.sukna-sidebar {
+    background: #000000 !important;
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    height: 100vh !important;
+    width: 240px !important;
+    z-index: 9999 !important;
+}
+
+.sukna-main-content {
+    margin-right: 240px !important;
+    width: calc(100% - 240px) !important;
+}
+
+@media (max-width: 1024px) {
+    .sukna-sidebar {
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .sukna-main-content {
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+}
+
+.sukna-sidebar-logo img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
 }

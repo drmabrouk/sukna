@@ -85,4 +85,10 @@ class Sukna_Auth {
 	public static function can_delete_records() {
 		return self::is_manager();
 	}
+
+	public static function get_all_users() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'sukna_staff';
+		return $wpdb->get_results( "SELECT * FROM $table ORDER BY id DESC" );
+	}
 }
