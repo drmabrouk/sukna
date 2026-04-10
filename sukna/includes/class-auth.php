@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class AC_IS_Auth {
+class Sukna_Auth {
 
 	public static function init() {
 		if ( ! session_id() && ! headers_sent() ) {
@@ -13,32 +13,32 @@ class AC_IS_Auth {
 
 	public static function login( $username, $password ) {
 		global $wpdb;
-		$table = $wpdb->prefix . 'ac_is_staff';
+		$table = $wpdb->prefix . 'sukna_staff';
 
 		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE username = %s", $username ) );
 
 		if ( $user && password_verify( $password, $user->password ) ) {
-			$_SESSION['ac_is_user_id']   = $user->id;
-			$_SESSION['ac_is_username']  = $user->username;
-			$_SESSION['ac_is_user_role'] = $user->role;
-			$_SESSION['ac_is_user_name'] = $user->name;
+			$_SESSION['sukna_user_id']   = $user->id;
+			$_SESSION['sukna_username']  = $user->username;
+			$_SESSION['sukna_user_role'] = $user->role;
+			$_SESSION['sukna_user_name'] = $user->name;
 			return true;
 		}
 		return false;
 	}
 
 	public static function logout() {
-		unset( $_SESSION['ac_is_user_id'] );
-		unset( $_SESSION['ac_is_username'] );
-		unset( $_SESSION['ac_is_user_role'] );
-		unset( $_SESSION['ac_is_user_name'] );
+		unset( $_SESSION['sukna_user_id'] );
+		unset( $_SESSION['sukna_username'] );
+		unset( $_SESSION['sukna_user_role'] );
+		unset( $_SESSION['sukna_user_name'] );
 	}
 
 	public static function is_logged_in() {
 		if ( current_user_can( 'manage_options' ) ) {
 			return true;
 		}
-		return isset( $_SESSION['ac_is_user_id'] );
+		return isset( $_SESSION['sukna_user_id'] );
 	}
 
 	public static function current_user() {
@@ -52,13 +52,13 @@ class AC_IS_Auth {
 			);
 		}
 
-		if ( ! isset( $_SESSION['ac_is_user_id'] ) ) return null;
+		if ( ! isset( $_SESSION['sukna_user_id'] ) ) return null;
 
 		return (object) array(
-			'id'   => $_SESSION['ac_is_user_id'],
-			'username' => $_SESSION['ac_is_username'],
-			'role' => $_SESSION['ac_is_user_role'],
-			'name' => $_SESSION['ac_is_user_name']
+			'id'   => $_SESSION['sukna_user_id'],
+			'username' => $_SESSION['sukna_username'],
+			'role' => $_SESSION['sukna_user_role'],
+			'name' => $_SESSION['sukna_user_name']
 		);
 	}
 
@@ -76,11 +76,6 @@ class AC_IS_Auth {
 		return $user && $user->role === 'manager';
 	}
 
-	public static function is_technician() {
-		$user = self::current_user();
-		return $user && ( $user->role === 'admin' || $user->role === 'manager' || $user->role === 'technician' );
-	}
-
 	public static function is_system_admin() {
 		if ( current_user_can( 'manage_options' ) ) return true;
 		$user = self::current_user();
@@ -89,17 +84,5 @@ class AC_IS_Auth {
 
 	public static function can_delete_records() {
 		return self::is_manager();
-	}
-
-	public static function can_edit_products() {
-		return self::is_manager();
-	}
-
-	public static function can_delete_products() {
-		return self::is_admin();
-	}
-
-	public static function can_access_filters() {
-		return self::is_technician();
 	}
 }
