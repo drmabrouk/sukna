@@ -174,6 +174,7 @@ jQuery(document).ready(function($) {
                         <td>${r.tenant_name || '-'}</td>
                         <td style="text-align:left;">
                             <button class="sukna-btn sukna-delete-room" data-id="${r.id}" style="padding:4px 8px; background:#333; border:none; color:#fff;"><span class="dashicons dashicons-trash"></span></button>
+                            ${r.status === 'available' ? `<button class="sukna-btn sukna-create-contract-btn" data-id="${r.id}" style="padding:4px 8px; background:#D4AF37; color:#000 !important; border:none;"><span class="dashicons dashicons-text-page"></span></button>` : ''}
                         </td>
                     </tr>`;
                 });
@@ -182,11 +183,17 @@ jQuery(document).ready(function($) {
         });
     }
 
-    $('#sukna-room-form').on('submit', function(e) {
+    $(document).on('click', '.sukna-create-contract-btn', function() {
+        $('#contract-room-id').val($(this).data('id'));
+        $('#sukna-contract-form').slideDown();
+    });
+
+    $('#sukna-contract-form').on('submit', function(e) {
         e.preventDefault();
-        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_room&nonce=' + sukna_ajax.nonce, function(res) {
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_contract&nonce=' + sukna_ajax.nonce, function(res) {
             if (res.success) {
-                $('#sukna-room-form')[0].reset();
+                alert('تم تفعيل العقد بنجاح');
+                $('#sukna-contract-form').slideUp();
                 loadRooms($('#room-property-id').val());
             }
         });
@@ -198,6 +205,37 @@ jQuery(document).ready(function($) {
     });
 
     $('.close-room-modal').on('click', function() { $('#sukna-room-modal').hide(); });
+
+    // --- Expense Management ---
+
+    $(document).on('click', '.sukna-record-expense-btn', function() {
+        $('#expense-property-id').val($(this).data('id'));
+        $('#sukna-expense-modal').css('display', 'flex');
+    });
+
+    $('.close-expense-modal').on('click', function() { $('#sukna-expense-modal').hide(); });
+
+    $('#sukna-expense-form').on('submit', function(e) {
+        e.preventDefault();
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_record_expense&nonce=' + sukna_ajax.nonce, function(res) {
+            if (res.success) {
+                alert('تم تسجيل المصروفات');
+                $('#sukna-expense-form')[0].reset();
+                location.reload();
+            }
+        });
+    });
+
+    // --- Revenue Distribution ---
+
+    $(document).on('click', '.sukna-distribute-revenue-btn', function() {
+        const id = $(this).data('id');
+        const net = $(this).data('net');
+        if (!confirm(`هل أنت متأكد من توزيع مبلغ ${net} EGP على كافة الشركاء؟`)) return;
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_distribute_revenue', id: id, net_profit: net, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) alert('تم توزيع الأرباح بنجاح');
+        });
+    });
 
     // --- Investor Management ---
 
@@ -252,7 +290,6 @@ jQuery(document).ready(function($) {
         showSync('جاري مسح التخزين المؤقت وتحديث البيانات...');
         localStorage.clear();
         sessionStorage.clear();
-        if (window.sessionStorage) window.sessionStorage.clear();
         setTimeout(() => { window.location.reload(true); }, 500);
     });
 
@@ -313,7 +350,6 @@ jQuery(document).ready(function($) {
         $('#sukna-install-banner').fadeIn(300);
     });
 
-    // Tab switching for settings
     $('.sukna-tab-btn').on('click', function() {
         const tab = $(this).data('tab');
         $('.sukna-tab-btn').removeClass('active');

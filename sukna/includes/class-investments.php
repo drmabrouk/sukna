@@ -79,4 +79,22 @@ class Sukna_Investments {
 		global $wpdb;
 		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}sukna_transactions WHERE user_id = %d ORDER BY transaction_date DESC LIMIT 50", $user_id ) );
 	}
+
+	public static function distribute_revenue( $property_id, $total_revenue ) {
+		global $wpdb;
+
+		$property = Sukna_Properties::get_property($property_id);
+		$investments = self::get_property_investments($property_id);
+
+		$total_partners = count($investments) + 1; // All investors + the owner
+		$share_per_partner = $total_revenue / $total_partners;
+
+		// Owner Share
+		self::record_transaction($property->owner_id, $share_per_partner, 'revenue_share', sprintf(__('عائد إيرادات عقار #%d', 'sukna'), $property_id));
+
+		// Investor Shares
+		foreach ($investments as $inv) {
+			self::record_transaction($inv->investor_id, $share_per_partner, 'revenue_share', sprintf(__('عائد إيرادات عقار #%d', 'sukna'), $property_id));
+		}
+	}
 }

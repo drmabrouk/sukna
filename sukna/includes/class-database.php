@@ -18,6 +18,8 @@ class Sukna_Database {
 		$table_wallets      = $wpdb->prefix . 'sukna_wallets';
 		$table_transactions = $wpdb->prefix . 'sukna_transactions';
 		$table_payments     = $wpdb->prefix . 'sukna_payments';
+		$table_contracts    = $wpdb->prefix . 'sukna_contracts';
+		$table_expenses     = $wpdb->prefix . 'sukna_expenses';
 
 		$sql = "CREATE TABLE $table_staff (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
@@ -37,6 +39,10 @@ class Sukna_Database {
 			name varchar(255) NOT NULL,
 			address text,
 			owner_id mediumint(9),
+			valuation decimal(15,2) DEFAULT '0.00',
+			annual_rent_value decimal(15,2) DEFAULT '0.00',
+			property_type varchar(50) DEFAULT 'purchased',
+			initiator_id mediumint(9),
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id)
 		) $charset_collate;
@@ -50,6 +56,21 @@ class Sukna_Database {
 			tenant_id mediumint(9),
 			rental_start_date date,
 			payment_frequency varchar(50) DEFAULT 'monthly',
+			is_rented_to_third_party tinyint(1) DEFAULT 0,
+			additional_rental_value decimal(10,2) DEFAULT '0.00',
+			PRIMARY KEY  (id)
+		) $charset_collate;
+
+		CREATE TABLE $table_contracts (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			room_id mediumint(9) NOT NULL,
+			tenant_id mediumint(9) NOT NULL,
+			start_date date NOT NULL,
+			duration_years int NOT NULL DEFAULT 1,
+			total_value decimal(15,2) NOT NULL,
+			installment_count int DEFAULT 4,
+			status varchar(50) DEFAULT 'active',
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id)
 		) $charset_collate;
 
@@ -65,7 +86,7 @@ class Sukna_Database {
 		CREATE TABLE $table_wallets (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			user_id mediumint(9) NOT NULL,
-			balance decimal(10,2) DEFAULT '0.00',
+			balance decimal(15,2) DEFAULT '0.00',
 			last_updated datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			UNIQUE KEY user_id (user_id)
@@ -74,17 +95,25 @@ class Sukna_Database {
 		CREATE TABLE $table_transactions (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			user_id mediumint(9) NOT NULL,
-			amount decimal(10,2) NOT NULL,
+			amount decimal(15,2) NOT NULL,
 			type varchar(50) NOT NULL,
 			description text,
 			transaction_date datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id)
 		) $charset_collate;
 
+		CREATE TABLE $table_expenses (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			property_id mediumint(9) NOT NULL,
+			category varchar(100) NOT NULL,
+			amount decimal(10,2) NOT NULL,
+			expense_date datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id)
+		) $charset_collate;
+
 		CREATE TABLE $table_payments (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
-			room_id mediumint(9) NOT NULL,
-			tenant_id mediumint(9) NOT NULL,
+			contract_id mediumint(9) NOT NULL,
 			amount decimal(10,2) NOT NULL,
 			due_date date,
 			payment_date datetime,

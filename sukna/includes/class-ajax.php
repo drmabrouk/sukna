@@ -10,7 +10,7 @@ class Sukna_Ajax {
 			'logout', 'add_user', 'save_user', 'delete_user', 'save_settings',
 			'verify_fullscreen_password', 'undo_activity', 'register',
 			'save_property', 'delete_property', 'save_room', 'delete_room', 'save_investment',
-			'get_rooms', 'get_investments'
+			'get_rooms', 'get_investments', 'save_contract', 'record_expense', 'distribute_revenue'
 		);
 
 		foreach ( $actions as $action ) {
@@ -52,7 +52,6 @@ class Sukna_Ajax {
 			wp_send_json_error( array( 'message' => __( 'يرجى ملء جميع الحقول المطلوبة.', 'sukna' ) ) );
 		}
 
-		// Basic regex for GCC/Egypt phone validation (simple check)
 		if ( ! preg_match('/^\+(20|971|966|965|974|973|968)[0-9]{7,12}$/', $data['phone']) ) {
 			wp_send_json_error( array( 'message' => __( 'تنسيق رقم الهاتف غير صالح لهذه الدولة.', 'sukna' ) ) );
 		}
@@ -83,8 +82,7 @@ class Sukna_Ajax {
 
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_staff';
-
-		$phone    = sanitize_text_field( $_POST['phone'] );
+		$phone = sanitize_text_field( $_POST['phone'] );
 
 		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE phone = %s", $phone ) );
 		if ( $exists ) wp_send_json_error( 'Phone already registered' );
@@ -109,7 +107,7 @@ class Sukna_Ajax {
 
 		global $wpdb;
 		$id = intval( $_POST['id'] );
-		$phone    = sanitize_text_field( $_POST['phone'] );
+		$phone = sanitize_text_field( $_POST['phone'] );
 
 		$data = array(
 			'username' => $phone,
@@ -152,14 +150,17 @@ class Sukna_Ajax {
 
 		$id = intval( $_POST['id'] ?? 0 );
 		$data = array(
-			'name'     => sanitize_text_field( $_POST['name'] ),
-			'address'  => sanitize_text_field( $_POST['address'] ),
-			'owner_id' => intval( $_POST['owner_id'] ),
+			'name'              => sanitize_text_field( $_POST['name'] ),
+			'address'           => sanitize_text_field( $_POST['address'] ),
+			'owner_id'          => intval( $_POST['owner_id'] ),
+			'valuation'         => floatval( $_POST['valuation'] ),
+			'annual_rent_value' => floatval( $_POST['annual_rent_value'] ),
 		);
 
 		if ( $id ) {
 			Sukna_Properties::update_property( $id, $data );
 		} else {
+			$data['initiator_id'] = Sukna_Auth::current_user()->id;
 			Sukna_Properties::add_property( $data );
 		}
 		wp_send_json_success();
@@ -179,6 +180,23 @@ class Sukna_Ajax {
 		$property_id = intval( $_POST['property_id'] );
 		$rooms = Sukna_Properties::get_rooms($property_id);
 		wp_send_json_success($rooms);
+	}
+
+	public function save_contract() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$data = array(
+			'room_id'          => intval( $_POST['room_id'] ),
+			'tenant_id'        => intval( $_POST['tenant_id'] ),
+			'start_date'       => sanitize_text_field( $_POST['start_date'] ),
+			'duration_years'   => intval( $_POST['duration_years'] ),
+			'total_value'      => floatval( $_POST['total_value'] ),
+			'installment_count'=> intval( $_POST['installment_count'] ),
+		);
+
+		Sukna_Properties::save_contract($data);
+		wp_send_json_success();
 	}
 
 	public function save_room() {
@@ -204,11 +222,28 @@ class Sukna_Ajax {
 		wp_send_json_success();
 	}
 
-	public function delete_room() {
+	public function record_expense() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
-		$id = intval( $_POST['id'] );
-		Sukna_Properties::delete_room($id);
+
+		$data = array(
+			'property_id' => intval( $_POST['property_id'] ),
+			'category'    => sanitize_text_field( $_POST['category'] ),
+			'amount'      => floatval( $_POST['amount'] ),
+		);
+
+		Sukna_Properties::record_expense($data);
+		wp_send_json_success();
+	}
+
+	public function distribute_revenue() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$property_id = intval( $_POST['id'] );
+		$net_profit  = floatval( $_POST['net_profit'] );
+
+		Sukna_Investments::distribute_revenue($property_id, $net_profit);
 		wp_send_json_success();
 	}
 
