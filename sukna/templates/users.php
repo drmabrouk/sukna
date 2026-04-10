@@ -21,8 +21,12 @@ $can_manage = Sukna_Auth::is_admin();
         <form id="sukna-user-form">
             <input type="hidden" name="id" id="user-id">
             <div class="sukna-form-group">
-                <label><?php _e('اسم المستخدم (للدخول)', 'sukna'); ?></label>
-                <input type="text" name="username" id="user-username" placeholder="<?php _e('Username', 'sukna'); ?>" required>
+                <label><?php _e('اسم المستخدم', 'sukna'); ?></label>
+                <input type="text" name="username" id="user-username" placeholder="<?php _e('Username', 'sukna'); ?>">
+            </div>
+            <div class="sukna-form-group">
+                <label><?php _e('رقم الهاتف', 'sukna'); ?></label>
+                <input type="text" name="phone" id="user-phone" placeholder="20123456789" required>
             </div>
             <div class="sukna-form-group">
                 <label><?php _e('الاسم بالكامل', 'sukna'); ?></label>
@@ -40,14 +44,16 @@ $can_manage = Sukna_Auth::is_admin();
             <div class="sukna-form-group">
                 <label><?php _e('الصلاحية', 'sukna'); ?></label>
                 <select name="role" id="user-role">
-                    <option value="employee"><?php _e('موظف', 'sukna'); ?></option>
-                    <option value="manager"><?php _e('مدير', 'sukna'); ?></option>
                     <option value="admin"><?php _e('مدير نظام', 'sukna'); ?></option>
+                    <option value="owner"><?php _e('مالك عقار', 'sukna'); ?></option>
+                    <option value="investor"><?php _e('مستثمر', 'sukna'); ?></option>
+                    <option value="tenant"><?php _e('مستأجر', 'sukna'); ?></option>
+                    <option value="employee"><?php _e('موظف', 'sukna'); ?></option>
                 </select>
             </div>
             <div style="display:flex; gap:15px; margin-top:30px;">
                 <button type="submit" class="sukna-btn" style="flex:1; height:50px; background:#2563eb;"><?php _e('حفظ البيانات', 'sukna'); ?></button>
-                <button type="button" id="close-modal" class="sukna-btn" style="flex:1; height:50px; background:#64748b;"><?php _e('إلغاء', 'sukna'); ?></button>
+                <button type="button" class="sukna-btn close-user-modal" style="flex:1; height:50px; background:#64748b;"><?php _e('إلغاء', 'sukna'); ?></button>
             </div>
         </form>
     </div>
@@ -58,8 +64,8 @@ $can_manage = Sukna_Auth::is_admin();
         <thead>
             <tr>
                 <th><?php _e('المستخدم', 'sukna'); ?></th>
+                <th><?php _e('الهاتف', 'sukna'); ?></th>
                 <th><?php _e('الاسم', 'sukna'); ?></th>
-                <th><?php _e('البريد الإلكتروني', 'sukna'); ?></th>
                 <th><?php _e('الصلاحية', 'sukna'); ?></th>
                 <th><?php _e('إجراءات', 'sukna'); ?></th>
             </tr>
@@ -67,11 +73,11 @@ $can_manage = Sukna_Auth::is_admin();
         <tbody>
             <?php foreach($users as $u): ?>
                 <tr data-user='<?php echo json_encode($u); ?>'>
-                    <td><strong><?php echo esc_html($u->username); ?></strong></td>
+                    <td><strong><?php echo esc_html($u->username ?: '-'); ?></strong></td>
+                    <td><?php echo esc_html($u->phone); ?></td>
                     <td><?php echo esc_html($u->name); ?></td>
-                    <td><?php echo esc_html($u->email ?? '-'); ?></td>
                     <td><span class="sukna-capsule capsule-info"><?php
-                        $roles = array('admin' => 'مدير نظام', 'manager' => 'مدير', 'employee' => 'موظف');
+                        $roles = array('admin' => 'مدير نظام', 'owner' => 'مالك', 'investor' => 'مستثمر', 'tenant' => 'مستأجر', 'employee' => 'موظف');
                         echo $roles[$u->role] ?? $u->role;
                     ?></span></td>
                     <td style="text-align:left;">
@@ -107,6 +113,7 @@ jQuery(document).ready(function($) {
         const u = $(this).closest('tr').data('user');
         $('#user-id').val(u.id);
         $('#user-username').val(u.username);
+        $('#user-phone').val(u.phone);
         $('#user-name').val(u.name);
         $('#user-email').val(u.email);
         $('#user-role').val(u.role);
@@ -116,6 +123,6 @@ jQuery(document).ready(function($) {
         modal.css('display', 'flex');
     });
 
-    $('#close-modal').on('click', function() { modal.hide(); });
+    $('.close-user-modal').on('click', function() { modal.hide(); });
 });
 </script>

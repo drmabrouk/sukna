@@ -17,10 +17,17 @@
             <a href="<?php echo add_query_arg('sukna_view', 'dashboard'); ?>" class="<?php echo (!isset($_GET['sukna_view']) || $_GET['sukna_view'] == 'dashboard') ? 'active' : ''; ?>">
                 <span class="dashicons dashicons-dashboard"></span> <?php _e('لوحة المعلومات', 'sukna'); ?>
             </a>
-            <a href="<?php echo add_query_arg('sukna_view', 'users'); ?>" class="<?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'users') ? 'active' : ''; ?>">
-                <span class="dashicons dashicons-admin-users"></span> <?php _e('إدارة المستخدمين', 'sukna'); ?>
-            </a>
-            <?php if ( Sukna_Auth::is_system_admin() ) : ?>
+
+            <?php if ( Sukna_Auth::is_admin() || Sukna_Auth::is_owner() ) : ?>
+                <a href="<?php echo add_query_arg('sukna_view', 'properties'); ?>" class="<?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'properties') ? 'active' : ''; ?>">
+                    <span class="dashicons dashicons-admin-home"></span> <?php _e('إدارة العقارات', 'sukna'); ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if ( Sukna_Auth::is_admin() ) : ?>
+                <a href="<?php echo add_query_arg('sukna_view', 'users'); ?>" class="<?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'users') ? 'active' : ''; ?>">
+                    <span class="dashicons dashicons-admin-users"></span> <?php _e('إدارة المستخدمين', 'sukna'); ?>
+                </a>
                 <a href="<?php echo add_query_arg('sukna_view', 'settings'); ?>" class="<?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'settings') ? 'active' : ''; ?>">
                     <span class="dashicons dashicons-admin-generic"></span> <?php _e('الإعدادات', 'sukna'); ?>
                 </a>
@@ -28,15 +35,6 @@
         </nav>
 
         <div class="sukna-sidebar-footer" style="padding: 10px; border-top: 1px solid #334155; margin-top: auto;">
-            <div id="sukna-install-banner" style="display:none; background:#2563eb; color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; text-align:center;">
-                <p style="margin:0 0 8px 0; font-size:0.8rem;"><?php _e('ثبت التطبيق لتجربة أسرع', 'sukna'); ?></p>
-                <button id="sukna-install-btn" class="sukna-btn" style="background:#fff; color:#2563eb; width:100%; padding:5px; font-size:0.75rem;"><?php _e('تثبيت الآن', 'sukna'); ?></button>
-            </div>
-            <div id="sukna-ios-install-banner" style="display:none; background:#2563eb; color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; text-align:center;">
-                <p style="margin:0 0 8px 0; font-size:0.8rem;"><?php _e('لتثبيت التطبيق على آيفون:', 'sukna'); ?></p>
-                <p style="margin:0; font-size:0.7rem; opacity:0.9;"><?php _e('اضغط على "مشاركة" ثم "إضافة إلى الصفحة الرئيسية"', 'sukna'); ?></p>
-                <span class="dashicons dashicons-share" style="margin-top:5px; font-size:16px;"></span>
-            </div>
             <div class="sukna-sidebar-controls" style="display: flex; justify-content: space-around; align-items: center; gap: 2px;">
                 <button id="sukna-fullscreen-btn" class="sidebar-ctrl-icon" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:5px; flex:1; display:flex; flex-direction:column; align-items:center;">
                     <span class="dashicons dashicons-fullscreen-alt" style="font-size:18px; width:18px; height:18px;"></span>

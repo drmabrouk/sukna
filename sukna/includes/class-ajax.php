@@ -8,7 +8,9 @@ class Sukna_Ajax {
 	public function __construct() {
 		$actions = array(
 			'logout', 'add_user', 'save_user', 'delete_user', 'save_settings',
-			'verify_fullscreen_password', 'undo_activity', 'register'
+			'verify_fullscreen_password', 'undo_activity', 'register',
+			'save_property', 'delete_property', 'save_room', 'delete_room', 'save_investment',
+			'get_rooms', 'get_investments'
 		);
 
 		foreach ( $actions as $action ) {
@@ -46,7 +48,6 @@ class Sukna_Ajax {
 			'password'   => $_POST['password'],
 		);
 
-		// Basic validation
 		if ( empty($data['first_name']) || empty($data['last_name']) || empty($data['phone']) || empty($data['password']) ) {
 			wp_send_json_error( array( 'message' => __( 'يرجى ملء جميع الحقول المطلوبة.', 'sukna' ) ) );
 		}
@@ -142,6 +143,93 @@ class Sukna_Ajax {
 		}
 	}
 
+	public function save_property() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$id = intval( $_POST['id'] ?? 0 );
+		$data = array(
+			'name'     => sanitize_text_field( $_POST['name'] ),
+			'address'  => sanitize_text_field( $_POST['address'] ),
+			'owner_id' => intval( $_POST['owner_id'] ),
+		);
+
+		if ( $id ) {
+			Sukna_Properties::update_property( $id, $data );
+		} else {
+			Sukna_Properties::add_property( $data );
+		}
+		wp_send_json_success();
+	}
+
+	public function delete_property() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$id = intval( $_POST['id'] );
+		Sukna_Properties::delete_property( $id );
+		wp_send_json_success();
+	}
+
+	public function get_rooms() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		$property_id = intval( $_POST['property_id'] );
+		$rooms = Sukna_Properties::get_rooms($property_id);
+		wp_send_json_success($rooms);
+	}
+
+	public function save_room() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$id = intval( $_POST['id'] ?? 0 );
+		$data = array(
+			'property_id'       => intval( $_POST['property_id'] ),
+			'room_number'       => sanitize_text_field( $_POST['room_number'] ),
+			'rental_price'      => floatval( $_POST['rental_price'] ),
+			'status'            => sanitize_text_field( $_POST['status'] ),
+			'tenant_id'         => intval( $_POST['tenant_id'] ?: 0 ) ?: null,
+			'rental_start_date' => sanitize_text_field( $_POST['rental_start_date'] ) ?: null,
+			'payment_frequency' => sanitize_text_field( $_POST['payment_frequency'] ),
+		);
+
+		if ( $id ) {
+			Sukna_Properties::update_room( $id, $data );
+		} else {
+			Sukna_Properties::add_room( $data );
+		}
+		wp_send_json_success();
+	}
+
+	public function delete_room() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+		$id = intval( $_POST['id'] );
+		Sukna_Properties::delete_room($id);
+		wp_send_json_success();
+	}
+
+	public function get_investments() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		$property_id = intval( $_POST['property_id'] );
+		$investments = Sukna_Investments::get_property_investments($property_id);
+		wp_send_json_success($investments);
+	}
+
+	public function save_investment() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$data = array(
+			'investor_id' => intval( $_POST['investor_id'] ),
+			'property_id' => intval( $_POST['property_id'] ),
+			'amount'      => floatval( $_POST['amount'] ),
+		);
+
+		Sukna_Investments::add_investment( $data );
+		wp_send_json_success();
+	}
+
 	public function save_settings() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
@@ -185,7 +273,7 @@ class Sukna_Ajax {
 		if ( ! $log || ! $log->meta_data ) wp_send_json_error( 'No undo data' );
 
 		$data = json_decode( $log->meta_data, true );
-		unset($data['id']); // Prevent ID collisions
+		unset($data['id']);
 
 		if ( $log->action_type === 'delete_user' ) {
 			$wpdb->insert( "{$wpdb->prefix}sukna_staff", $data );

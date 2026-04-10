@@ -99,7 +99,7 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // --- User Management (Sidebar View) ---
+    // --- User Management ---
 
     $('#sukna-user-form').on('submit', function(e) {
         e.preventDefault();
@@ -113,6 +113,123 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.sukna-delete-user', function(e) {
         if (!confirm('حذف؟')) return;
         $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_user', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => location.reload());
+    });
+
+    // --- Property Management ---
+
+    $('#sukna-add-property-btn').on('click', function() {
+        $('#sukna-property-form')[0].reset();
+        $('#prop-id').val('');
+        $('#prop-modal-title').text('إضافة عقار جديد');
+        $('#sukna-property-modal').css('display', 'flex');
+    });
+
+    $(document).on('click', '.sukna-edit-property', function() {
+        const p = $(this).data('property');
+        $('#prop-id').val(p.id);
+        $('#prop-name').val(p.name);
+        $('#prop-address').val(p.address);
+        $('#prop-owner-id').val(p.owner_id);
+        $('#prop-modal-title').text('تعديل عقار');
+        $('#sukna-property-modal').css('display', 'flex');
+    });
+
+    $('.close-prop-modal').on('click', function() { $('#sukna-property-modal').hide(); });
+
+    $('#sukna-property-form').on('submit', function(e) {
+        e.preventDefault();
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_property&nonce=' + sukna_ajax.nonce, () => location.reload());
+    });
+
+    $(document).on('click', '.sukna-delete-property', function() {
+        if (!confirm('حذف العقار وجميع غرفه؟')) return;
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_property', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => location.reload());
+    });
+
+    // --- Room Management ---
+
+    $(document).on('click', '.sukna-manage-rooms', function() {
+        const propId = $(this).data('id');
+        $('#room-property-id').val(propId);
+        loadRooms(propId);
+        $('#sukna-room-modal').css('display', 'flex');
+    });
+
+    function loadRooms(propId) {
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_get_rooms', property_id: propId, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                let html = '';
+                res.data.forEach(r => {
+                    html += `<tr>
+                        <td>${r.room_number}</td>
+                        <td>${r.rental_price}</td>
+                        <td><span class="sukna-capsule ${r.status === 'rented' ? 'capsule-danger' : 'capsule-success'}">${r.status === 'rented' ? 'مؤجر' : 'متاح'}</span></td>
+                        <td>${r.tenant_name || '-'}</td>
+                        <td style="text-align:left;">
+                            <button class="sukna-btn sukna-delete-room" data-id="${r.id}" style="padding:4px 8px; background:#ef4444;"><span class="dashicons dashicons-trash"></span></button>
+                        </td>
+                    </tr>`;
+                });
+                $('#sukna-rooms-table-body').html(html || '<tr><td colspan="5" style="text-align:center;">لا توجد غرف مضافة</td></tr>');
+            }
+        });
+    }
+
+    $('#sukna-room-form').on('submit', function(e) {
+        e.preventDefault();
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_room&nonce=' + sukna_ajax.nonce, function(res) {
+            if (res.success) {
+                $('#sukna-room-form')[0].reset();
+                loadRooms($('#room-property-id').val());
+            }
+        });
+    });
+
+    $(document).on('click', '.sukna-delete-room', function() {
+        if (!confirm('حذف الغرفة؟')) return;
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_room', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => loadRooms($('#room-property-id').val()));
+    });
+
+    $('.close-room-modal').on('click', function() { $('#sukna-room-modal').hide(); });
+
+    // --- Investor Management ---
+
+    $(document).on('click', '.sukna-manage-investors', function() {
+        const propId = $(this).data('id');
+        $('#invest-property-id').val(propId);
+        loadInvestments(propId);
+        $('#sukna-investor-modal').css('display', 'flex');
+    });
+
+    function loadInvestments(propId) {
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_get_investments', property_id: propId, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                let html = '<table class="sukna-table"><thead><tr><th>المستثمر</th><th>المبلغ</th><th>التاريخ</th></tr></thead><tbody>';
+                res.data.forEach(i => {
+                    html += `<tr>
+                        <td><strong>${i.investor_name}</strong></td>
+                        <td>${i.amount} EGP</td>
+                        <td>${i.investment_date}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                $('#sukna-investments-list').html(res.data.length ? html : '<p style="text-align:center;">لا يوجد مستثمرون حالياً</p>');
+            }
+        });
+    }
+
+    $('.close-investor-modal').on('click', function() { $('#sukna-investor-modal').hide(); });
+
+    $('#sukna-investment-form').on('submit', function(e) {
+        e.preventDefault();
+        const propId = $('#invest-property-id').val();
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_investment&nonce=' + sukna_ajax.nonce, function(res) {
+            if (res.success) {
+                alert('تمت إضافة الاستثمار بنجاح');
+                $('#sukna-investment-form')[0].reset();
+                loadInvestments(propId);
+            }
+        });
     });
 
     // --- Other Shared Utilities ---
@@ -182,7 +299,6 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // PWA logic
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         $('#sukna-install-banner').fadeIn(300);
