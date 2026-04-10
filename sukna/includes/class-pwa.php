@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class AC_IS_PWA {
+class Sukna_PWA {
 
 	public static function init() {
 		add_action( 'wp_head', array( __CLASS__, 'add_pwa_meta' ) );
@@ -17,11 +17,11 @@ class AC_IS_PWA {
 		echo '<meta name="apple-mobile-web-app-title" content="' . esc_attr( get_bloginfo('name') ) . '">' . PHP_EOL;
 
 		global $wpdb;
-		$theme_color = $wpdb->get_var( "SELECT setting_value FROM {$wpdb->prefix}ac_is_settings WHERE setting_key = 'pwa_theme_color'" ) ?: '#2563eb';
+		$theme_color = $wpdb->get_var( "SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'pwa_theme_color'" ) ?: '#2563eb';
 		echo '<meta name="theme-color" content="' . esc_attr( $theme_color ) . '">' . PHP_EOL;
 		echo '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">' . PHP_EOL;
 
-		$icon = $wpdb->get_var( "SELECT setting_value FROM {$wpdb->prefix}ac_is_settings WHERE setting_key = 'pwa_icon_url'" );
+		$icon = $wpdb->get_var( "SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'pwa_icon_url'" );
 		if ( $icon ) {
 			echo '<link rel="apple-touch-icon" href="' . esc_url( $icon ) . '">' . PHP_EOL;
 		}
@@ -55,7 +55,7 @@ class AC_IS_PWA {
 
 	private static function serve_manifest() {
 		global $wpdb;
-		$settings = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}ac_is_settings", OBJECT_K );
+		$settings = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}sukna_settings", OBJECT_K );
 
 		$manifest = array(
 			'name'             => $settings['pwa_app_name']->setting_value ?? 'نظام المبيعات المتطور',
@@ -92,11 +92,11 @@ class AC_IS_PWA {
 	private static function serve_service_worker() {
 		header( 'Content-Type: application/javascript' );
 		?>
-		const CACHE_NAME = 'ac-is-cache-v2';
+		const CACHE_NAME = 'sukna-cache-v2';
 		const urlsToCache = [
 			'/',
-			'<?php echo AC_IS_URL . 'assets/css/style-rtl.css'; ?>',
-			'<?php echo AC_IS_URL . 'assets/js/scripts.js'; ?>',
+			'<?php echo SUKNA_URL . 'assets/css/style-rtl.css'; ?>',
+			'<?php echo SUKNA_URL . 'assets/js/scripts.js'; ?>',
 			'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap'
 		];
 

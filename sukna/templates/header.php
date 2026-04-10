@@ -1,0 +1,77 @@
+<div class="sukna-dashboard" id="sukna-system-root">
+    <aside class="sukna-sidebar">
+        <div class="sukna-sidebar-logo">
+            <h2><?php
+                global $wpdb;
+                echo esc_html($wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'system_name'") ?: 'Sukna');
+            ?></h2>
+        </div>
+        <nav class="sukna-sidebar-nav">
+            <a href="<?php echo add_query_arg('ac_view', 'dashboard'); ?>" class="<?php echo (!isset($_GET['ac_view']) || $_GET['ac_view'] == 'dashboard') ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-dashboard"></span> <?php _e('لوحة المعلومات', 'sukna'); ?>
+            </a>
+            <a href="<?php echo add_query_arg('ac_view', 'customers'); ?>" class="<?php echo (isset($_GET['ac_view']) && $_GET['ac_view'] == 'customers') ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-groups"></span> <?php _e('إدارة العملاء', 'sukna'); ?>
+            </a>
+            <?php if ( Sukna_Auth::is_system_admin() ) : ?>
+                <a href="<?php echo add_query_arg('ac_view', 'settings'); ?>" class="<?php echo (isset($_GET['ac_view']) && $_GET['ac_view'] == 'settings') ? 'active' : ''; ?>">
+                    <span class="dashicons dashicons-admin-generic"></span> <?php _e('الإعدادات', 'sukna'); ?>
+                </a>
+            <?php endif; ?>
+        </nav>
+
+        <div class="sukna-sidebar-footer" style="padding: 10px; border-top: 1px solid #334155; margin-top: auto;">
+            <div id="sukna-install-banner" style="display:none; background:#2563eb; color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; text-align:center;">
+                <p style="margin:0 0 8px 0; font-size:0.8rem;"><?php _e('ثبت التطبيق لتجربة أسرع', 'sukna'); ?></p>
+                <button id="sukna-install-btn" class="sukna-btn" style="background:#fff; color:#2563eb; width:100%; padding:5px; font-size:0.75rem;"><?php _e('تثبيت الآن', 'sukna'); ?></button>
+            </div>
+            <div id="sukna-ios-install-banner" style="display:none; background:#2563eb; color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; text-align:center;">
+                <p style="margin:0 0 8px 0; font-size:0.8rem;"><?php _e('لتثبيت التطبيق على آيفون:', 'sukna'); ?></p>
+                <p style="margin:0; font-size:0.7rem; opacity:0.9;"><?php _e('اضغط على "مشاركة" ثم "إضافة إلى الصفحة الرئيسية"', 'sukna'); ?></p>
+                <span class="dashicons dashicons-share" style="margin-top:5px; font-size:16px;"></span>
+            </div>
+            <div class="sukna-sidebar-controls" style="display: flex; justify-content: space-around; align-items: center; gap: 2px;">
+                <button id="sukna-fullscreen-btn" class="sidebar-ctrl-icon" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:5px; flex:1; display:flex; flex-direction:column; align-items:center;">
+                    <span class="dashicons dashicons-fullscreen-alt" style="font-size:18px; width:18px; height:18px;"></span>
+                    <small style="font-size:0.6rem; margin-top:2px;"><?php _e('ملء', 'sukna'); ?></small>
+                </button>
+                <button id="sukna-refresh-btn" class="sidebar-ctrl-icon" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:5px; flex:1; display:flex; flex-direction:column; align-items:center;">
+                    <span class="dashicons dashicons-update" style="font-size:18px; width:18px; height:18px;"></span>
+                    <small style="font-size:0.6rem; margin-top:2px;"><?php _e('تحديث', 'sukna'); ?></small>
+                </button>
+                <button id="sukna-logout-btn" class="sidebar-ctrl-icon logout" title="<?php _e('خروج', 'sukna'); ?>" style="background:none; border:none; color:#ef4444 !important; cursor:pointer; padding:5px; flex:1; display:flex; flex-direction:column; align-items:center;">
+                    <span class="dashicons dashicons-exit" style="font-size:18px; width:18px; height:18px;"></span>
+                    <small style="font-size:0.6rem; margin-top:2px;"><?php _e('خروج', 'sukna'); ?></small>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Bottom Bar (Fixed) -->
+    <div class="sukna-mobile-bottom-bar" style="display:none;">
+        <button id="sukna-mobile-refresh-btn" class="sidebar-ctrl-icon" title="<?php _e('تحديث', 'sukna'); ?>">
+            <span class="dashicons dashicons-update"></span>
+            <small><?php _e('تحديث', 'sukna'); ?></small>
+        </button>
+        <button id="sukna-mobile-logout-btn" class="sidebar-ctrl-icon logout" title="<?php _e('خروج', 'sukna'); ?>">
+            <span class="dashicons dashicons-logout"></span>
+            <small><?php _e('خروج', 'sukna'); ?></small>
+        </button>
+    </div>
+
+    <div id="sukna-sync-loader" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2563eb; color:#fff; padding:10px 20px; border-radius:30px; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-weight:600;">
+        <span class="dashicons dashicons-update spin" style="margin-left:8px; vertical-align:middle;"></span>
+        <span class="loader-text"><?php _e('جارٍ تحميل البيانات...', 'sukna'); ?></span>
+    </div>
+
+    <main class="sukna-main-content">
+        <div class="sukna-content-inner">
+
+<div id="sukna-unlock-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:9999; align-items:center; justify-content:center; flex-direction:column; color:#fff;">
+    <h2 style="margin-bottom:20px;"><?php _e('النظام مغلق - يرجى إدخال كلمة المرور للخروج', 'sukna'); ?></h2>
+    <div style="display:flex; gap:10px;">
+        <input type="password" id="sukna-unlock-pass" placeholder="********" style="padding:15px; border-radius:8px; border:none; font-size:1.2rem; text-align:center;">
+        <button id="sukna-unlock-submit" class="sukna-btn" style="background:#2563eb; font-size:1.1rem;"><?php _e('فك القفل', 'sukna'); ?></button>
+    </div>
+    <p id="sukna-unlock-error" style="color:#991b1b; margin-top:15px; display:none;"><?php _e('كلمة المرور غير صحيحة', 'sukna'); ?></p>
+</div>

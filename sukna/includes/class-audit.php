@@ -3,11 +3,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class AC_IS_Reports_Audit {
+class Sukna_Audit {
 
 	public static function log( $action, $description = '', $data = null ) {
 		global $wpdb;
-		$user = AC_IS_Auth::current_user();
+		$user = Sukna_Auth::current_user();
 		$user_id = $user ? $user->id : 'guest';
 
 		$agent = $_SERVER['HTTP_USER_AGENT'];
@@ -16,7 +16,7 @@ class AC_IS_Reports_Audit {
 			$device = 'Mobile/Tablet';
 		}
 
-		$wpdb->insert( $wpdb->prefix . 'ac_is_activity_logs', array(
+		$wpdb->insert( $wpdb->prefix . 'sukna_activity_logs', array(
 			'user_id'     => $user_id,
 			'action_type' => $action,
 			'description' => $description,
@@ -29,6 +29,6 @@ class AC_IS_Reports_Audit {
 
 	public static function get_logs() {
 		global $wpdb;
-		return $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}ac_is_activity_logs ORDER BY action_date DESC LIMIT 200" );
+		return $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}sukna_activity_logs ORDER BY action_date DESC LIMIT 200" );
 	}
 }

@@ -16,7 +16,7 @@
     --ac-info-text: #075985;
 }
 
-.ac-is-dashboard {
+.sukna-dashboard {
     display: flex;
     direction: rtl;
     text-align: right;
@@ -30,17 +30,17 @@
 }
 
 /* Fullscreen Specific Styles */
-#ac-is-system-root:-webkit-full-screen { width: 100%; height: 100%; overflow-y: auto; background: #f1f5f9; }
-#ac-is-system-root:-ms-fullscreen { width: 100%; height: 100%; overflow-y: auto; background: #f1f5f9; }
-#ac-is-system-root:fullscreen { width: 100%; height: 100%; overflow-y: auto; background: #f1f5f9; }
+#sukna-system-root:-webkit-full-screen { width: 100%; height: 100%; overflow-y: auto; background: #f1f5f9; }
+#sukna-system-root:-ms-fullscreen { width: 100%; height: 100%; overflow-y: auto; background: #f1f5f9; }
+#sukna-system-root:fullscreen { width: 100%; height: 100%; overflow-y: auto; background: #f1f5f9; }
 
-#ac-is-system-root:fullscreen .ac-is-sidebar { height: 100vh; position: fixed; top: 0; right: 0; }
-#ac-is-system-root:fullscreen .ac-is-main-content { margin-right: 220px; width: calc(100% - 220px); }
+#sukna-system-root:fullscreen .sukna-sidebar { height: 100vh; position: fixed; top: 0; right: 0; }
+#sukna-system-root:fullscreen .sukna-main-content { margin-right: 220px; width: calc(100% - 220px); }
 
 /* Vertical Sidebar - Stable, Slightly Reduced Width */
-.ac-is-sidebar {
+.sukna-sidebar {
     width: 220px;
-    background: var(--ac-sidebar-bg);
+    background: #1e293b;
     color: var(--ac-sidebar-text);
     flex-shrink: 0;
     display: flex;
@@ -53,37 +53,37 @@
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
-    scrollbar-color: var(--ac-sidebar-hover) transparent;
+    scrollbar-color: #334155 transparent;
 }
 
-.ac-is-sidebar::-webkit-scrollbar {
+.sukna-sidebar::-webkit-scrollbar {
     width: 4px;
 }
 
-.ac-is-sidebar::-webkit-scrollbar-thumb {
-    background-color: var(--ac-sidebar-hover);
+.sukna-sidebar::-webkit-scrollbar-thumb {
+    background-color: #334155;
     border-radius: 10px;
 }
 
-.ac-is-sidebar-logo {
+.sukna-sidebar-logo {
     padding: 25px 15px;
     background: #1e293b;
     text-align: center;
 }
 
-.ac-is-sidebar-logo h2 {
+.sukna-sidebar-logo h2 {
     color: #fff;
     margin: 0;
     font-size: 1.25rem;
     font-weight: 800;
 }
 
-.ac-is-sidebar-nav {
+.sukna-sidebar-nav {
     margin-top: 8px;
     flex-grow: 0;
 }
 
-.ac-is-sidebar-nav a {
+.sukna-sidebar-nav a {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -98,15 +98,15 @@
     font-family: inherit;
 }
 
-.ac-is-sidebar-nav a:hover {
-    background: var(--ac-sidebar-hover);
+.sukna-sidebar-nav a:hover {
+    background: #334155;
     color: #fff;
 }
 
-.ac-is-sidebar-nav a.active {
-    background: var(--ac-sidebar-hover);
+.sukna-sidebar-nav a.active {
+    background: #334155;
     color: #fff;
-    border-right-color: var(--ac-primary);
+    border-right-color: #2563eb;
 }
 
 .sidebar-ctrl-icon {
@@ -119,7 +119,7 @@
 }
 
 /* Main Content Area */
-.ac-is-main-content {
+.sukna-main-content {
     flex-grow: 1;
     padding: 30px;
     background: #f1f5f9;
@@ -127,18 +127,18 @@
     min-width: 0; /* Prevent layout breaking */
 }
 
-.ac-is-content-inner {
+.sukna-content-inner {
     max-width: 1500px;
     margin: 0 auto;
 }
 
 /* Professional Flat Buttons - Scaled Down */
-.ac-is-btn {
+.sukna-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 10px 18px;
-    background: var(--ac-primary);
+    background: #2563eb;
     color: #fff !important;
     border: none;
     border-radius: 6px;
@@ -153,52 +153,52 @@
 
 /* Responsive Sidebar */
 @media (max-width: 1024px) {
-    .ac-is-dashboard {
+    .sukna-dashboard {
         flex-direction: column;
         padding-bottom: 70px; /* Space for fixed bottom bar */
     }
-    .ac-is-sidebar {
+    .sukna-sidebar {
         width: 100%;
         height: auto;
         position: relative;
         overflow-y: visible;
     }
-    .ac-is-sidebar-nav {
+    .sukna-sidebar-nav {
         display: flex;
         overflow-x: auto;
         scrollbar-width: none;
     }
-    .ac-is-sidebar-nav::-webkit-scrollbar { display: none; }
+    .sukna-sidebar-nav::-webkit-scrollbar { display: none; }
 
-    .ac-is-sidebar-nav a {
+    .sukna-sidebar-nav a {
         padding: 12px 15px;
         white-space: nowrap;
         border-right: none;
         border-bottom: 4px solid transparent;
     }
-    .ac-is-sidebar-nav a.active {
-        border-bottom-color: var(--ac-primary);
+    .sukna-sidebar-nav a.active {
+        border-bottom-color: #2563eb;
     }
 
-    .ac-is-sidebar-footer {
+    .sukna-sidebar-footer {
         display: none !important; /* Hide standard footer */
     }
 
-    .ac-is-mobile-bottom-bar {
+    .sukna-mobile-bottom-bar {
         display: flex !important;
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
         height: 65px;
-        background: var(--ac-sidebar-bg);
+        background: #1e293b;
         z-index: 10005;
         justify-content: space-around;
         align-items: center;
-        border-top: 1px solid var(--ac-sidebar-hover);
+        border-top: 1px solid #334155;
     }
 
-    .ac-is-mobile-bottom-bar .sidebar-ctrl-icon {
+    .sukna-mobile-bottom-bar .sidebar-ctrl-icon {
         color: #94a3b8;
         display: flex;
         flex-direction: column;
@@ -212,29 +212,29 @@
         flex: 1;
     }
 
-    .ac-is-mobile-bottom-bar .sidebar-ctrl-icon span.dashicons {
+    .sukna-mobile-bottom-bar .sidebar-ctrl-icon span.dashicons {
         font-size: 20px;
     }
 
-    .ac-is-mobile-bottom-bar .logout {
+    .sukna-mobile-bottom-bar .logout {
         color: #ef4444 !important;
     }
 
-    #ac-is-system-root:fullscreen .ac-is-main-content { margin-right: 0; width: 100%; }
+    #sukna-system-root:fullscreen .sukna-main-content { margin-right: 0; width: 100%; }
 
-    .ac-is-cart-area {
+    .sukna-cart-area {
         position: static !important;
     }
 
     /* Hide non-critical sections on mobile */
-    .ac-is-sidebar-nav a[href*="ac_view=payroll"],
-    .ac-is-sidebar-nav a[href*="ac_view=sales-history"],
-    .ac-is-sidebar-nav a[href*="ac_view=inventory"] {
+    .sukna-sidebar-nav a[href*="ac_view=payroll"],
+    .sukna-sidebar-nav a[href*="ac_view=sales-history"],
+    .sukna-sidebar-nav a[href*="ac_view=inventory"] {
         display: none !important;
     }
 
     /* Mobile Dashboard Card Optimization - HARD ENFORCED 3 PER ROW */
-    .ac-is-metrics-row {
+    .sukna-metrics-row {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
         gap: 8px !important;
@@ -243,7 +243,7 @@
         overflow: hidden !important;
     }
 
-    .ac-is-metric-card {
+    .sukna-metric-card {
         flex: none !important;
         width: 100% !important;
         min-width: 0 !important;
@@ -257,14 +257,14 @@
         justify-content: center;
     }
 
-    .ac-is-metric-icon {
+    .sukna-metric-icon {
         width: 20px !important;
         height: 20px !important;
         font-size: 12px !important;
         margin: 0 auto;
     }
 
-    .ac-is-metric-title {
+    .sukna-metric-title {
         font-size: 0.5rem !important;
         margin-bottom: 1px !important;
         white-space: nowrap;
@@ -273,12 +273,12 @@
         font-weight: 700;
     }
 
-    .ac-is-metric-value {
+    .sukna-metric-value {
         font-size: 0.65rem !important;
         font-weight: 800;
     }
 
-    .ac-is-metric-content div:last-child {
+    .sukna-metric-content div:last-child {
         font-size: 0.5rem !important;
         margin-top: 1px;
     }
@@ -288,17 +288,17 @@
 }
 
 @media (max-width: 768px) {
-    .ac-is-grid {
+    .sukna-grid {
         grid-template-columns: 1fr !important;
         gap: 20px;
     }
 
-    .ac-is-main-content {
+    .sukna-main-content {
         padding: 15px;
     }
 
     /* Hard enforce 3 per row even on 768px and smaller */
-    .ac-is-metrics-row {
+    .sukna-metrics-row {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
         gap: 5px !important;
@@ -306,42 +306,42 @@
 }
 
 /* Sales Form Mobile Optimization */
-.ac-is-cart-area {
+.sukna-cart-area {
     position: sticky;
     top: 20px;
 }
 
 /* Table Optimization - Reduced Row Height & Padding */
-.ac-is-table {
+.sukna-table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
-    border: 1px solid var(--ac-border);
+    border: 1px solid #e2e8f0;
 }
 
-.ac-is-table th {
+.sukna-table th {
     background: #f8fafc;
     padding: 12px 15px;
     text-align: right;
     font-weight: 700;
     color: #334155;
-    border-bottom: 2px solid var(--ac-border);
+    border-bottom: 2px solid #e2e8f0;
     font-size: 0.85rem;
 }
 
-.ac-is-table td {
+.sukna-table td {
     padding: 10px 15px;
-    border-bottom: 1px solid var(--ac-border);
+    border-bottom: 1px solid #e2e8f0;
     color: #475569;
     font-size: 0.85rem;
 }
 
 /* Quick Sales Mode Toggles */
-.ac-is-mode-toggles {
+.sukna-mode-toggles {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.ac-is-mode-box {
+.sukna-mode-box {
     padding: 6px 15px;
     cursor: pointer;
     display: flex;
@@ -353,35 +353,35 @@
     border: 1px solid transparent;
 }
 
-.ac-is-mode-box:hover {
+.sukna-mode-box:hover {
     background: #f8fafc;
 }
 
-.ac-is-mode-box.active {
-    background: var(--ac-primary);
+.sukna-mode-box.active {
+    background: #2563eb;
     color: #fff;
     box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
 }
 
-.ac-is-mode-box .dashicons {
+.sukna-mode-box .dashicons {
     font-size: 18px;
     width: 18px;
     height: 18px;
 }
 
 /* Sidebar Footer Controls */
-.ac-is-sidebar-footer {
+.sukna-sidebar-footer {
     padding: 15px;
-    border-top: 1px solid var(--ac-sidebar-hover);
+    border-top: 1px solid #334155;
 }
 
-.ac-is-top-controls {
+.sukna-top-controls {
     display: flex;
     justify-content: space-between;
     gap: 10px;
 }
 
-.ac-is-top-controls .control-btn {
+.sukna-top-controls .control-btn {
     flex: 1;
     height: 40px;
     background: #334155;
@@ -395,25 +395,25 @@
     transition: all 0.2s;
 }
 
-.ac-is-top-controls .control-btn:hover {
+.sukna-top-controls .control-btn:hover {
     background: #475569;
 }
 
-.ac-is-top-controls .control-btn.logout {
+.sukna-top-controls .control-btn.logout {
     background: #991b1b;
 }
 
-.ac-is-top-controls .control-btn.logout:hover {
+.sukna-top-controls .control-btn.logout:hover {
     background: #dc2626;
 }
 
-.ac-is-mode-box small {
+.sukna-mode-box small {
     font-weight: 700;
     font-size: 0.8rem;
 }
 
 /* Mobile Barcode Scanner Professional UI */
-#ac-is-reader-container {
+#sukna-reader-container {
     position: relative;
     width: 100%;
     max-width: 500px;
@@ -424,12 +424,12 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
-#ac-is-reader {
+#sukna-reader {
     width: 100% !important;
     border: none !important;
 }
 
-.ac-is-scan-overlay {
+.sukna-scan-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -442,7 +442,7 @@
     justify-content: center;
 }
 
-.ac-is-scan-frame {
+.sukna-scan-frame {
     width: 250px;
     height: 150px;
     border: 2px solid rgba(255, 255, 255, 0.5);
@@ -450,7 +450,7 @@
     box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);
 }
 
-.ac-is-scan-frame::before {
+.sukna-scan-frame::before {
     content: "";
     position: absolute;
     top: 0;
@@ -468,7 +468,7 @@
     100% { top: 0; }
 }
 
-.ac-is-scan-corners {
+.sukna-scan-corners {
     position: absolute;
     top: -2px;
     left: -2px;
@@ -476,22 +476,22 @@
     bottom: -2px;
 }
 
-.ac-is-scan-corners::before, .ac-is-scan-corners::after {
+.sukna-scan-corners::before, .sukna-scan-corners::after {
     content: "";
     position: absolute;
     width: 20px;
     height: 20px;
-    border: 4px solid var(--ac-primary);
+    border: 4px solid #2563eb;
 }
 
 /* Top Left */
-.ac-is-scan-corners::before { top: 0; left: 0; border-right: none; border-bottom: none; }
+.sukna-scan-corners::before { top: 0; left: 0; border-right: none; border-bottom: none; }
 /* Top Right - pseudo element hack for 4 corners */
-.ac-is-scan-frame-corner-tr { position: absolute; top: -2px; right: -2px; width: 20px; height: 20px; border: 4px solid var(--ac-primary); border-left: none; border-bottom: none; }
-.ac-is-scan-frame-corner-bl { position: absolute; bottom: -2px; left: -2px; width: 20px; height: 20px; border: 4px solid var(--ac-primary); border-right: none; border-top: none; }
-.ac-is-scan-frame-corner-br { position: absolute; bottom: -2px; right: -2px; width: 20px; height: 20px; border: 4px solid var(--ac-primary); border-left: none; border-top: none; }
+.sukna-scan-frame-corner-tr { position: absolute; top: -2px; right: -2px; width: 20px; height: 20px; border: 4px solid #2563eb; border-left: none; border-bottom: none; }
+.sukna-scan-frame-corner-bl { position: absolute; bottom: -2px; left: -2px; width: 20px; height: 20px; border: 4px solid #2563eb; border-right: none; border-top: none; }
+.sukna-scan-frame-corner-br { position: absolute; bottom: -2px; right: -2px; width: 20px; height: 20px; border: 4px solid #2563eb; border-left: none; border-top: none; }
 
-.ac-is-scan-status {
+.sukna-scan-status {
     position: absolute;
     bottom: 20px;
     left: 50%;
@@ -516,52 +516,52 @@
 }
 
 /* Card Styles - Scaled Down */
-.ac-is-card {
+.sukna-card {
     background: #fff;
     padding: 22px;
     border-radius: 0;
-    border: 1px solid var(--ac-border);
+    border: 1px solid #e2e8f0;
 }
 
-.ac-is-card h3 {
+.sukna-card h3 {
     margin: 0 0 12px 0;
     font-size: 0.95rem;
     color: #64748b;
     font-weight: 600;
 }
 
-.ac-is-card .value {
+.sukna-card .value {
     font-size: 1.8rem;
     font-weight: 800;
 }
 
 /* Horizontal Metrics Cards */
-.ac-is-metrics-row {
+.sukna-metrics-row {
     display: flex;
     gap: 15px;
     margin-bottom: 30px;
     flex-wrap: wrap;
 }
 
-.ac-is-metric-card {
+.sukna-metric-card {
     flex: 1;
     background: #fff;
     padding: 22px;
-    border-right: 5px solid var(--ac-primary);
+    border-right: 5px solid #2563eb;
     display: flex;
     align-items: center;
     gap: 22px;
-    border: 1px solid var(--ac-border);
-    border-right: 5px solid var(--ac-primary);
+    border: 1px solid #e2e8f0;
+    border-right: 5px solid #2563eb;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.ac-is-metric-card:hover {
+.sukna-metric-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.ac-is-metric-icon {
+.sukna-metric-icon {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -572,18 +572,18 @@
     flex-shrink: 0;
 }
 
-.ac-is-metric-content {
+.sukna-metric-content {
     flex-grow: 1;
 }
 
-.ac-is-metric-title {
+.sukna-metric-title {
     font-size: 0.85rem;
     color: #64748b;
     font-weight: 600;
     margin-bottom: 5px;
 }
 
-.ac-is-metric-value {
+.sukna-metric-value {
     font-size: 1.5rem;
     font-weight: 800;
     color: var(--ac-text);
@@ -591,26 +591,26 @@
 
 
 /* Form Styles - Reduced Gaps & Padding */
-.ac-is-grid {
+.sukna-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
-.ac-is-form-group {
+.sukna-form-group {
     margin-bottom: 18px;
 }
 
-.ac-is-form-group label {
+.sukna-form-group label {
     display: block;
     margin-bottom: 6px;
     font-weight: 600;
     font-size: 0.85rem;
 }
 
-.ac-is-form-group input,
-.ac-is-form-group select,
-.ac-is-form-group textarea {
+.sukna-form-group input,
+.sukna-form-group select,
+.sukna-form-group textarea {
     padding: 8px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
@@ -619,7 +619,7 @@
 }
 
 /* Capsules - Smaller */
-.ac-is-capsule {
+.sukna-capsule {
     display: inline-block;
     padding: 2px 8px;
     font-size: 0.75rem;
@@ -630,7 +630,7 @@
 .capsule-primary { background: var(--ac-info); color: var(--ac-info-text); }
 .capsule-success { background: var(--ac-success); color: var(--ac-success-text); }
 .capsule-warning { background: var(--ac-warning); color: var(--ac-warning-text); }
-.capsule-danger { background: var(--ac-danger); color: var(--ac-danger-text); }
+.capsule-danger { background: #fee2e2; color: #991b1b; }
 
 .spin {
     display: inline-block;
