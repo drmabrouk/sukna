@@ -5,27 +5,82 @@ $current_user = Sukna_Auth::current_user();
 if ( Sukna_Auth::is_admin() ) {
     $total_users = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}sukna_staff");
     $total_properties = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}sukna_properties");
+    $stats = Sukna_Investments::get_system_wide_stats();
     ?>
     <div class="sukna-header-flex" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة تحكم المدير', 'sukna'); ?></h2>
+        <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة تحكم النظام', 'sukna'); ?></h2>
     </div>
-    <div class="sukna-metrics-row">
-        <div class="sukna-metric-card" style="border-right-color: #000;">
-            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #000;">
-                <span class="dashicons dashicons-admin-users"></span>
-            </div>
-            <div class="sukna-metric-content">
-                <div class="sukna-metric-title"><?php _e('إجمالي المستخدمين', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo number_format($total_users); ?></div>
-            </div>
-        </div>
-        <div class="sukna-metric-card" style="border-right-color: #D4AF37;">
-            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #D4AF37;">
+
+    <!-- Administrative Overview Metrics -->
+    <div class="sukna-metrics-grid">
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
                 <span class="dashicons dashicons-admin-home"></span>
             </div>
             <div class="sukna-metric-content">
-                <div class="sukna-metric-title"><?php _e('إجمالي العقارات', 'sukna'); ?></div>
+                <div class="sukna-metric-title"><?php _e('العقارات', 'sukna'); ?></div>
                 <div class="sukna-metric-value"><?php echo number_format($total_properties); ?></div>
+            </div>
+        </div>
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #D4AF37;">
+                <span class="dashicons dashicons-money-alt"></span>
+            </div>
+            <div class="sukna-metric-content">
+                <div class="sukna-metric-title"><?php _e('المستثمرون', 'sukna'); ?></div>
+                <div class="sukna-metric-value"><?php echo number_format($stats['investor_count']); ?></div>
+            </div>
+        </div>
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
+                <span class="dashicons dashicons-admin-users"></span>
+            </div>
+            <div class="sukna-metric-content">
+                <div class="sukna-metric-title"><?php _e('المستخدمون', 'sukna'); ?></div>
+                <div class="sukna-metric-value"><?php echo number_format($total_users); ?></div>
+            </div>
+        </div>
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #059669;">
+                <span class="dashicons dashicons-chart-area"></span>
+            </div>
+            <div class="sukna-metric-content">
+                <div class="sukna-metric-title"><?php _e('صافي الربح الكلي', 'sukna'); ?></div>
+                <div class="sukna-metric-value"><?php echo number_format($stats['net_profit']); ?></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sukna-grid" style="grid-template-columns: 2fr 1fr; gap: 25px;">
+        <div class="sukna-card" style="border-top: 5px solid #000;">
+            <h3 style="margin-bottom:20px;"><?php _e('الأداء المالي للنظام', 'sukna'); ?></h3>
+            <div class="sukna-grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <div style="background:#f8fafc; padding:20px; border-radius:12px; border:1px solid #e2e8f0;">
+                    <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('إجمالي الاستثمارات', 'sukna'); ?></small>
+                    <div style="font-size:1.4rem; font-weight:800;"><?php echo number_format($stats['total_invested']); ?></div>
+                </div>
+                <div style="background:#f8fafc; padding:20px; border-radius:12px; border:1px solid #e2e8f0;">
+                    <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('إجمالي الإيرادات', 'sukna'); ?></small>
+                    <div style="font-size:1.4rem; font-weight:800; color:#059669;"><?php echo number_format($stats['total_revenue']); ?></div>
+                </div>
+                <div style="background:#f8fafc; padding:20px; border-radius:12px; border:1px solid #e2e8f0;">
+                    <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('إجمالي المصروفات', 'sukna'); ?></small>
+                    <div style="font-size:1.4rem; font-weight:800; color:#ef4444;"><?php echo number_format($stats['total_expenses']); ?></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sukna-card">
+            <h3><?php _e('سجل العمليات الأخير', 'sukna'); ?></h3>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <?php
+                $recent_logs = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}sukna_activity_logs ORDER BY action_date DESC LIMIT 10");
+                foreach($recent_logs as $log): ?>
+                    <div style="padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
+                        <small style="display:block; color:#64748b;"><?php echo date('H:i - Y/m/d', strtotime($log->action_date)); ?></small>
+                        <div style="font-size:0.8rem; font-weight:600;"><?php echo esc_html($log->description); ?></div>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
@@ -76,32 +131,41 @@ if ( Sukna_Auth::is_admin() ) {
     </div>
 
     <!-- Overall Metrics -->
-    <div class="sukna-metrics-row" style="margin-bottom:30px;">
-        <div class="sukna-metric-card" style="border-right-color: #D4AF37;">
-            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #D4AF37;">
+    <div class="sukna-metrics-grid">
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #D4AF37;">
                 <span class="dashicons dashicons-money-alt"></span>
             </div>
             <div class="sukna-metric-content">
                 <div class="sukna-metric-title"><?php _e('المحفظة المالية', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo number_format($wallet, 2); ?> EGP</div>
+                <div class="sukna-metric-value"><?php echo number_format($wallet); ?></div>
             </div>
         </div>
-        <div class="sukna-metric-card" style="border-right-color: #000;">
-            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #000;">
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
                 <span class="dashicons dashicons-chart-line"></span>
             </div>
             <div class="sukna-metric-content">
                 <div class="sukna-metric-title"><?php _e('إجمالي الاستثمارات', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo number_format($perf['total_invested'], 2); ?> EGP</div>
+                <div class="sukna-metric-value"><?php echo number_format($perf['total_invested']); ?></div>
             </div>
         </div>
-        <div class="sukna-metric-card" style="border-right-color: #059669;">
-            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #059669;">
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #059669;">
                 <span class="dashicons dashicons-chart-area"></span>
             </div>
             <div class="sukna-metric-content">
-                <div class="sukna-metric-title"><?php _e('إجمالي الأرباح المحققة', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo number_format($total_profit, 2); ?> EGP <small style="font-size:0.75rem; color:#059669;">(<?php echo round($overall_roi, 1); ?>%)</small></div>
+                <div class="sukna-metric-title"><?php _e('إجمالي الأرباح', 'sukna'); ?></div>
+                <div class="sukna-metric-value"><?php echo number_format($total_profit); ?> <small style="font-size:0.7rem; color:#059669; font-weight:700;">(<?php echo round($overall_roi, 1); ?>%)</small></div>
+            </div>
+        </div>
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
+                <span class="dashicons dashicons-admin-home"></span>
+            </div>
+            <div class="sukna-metric-content">
+                <div class="sukna-metric-title"><?php _e('عقارات مشارك بها', 'sukna'); ?></div>
+                <div class="sukna-metric-value"><?php echo $perf['property_count']; ?></div>
             </div>
         </div>
     </div>
@@ -219,11 +283,21 @@ if ( Sukna_Auth::is_admin() ) {
                     </div>
 
                     <div style="margin-top:25px; padding-top:20px; border-top:1px solid #eee;">
-                        <h4 style="font-size:0.8rem; margin:0 0 10px 0; color:#64748b;"><?php _e('قائمة الوحدات الشاغرة:', 'sukna'); ?></h4>
-                        <div style="display:flex; flex-wrap:wrap; gap:5px;">
-                            <?php foreach($vacant_rooms as $vr): ?>
-                                <span style="background:#f1f5f9; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">#<?php echo $vr->room_number; ?></span>
-                            <?php endforeach; ?>
+                        <div style="margin-bottom:15px;">
+                            <h4 style="font-size:0.8rem; margin:0 0 8px 0; color:#ef4444;"><?php _e('قائمة الوحدات المؤجرة:', 'sukna'); ?></h4>
+                            <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                                <?php foreach($rented_rooms as $rr): ?>
+                                    <span style="background:#fef2f2; border:1px solid #fee2e2; color:#ef4444; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">#<?php echo $rr->room_number; ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="font-size:0.8rem; margin:0 0 8px 0; color:#059669;"><?php _e('قائمة الوحدات الشاغرة:', 'sukna'); ?></h4>
+                            <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                                <?php foreach($vacant_rooms as $vr): ?>
+                                    <span style="background:#f0fdf4; border:1px solid #dcfce7; color:#059669; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">#<?php echo $vr->room_number; ?></span>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -252,14 +326,27 @@ if ( Sukna_Auth::is_admin() ) {
 } elseif ( Sukna_Auth::is_owner() ) {
     $properties = Sukna_Properties::get_all_properties(array('owner_id' => $current_user->id));
     $total_rooms = 0;
-    foreach($properties as $p) $total_rooms += count(Sukna_Properties::get_rooms($p->id));
+    $total_occupied = 0;
+    $total_income = 0;
+    $total_expenses = 0;
+
+    foreach($properties as $p) {
+        $rooms = Sukna_Properties::get_rooms($p->id);
+        $perf = Sukna_Properties::get_property_performance($p->id);
+        $total_rooms += count($rooms);
+        $total_occupied += count(array_filter($rooms, function($r){ return $r->status === 'rented'; }));
+        $total_income += $perf['monthly_income'];
+        $total_expenses += $perf['expenses'];
+    }
     ?>
     <div class="sukna-header-flex" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة المالك', 'sukna'); ?></h2>
+        <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة تحكم إدارة العقارات', 'sukna'); ?></h2>
     </div>
-    <div class="sukna-metrics-row">
-        <div class="sukna-metric-card" style="border-right-color: #D4AF37;">
-            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #D4AF37;">
+
+    <!-- Owner Overview Metrics -->
+    <div class="sukna-metrics-grid">
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
                 <span class="dashicons dashicons-admin-home"></span>
             </div>
             <div class="sukna-metric-content">
@@ -267,13 +354,69 @@ if ( Sukna_Auth::is_admin() ) {
                 <div class="sukna-metric-value"><?php echo count($properties); ?></div>
             </div>
         </div>
-        <div class="sukna-metric-card" style="border-right-color: #000;">
-            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #000;">
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #D4AF37;">
                 <span class="dashicons dashicons-layout"></span>
             </div>
             <div class="sukna-metric-content">
-                <div class="sukna-metric-title"><?php _e('إجمالي الوحدات/الغرف', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo $total_rooms; ?></div>
+                <div class="sukna-metric-title"><?php _e('الوحدات المؤجرة', 'sukna'); ?></div>
+                <div class="sukna-metric-value"><?php echo $total_occupied; ?> / <?php echo $total_rooms; ?></div>
+            </div>
+        </div>
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #059669;">
+                <span class="dashicons dashicons-money-alt"></span>
+            </div>
+            <div class="sukna-metric-content">
+                <div class="sukna-metric-title"><?php _e('الدخل الشهري', 'sukna'); ?></div>
+                <div class="sukna-metric-value"><?php echo number_format($total_income); ?></div>
+            </div>
+        </div>
+        <div class="sukna-metric-card">
+            <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
+                <span class="dashicons dashicons-chart-line"></span>
+            </div>
+            <div class="sukna-metric-content">
+                <div class="sukna-metric-title"><?php _e('صافي الربح الكلي', 'sukna'); ?></div>
+                <div class="sukna-metric-value"><?php echo number_format($total_income - $total_expenses); ?></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sukna-grid" style="grid-template-columns: 1.5fr 1fr; gap: 25px;">
+        <div class="sukna-card" style="border-top: 5px solid #D4AF37;">
+            <h3 style="margin-bottom:20px;"><?php _e('قائمة العقارات والوحدات', 'sukna'); ?></h3>
+            <table class="sukna-table">
+                <thead>
+                    <tr>
+                        <th><?php _e('العقار', 'sukna'); ?></th>
+                        <th><?php _e('الإشغال', 'sukna'); ?></th>
+                        <th><?php _e('الربح', 'sukna'); ?></th>
+                        <th><?php _e('ROI', 'sukna'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach($properties as $p):
+                        $rooms = Sukna_Properties::get_rooms($p->id);
+                        $occ = count(array_filter($rooms, function($r){ return $r->status === 'rented'; }));
+                        $perf = Sukna_Properties::get_property_performance($p->id);
+                    ?>
+                        <tr>
+                            <td><strong><?php echo esc_html($p->name); ?></strong></td>
+                            <td><?php echo $occ; ?> / <?php echo count($rooms); ?></td>
+                            <td style="font-weight:700; color:<?php echo ($perf['net'] >= 0) ? '#059669' : '#ef4444'; ?>"><?php echo number_format($perf['net']); ?></td>
+                            <td><span class="sukna-capsule capsule-accent"><?php echo $perf['roi']; ?>%</span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="sukna-card">
+            <h3><?php _e('التنبيهات العقارية', 'sukna'); ?></h3>
+            <div style="padding: 15px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
+                <small style="color: #92400e; font-weight: 700; display: block; margin-bottom: 5px;">! <?php _e('تذكير بداية الشهر', 'sukna'); ?></small>
+                <p style="margin: 0; font-size: 0.8rem; color: #92400e;"><?php _e('يرجى التأكد من إعادة تعيين الوحدات الشاغرة لتسجيل عقود الإيجار الجديدة.', 'sukna'); ?></p>
             </div>
         </div>
     </div>

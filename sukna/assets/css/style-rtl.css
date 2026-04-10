@@ -205,15 +205,69 @@ body, .sukna-dashboard {
     transform: translateY(-1px);
 }
 
-/* Grid System */
+/* Unified Dashboard Components */
 .sukna-grid {
     display: grid;
+    gap: 25px;
+}
+
+.sukna-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 20px;
+    margin-bottom: 30px;
+}
+
+.sukna-metric-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--sukna-border);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.sukna-metric-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.sukna-metric-title {
+    font-size: 0.75rem;
+    color: var(--sukna-muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.sukna-metric-value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--sukna-primary);
+}
+
+.sukna-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
 }
 
 @media (max-width: 1024px) {
     .sukna-sidebar { position: relative !important; width: 100% !important; height: auto !important; border-left: none; border-bottom: 1px solid #1a1a1a; }
     .sukna-main-content { margin-right: 0 !important; padding: 20px 20px 100px 20px; }
+
+    .sukna-grid { grid-template-columns: 1fr !important; }
+    .sukna-metrics-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
 
     /* Disable scroll indicators on mobile */
     ::-webkit-scrollbar {
