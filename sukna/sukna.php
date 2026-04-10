@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define constants
-define( 'SUKNA_VERSION', time() ); // Use time() to bypass cache during development/updates
+define( 'SUKNA_VERSION', time() ); // Use time() to force immediate file updates by bypassing cache
 define( 'SUKNA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SUKNA_URL', plugin_dir_url( __FILE__ ) );
 

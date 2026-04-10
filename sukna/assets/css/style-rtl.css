@@ -3,22 +3,28 @@
     --sukna-secondary: #ffffff;
     --sukna-accent: #D4AF37; /* Gold */
     --sukna-bg: #f1f5f9;
+    --sukna-card-bg: #ffffff;
     --sukna-sidebar-bg: #000000;
     --sukna-sidebar-text: #ffffff;
     --sukna-border: #e2e8f0;
     --sukna-text: #0f172a;
     --sukna-muted: #64748b;
+    --sukna-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+* {
+    font-family: 'Rubik', sans-serif !important;
 }
 
 body, .sukna-dashboard {
     direction: rtl;
     text-align: right;
-    font-family: 'Rubik', sans-serif !important;
     min-height: 100vh;
     background: var(--sukna-bg);
     margin: 0;
     padding: 0;
     font-size: 0.9rem;
+    color: var(--sukna-text);
 }
 
 /* Sidebar Styles */
@@ -34,20 +40,22 @@ body, .sukna-dashboard {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    border-left: 1px solid #1a1a1a;
 }
 
 .sukna-sidebar-logo {
     padding: 25px 15px;
     text-align: center;
-    height: 120px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
 }
 
 .sukna-sidebar-logo img {
     max-width: 100%;
-    max-height: 80px;
+    max-height: 60px;
     width: auto;
     object-fit: contain;
     display: block;
@@ -76,24 +84,73 @@ body, .sukna-dashboard {
     min-height: 100vh;
 }
 
-/* Auth Styles */
+/* Card Standardization */
+.sukna-card {
+    background: var(--sukna-card-bg);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid var(--sukna-border);
+    box-shadow: var(--sukna-shadow);
+    margin-bottom: 20px;
+}
+
+.sukna-card h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--sukna-primary);
+}
+
+/* Form Styles - Placeholder focus */
+.sukna-form-group {
+    margin-bottom: 15px;
+}
+
+.sukna-form-group input,
+.sukna-form-group select,
+.sukna-form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--sukna-border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+
+.sukna-form-group input:focus {
+    border-color: var(--sukna-accent);
+    outline: none;
+}
+
+/* Auth Redesign - Solid Black */
 .sukna-auth-wrapper {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
     background: #000000 !important;
+    padding: 20px;
 }
 
 .sukna-auth-card {
     background: #000000 !important;
-    border: 1px solid #333 !important;
+    border: 1px solid #1a1a1a !important;
     color: #ffffff !important;
+    width: 100%;
+    max-width: 450px;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
 }
 
 .sukna-auth-card input, .sukna-auth-card select {
-    background: #1a1a1a !important;
-    border: 1px solid #333 !important;
+    background: #0a0a0a !important;
+    border: 1px solid #222 !important;
     color: #ffffff !important;
 }
 
-/* Phone Input Flags */
+/* Phone Input Flags Inside */
 .phone-input-group {
     position: relative;
     display: flex;
@@ -102,39 +159,63 @@ body, .sukna-dashboard {
 
 .country-flag-inside {
     position: absolute;
-    left: 10px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 5;
+    font-size: 1.2rem;
     pointer-events: none;
 }
 
-/* Common UI */
+.phone-input-group select {
+    width: 90px;
+    padding-left: 35px !important;
+    border-radius: 8px 0 0 8px;
+    border-right: none;
+}
+
+.phone-input-group input {
+    border-radius: 0 8px 8px 0;
+    flex: 1;
+}
+
+/* Buttons */
 .sukna-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
     background: var(--sukna-primary);
     color: #fff !important;
-    border: 1px solid #333;
-    padding: 10px 20px;
+    border: 1px solid #222;
+    border-radius: 8px;
     cursor: pointer;
-    font-family: inherit;
     font-weight: 600;
     transition: 0.2s;
 }
 
+.sukna-btn-accent {
+    background: var(--sukna-accent);
+    color: #000 !important;
+    border: none;
+}
+
 .sukna-btn:hover {
-    background: #1a1a1a;
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
-.sukna-capsule {
-    padding: 2px 10px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
+/* Grid System */
+.sukna-grid {
+    display: grid;
+    gap: 20px;
 }
-
-.capsule-accent { background: var(--sukna-accent); color: #000; }
 
 @media (max-width: 1024px) {
-    .sukna-sidebar { position: relative !important; width: 100% !important; height: auto !important; }
-    .sukna-main-content { margin-right: 0 !important; }
+    .sukna-sidebar { position: relative !important; width: 100% !important; height: auto !important; border-left: none; border-bottom: 1px solid #1a1a1a; }
+    .sukna-main-content { margin-right: 0 !important; padding: 20px; }
+}
+
+@media (max-width: 480px) {
+    .sukna-auth-card { padding: 30px 20px; }
 }
