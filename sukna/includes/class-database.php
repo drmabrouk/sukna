@@ -15,13 +15,15 @@ class Sukna_Database {
 
 		$sql = "CREATE TABLE $table_staff (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
-			username varchar(100) NOT NULL,
+			username varchar(100),
+			phone varchar(50) NOT NULL,
 			password varchar(255) NOT NULL,
 			name varchar(255),
 			email varchar(255),
 			role varchar(50) DEFAULT 'employee',
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
+			UNIQUE KEY phone (phone),
 			UNIQUE KEY username (username)
 		) $charset_collate;
 
@@ -59,10 +61,11 @@ class Sukna_Database {
 		$table_settings = $wpdb->prefix . 'sukna_settings';
 
 		// Default admin if not exists
-		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_staff WHERE username = %s", 'admin' ) );
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_staff WHERE username = %s OR phone = %s", 'admin', 'admin' ) );
 		if ( ! $exists ) {
 			$wpdb->insert( $table_staff, array(
 				'username' => 'admin',
+				'phone'    => 'admin',
 				'password' => password_hash( 'admin123', PASSWORD_DEFAULT ),
 				'name'     => 'System Admin',
 				'role'     => 'admin'

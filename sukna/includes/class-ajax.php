@@ -8,7 +8,7 @@ class Sukna_Ajax {
 	public function __construct() {
 		$actions = array(
 			'logout', 'add_user', 'save_user', 'delete_user', 'save_settings',
-			'verify_fullscreen_password', 'undo_activity'
+			'verify_fullscreen_password', 'undo_activity', 'register'
 		);
 
 		foreach ( $actions as $action ) {
@@ -22,16 +22,47 @@ class Sukna_Ajax {
 
 	public function login() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
-		$username = sanitize_text_field( $_POST['username'] );
-		$password = $_POST['password'];
 
-		if ( Sukna_Auth::login( $username, $password ) ) {
-			Sukna_Audit::log('login', "User $username logged in");
+		$phone = sanitize_text_field( $_POST['phone'] ?? '' );
+		$password = $_POST['password'] ?? '';
+
+		if ( Sukna_Auth::login( $phone, $password ) ) {
+			Sukna_Audit::log('login', "User with phone $phone logged in");
 			wp_send_json_success();
 		} else {
-			Sukna_Audit::log('failed_login', "Failed login attempt for $username");
-			wp_send_json_error();
+			Sukna_Audit::log('failed_login', "Failed login attempt for phone $phone");
+			wp_send_json_error( array( 'message' => __( 'بيانات الدخول غير صحيحة.', 'sukna' ) ) );
 		}
+	}
+
+	public function register() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+
+		$data = array(
+			'first_name' => sanitize_text_field( $_POST['first_name'] ),
+			'last_name'  => sanitize_text_field( $_POST['last_name'] ),
+			'phone'      => sanitize_text_field( $_POST['phone'] ),
+			'email'      => sanitize_email( $_POST['email'] ),
+			'password'   => $_POST['password'],
+		);
+
+		// Basic validation
+		if ( empty($data['first_name']) || empty($data['last_name']) || empty($data['phone']) || empty($data['password']) ) {
+			wp_send_json_error( array( 'message' => __( 'يرجى ملء جميع الحقول المطلوبة.', 'sukna' ) ) );
+		}
+
+		if ( strlen($data['password']) < 8 ) {
+			wp_send_json_error( array( 'message' => __( 'كلمة المرور يجب أن لا تقل عن 8 أحرف.', 'sukna' ) ) );
+		}
+
+		$result = Sukna_Auth::register_user( $data );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		Sukna_Audit::log('registration', "New user registered: {$data['phone']}");
+		wp_send_json_success();
 	}
 
 	public function logout() {
@@ -48,11 +79,14 @@ class Sukna_Ajax {
 		$table = $wpdb->prefix . 'sukna_staff';
 
 		$username = sanitize_text_field( $_POST['username'] );
-		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE username = %s", $username ) );
-		if ( $exists ) wp_send_json_error( 'Username already exists' );
+		$phone    = sanitize_text_field( $_POST['phone'] );
+
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE username = %s OR phone = %s", $username, $phone ) );
+		if ( $exists ) wp_send_json_error( 'Username or Phone already exists' );
 
 		$data = array(
 			'username' => $username,
+			'phone'    => $phone,
 			'password' => password_hash( $_POST['password'], PASSWORD_DEFAULT ),
 			'name'     => sanitize_text_field( $_POST['name'] ),
 			'email'    => sanitize_email( $_POST['email'] ),
@@ -71,9 +105,11 @@ class Sukna_Ajax {
 		global $wpdb;
 		$id = intval( $_POST['id'] );
 		$username = sanitize_text_field( $_POST['username'] );
+		$phone    = sanitize_text_field( $_POST['phone'] );
 
 		$data = array(
 			'username' => $username,
+			'phone'    => $phone,
 			'name'     => sanitize_text_field( $_POST['name'] ),
 			'email'    => sanitize_email( $_POST['email'] ),
 			'role'     => sanitize_text_field( $_POST['role'] ),

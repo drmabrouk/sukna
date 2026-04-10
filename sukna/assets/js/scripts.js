@@ -1,8 +1,121 @@
 jQuery(document).ready(function($) {
-    // Shared State
-    const SCAN_COOLDOWN = 5000; // 5 seconds
+    // --- Auth Toggling & Multi-step Registration ---
 
-    // --- Infrastructure & Other Logic ---
+    $('#switch-to-register').on('click', function() {
+        $('#sukna-login-container').fadeOut(200, function() {
+            $('#sukna-register-container').fadeIn(200);
+        });
+    });
+
+    $('#switch-to-login').on('click', function() {
+        $('#sukna-register-container').fadeOut(200, function() {
+            $('#sukna-login-container').fadeIn(200);
+        });
+    });
+
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    $('#reg-next').on('click', function() {
+        if (validateStep(currentStep)) {
+            $(`#reg-step-${currentStep}`).hide();
+            currentStep++;
+            $(`#reg-step-${currentStep}`).show();
+            updateRegButtons();
+        }
+    });
+
+    $('#reg-prev').on('click', function() {
+        $(`#reg-step-${currentStep}`).hide();
+        currentStep--;
+        $(`#reg-step-${currentStep}`).show();
+        updateRegButtons();
+    });
+
+    function updateRegButtons() {
+        $('#reg-prev').toggle(currentStep > 1);
+        $('#reg-next').toggle(currentStep < totalSteps);
+        $('#reg-submit').toggle(currentStep === totalSteps);
+    }
+
+    function validateStep(step) {
+        let valid = true;
+        $(`#reg-step-${step} input[required]`).each(function() {
+            if (!$(this).val()) {
+                alert('يرجى ملء الحقول المطلوبة');
+                valid = false;
+                return false;
+            }
+        });
+        return valid;
+    }
+
+    // --- Authentication Actions ---
+
+    $('#sukna-login-form').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $(this).find('button[type="submit"]');
+        const phoneFull = $('#login-country-code').val() + $('#login-phone-body').val();
+        $('#login-phone-full').val(phoneFull);
+
+        $btn.prop('disabled', true).text('جاري الدخول...');
+        $('#login-error').hide();
+
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_login&nonce=' + sukna_ajax.nonce, function(res) {
+            if (res.success) {
+                window.location.reload();
+            } else {
+                $btn.prop('disabled', false).text('تسجيل الدخول');
+                $('#login-error').text(res.data.message || 'حدث خطأ').show();
+            }
+        });
+    });
+
+    $('#sukna-register-form').on('submit', function(e) {
+        e.preventDefault();
+        const $btn = $('#reg-submit');
+        const phoneFull = $('#reg-country-code').val() + $('#reg-phone-body').val();
+
+        if ($('#reg-password').val().length < 8) {
+            $('#reg-error').text('كلمة المرور يجب أن لا تقل عن 8 أحرف').show();
+            return;
+        }
+
+        $btn.prop('disabled', true).text('جاري التسجيل...');
+        $('#reg-error').hide();
+
+        const formData = $(this).serializeArray();
+        formData.push({ name: 'phone', value: phoneFull });
+        formData.push({ name: 'action', value: 'sukna_register' });
+        formData.push({ name: 'nonce', value: sukna_ajax.nonce });
+
+        $.post(sukna_ajax.ajax_url, formData, function(res) {
+            if (res.success) {
+                window.location.reload();
+            } else {
+                $btn.prop('disabled', false).text('إتمام التسجيل');
+                $('#reg-error').text(res.data.message || 'حدث خطأ').show();
+            }
+        });
+    });
+
+    // --- User Management (Sidebar View) ---
+
+    $('#sukna-user-form').on('submit', function(e) {
+        e.preventDefault();
+        const action = $('#user-id').val() ? 'sukna_save_user' : 'sukna_add_user';
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=' + action + '&nonce=' + sukna_ajax.nonce, function(res) {
+            if (res.success) location.reload();
+            else alert(res.data || 'Error');
+        });
+    });
+
+    $(document).on('click', '.sukna-delete-user', function(e) {
+        if (!confirm('حذف؟')) return;
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_user', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => location.reload());
+    });
+
+    // --- Other Shared Utilities ---
 
     const syncLoader = $('#sukna-sync-loader');
     function showSync(text = 'جارٍ تحميل البيانات...') { syncLoader.find('.loader-text').text(text); syncLoader.fadeIn(200); }
@@ -30,22 +143,6 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // Auto-restore fullscreen state
-    if (localStorage.getItem('sukna_fullscreen') === '1' && !document.fullscreenElement) {
-        $(document).one('click', function() {
-             if (systemRoot.requestFullscreen) systemRoot.requestFullscreen();
-        });
-    }
-
-    // Block Esc key in Fullscreen
-    $(document).on('keydown', function(e) {
-        if (document.fullscreenElement && e.keyCode === 27) {
-            e.preventDefault();
-            $('#sukna-unlock-overlay').css('display', 'flex').hide().fadeIn(300);
-            $('#sukna-unlock-pass').focus();
-        }
-    });
-
     $('#sukna-unlock-submit').on('click', function() {
         $.post(sukna_ajax.ajax_url, {
             action: 'sukna_verify_fullscreen_password',
@@ -64,27 +161,10 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // User Save
-    $('#sukna-user-form').on('submit', function(e) {
-        e.preventDefault();
-        const action = $('#user-id').val() ? 'sukna_save_user' : 'sukna_add_user';
-        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=' + action + '&nonce=' + sukna_ajax.nonce, function(res) {
-            if (res.success) location.reload();
-            else alert(res.data || 'Error');
-        });
-    });
-
-    $(document).on('click', '.sukna-delete-user', function(e) {
-        if (!confirm('حذف؟')) return;
-        $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_user', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => location.reload());
-    });
-
-    // Logout
     $('#sukna-logout-btn, #sukna-mobile-logout-btn').on('click', function() {
         $.post(sukna_ajax.ajax_url, { action: 'sukna_logout', nonce: sukna_ajax.nonce }, () => location.reload());
     });
 
-    // Image Upload Handler
     $(document).on('click', '.sukna-upload-btn', function(e) {
         e.preventDefault();
         const btn = $(this);
@@ -94,7 +174,6 @@ jQuery(document).ready(function($) {
             const target = btn.parent().find('input[type="text"]');
             if (target.length) {
                 target.val(attachment.url);
-                // Specifically for company logo
                 if (target.attr('id') === 'company-logo-url') {
                     $('#logo-preview').attr('src', attachment.url);
                     $('#logo-preview-container').fadeIn();
@@ -103,41 +182,9 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // PWA Install Prompt Logic
-    let deferredPrompt;
-    const installBanner = $('#sukna-install-banner');
-    const iosInstallBanner = $('#sukna-ios-install-banner');
-    const installBtn = $('#sukna-install-btn');
-
-    // Detect iOS
-    const isIos = () => {
-        const userAgent = window.navigator.userAgent.toLowerCase();
-        return /iphone|ipad|ipod/.test(userAgent);
-    };
-
-    // Detect if already installed (standalone mode)
-    const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
-
-    if (isIos() && !isInStandaloneMode()) {
-        iosInstallBanner.fadeIn(300);
-        setTimeout(() => iosInstallBanner.fadeOut(500), 15000);
-    }
-
+    // PWA logic
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
-        deferredPrompt = e;
-        installBanner.fadeIn(300);
-    });
-
-    installBtn.on('click', (e) => {
-        installBanner.fadeOut(200);
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            deferredPrompt = null;
-        });
-    });
-
-    window.addEventListener('appinstalled', (evt) => {
-        installBanner.fadeOut(200);
+        $('#sukna-install-banner').fadeIn(300);
     });
 });
