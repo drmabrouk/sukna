@@ -8,7 +8,7 @@ class Sukna_Ajax {
 	public function __construct() {
 		$actions = array(
 			'logout', 'add_user', 'save_user', 'delete_user', 'save_settings',
-			'verify_fullscreen_password', 'undo_activity', 'register',
+			'undo_activity', 'register',
 			'save_property', 'delete_property', 'save_room', 'delete_room', 'save_investment',
 			'get_rooms', 'get_investments', 'save_contract', 'record_expense', 'distribute_revenue'
 		);
@@ -290,18 +290,6 @@ class Sukna_Ajax {
 		wp_send_json_success();
 	}
 
-	public function verify_fullscreen_password() {
-		check_ajax_referer( 'sukna_nonce', 'nonce' );
-		global $wpdb;
-		$stored_pass = $wpdb->get_var( "SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'fullscreen_password'" ) ?: '123456789';
-		$provided_pass = $_POST['password'];
-
-		if ( $provided_pass === $stored_pass ) {
-			wp_send_json_success();
-		} else {
-			wp_send_json_error();
-		}
-	}
 
 	public function undo_activity() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );

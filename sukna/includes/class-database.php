@@ -162,11 +162,11 @@ class Sukna_Database {
 		$table_settings = $wpdb->prefix . 'sukna_settings';
 
 		// Default admin if not exists
-		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_staff WHERE phone = %s", 'admin' ) );
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_staff WHERE phone = %s", '1234567890' ) );
 		if ( ! $exists ) {
 			$wpdb->insert( $table_staff, array(
 				'username' => 'admin',
-				'phone'    => 'admin',
+				'phone'    => '1234567890',
 				'password' => password_hash( 'admin123', PASSWORD_DEFAULT ),
 				'name'     => 'System Admin',
 				'role'     => 'admin'

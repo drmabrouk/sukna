@@ -84,17 +84,29 @@ class Sukna_Investments {
 		global $wpdb;
 
 		$property = Sukna_Properties::get_property($property_id);
+		if ( ! $property ) return;
+
 		$investments = self::get_property_investments($property_id);
 
-		$total_partners = count($investments) + 1; // All investors + the owner
-		$share_per_partner = $total_revenue / $total_partners;
+		$base_value = ($property->property_type === 'leased') ? floatval($property->base_lease_value) : floatval($property->valuation);
+		if ( $base_value <= 0 ) return;
 
-		// Owner Share
-		self::record_transaction($property->owner_id, $share_per_partner, 'revenue_share', sprintf(__('عائد إيرادات عقار #%d', 'sukna'), $property_id));
+		$total_investor_contribution = 0;
 
-		// Investor Shares
+		// Investor Shares (Proportional)
 		foreach ($investments as $inv) {
-			self::record_transaction($inv->investor_id, $share_per_partner, 'revenue_share', sprintf(__('عائد إيرادات عقار #%d', 'sukna'), $property_id));
+			$share_percent = ($inv->amount / $base_value);
+			$investor_share = $total_revenue * $share_percent;
+			$total_investor_contribution += $inv->amount;
+
+			self::record_transaction($inv->investor_id, $investor_share, 'dividend', sprintf(__('عائد إيرادات عقار #%d', 'sukna'), $property_id));
 		}
+
+		// Owner Share (Remaining profit)
+		$owner_share_percent = ($base_value - $total_investor_contribution) / $base_value;
+		if ( $owner_share_percent < 0 ) $owner_share_percent = 0;
+
+		$owner_profit = $total_revenue * $owner_share_percent;
+		self::record_transaction($property->owner_id, $owner_profit, 'dividend', sprintf(__('عائد إيرادات عقار #%d', 'sukna'), $property_id));
 	}
 }

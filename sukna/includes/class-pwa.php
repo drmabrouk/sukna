@@ -11,7 +11,7 @@ class Sukna_PWA {
 	}
 
 	public static function add_pwa_meta() {
-		echo '<link rel="manifest" href="' . home_url( '/?ac_pwa=manifest' ) . '">' . PHP_EOL;
+		echo '<link rel="manifest" href="' . home_url( '/?sukna_pwa=manifest' ) . '">' . PHP_EOL;
 		echo '<meta name="mobile-web-app-capable" content="yes">' . PHP_EOL;
 		echo '<meta name="apple-mobile-web-app-capable" content="yes">' . PHP_EOL;
 		echo '<meta name="apple-mobile-web-app-title" content="' . esc_attr( get_bloginfo('name') ) . '">' . PHP_EOL;
@@ -29,7 +29,7 @@ class Sukna_PWA {
 		echo '<script>
 			if ("serviceWorker" in navigator) {
 				window.addEventListener("load", function() {
-					navigator.serviceWorker.register("' . home_url( '/?ac_pwa=sw' ) . '").then(function(registration) {
+					navigator.serviceWorker.register("' . home_url( '/?sukna_pwa=sw' ) . '").then(function(registration) {
 						console.log("Sukna ServiceWorker registration successful");
 					}, function(err) {
 						console.log("Sukna ServiceWorker registration failed: ", err);
@@ -40,11 +40,11 @@ class Sukna_PWA {
 	}
 
 	public static function handle_pwa_requests() {
-		if ( ! isset( $_GET['ac_pwa'] ) ) {
+		if ( ! isset( $_GET['sukna_pwa'] ) ) {
 			return;
 		}
 
-		$request = $_GET['ac_pwa'];
+		$request = $_GET['sukna_pwa'];
 
 		if ( $request === 'manifest' ) {
 			self::serve_manifest();

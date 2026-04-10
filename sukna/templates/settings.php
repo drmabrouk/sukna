@@ -56,9 +56,6 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
                         <button type="button" class="sukna-upload-btn sukna-btn" style="background:#000; border:none;"><span class="dashicons dashicons-upload"></span></button>
                     </div>
                 </div>
-                <div class="sukna-form-group" style="background:#000; padding:20px; border-radius:10px;">
-                    <input type="text" name="fullscreen_password" value="<?php echo esc_attr($fullscreen_pass); ?>" placeholder="<?php _e('كلمة مرور الخروج من ملء الشاشة', 'sukna'); ?>" style="width:100%; background:#1a1a1a; color:#fff; border: 1px solid #333;">
-                </div>
                 <button type="submit" class="sukna-btn sukna-btn-accent" style="width:100%; height:50px; border-radius: 8px; font-weight: 800;"><?php _e('حفظ كافة التعديلات', 'sukna'); ?></button>
             </form>
         </div>
