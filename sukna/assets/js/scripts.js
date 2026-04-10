@@ -13,6 +13,13 @@ jQuery(document).ready(function($) {
         });
     });
 
+    // Country Flag Toggling
+    $('#login-country-code, #reg-country-code').on('change', function() {
+        const flag = $(this).find(':selected').data('flag');
+        const target = $(this).attr('id') === 'login-country-code' ? '#login-flag' : '#reg-flag';
+        $(target).text(flag);
+    });
+
     let currentStep = 1;
     const totalSteps = 4;
 
@@ -20,7 +27,7 @@ jQuery(document).ready(function($) {
         if (validateStep(currentStep)) {
             $(`#reg-step-${currentStep}`).hide();
             currentStep++;
-            $(`#reg-step-${currentStep}`).show();
+            $(`#reg-step-${currentStep}`).fadeIn(300);
             updateRegButtons();
         }
     });
@@ -28,7 +35,7 @@ jQuery(document).ready(function($) {
     $('#reg-prev').on('click', function() {
         $(`#reg-step-${currentStep}`).hide();
         currentStep--;
-        $(`#reg-step-${currentStep}`).show();
+        $(`#reg-step-${currentStep}`).fadeIn(300);
         updateRegButtons();
     });
 
@@ -163,10 +170,10 @@ jQuery(document).ready(function($) {
                     html += `<tr>
                         <td>${r.room_number}</td>
                         <td>${r.rental_price}</td>
-                        <td><span class="sukna-capsule ${r.status === 'rented' ? 'capsule-danger' : 'capsule-success'}">${r.status === 'rented' ? 'مؤجر' : 'متاح'}</span></td>
+                        <td><span class="sukna-capsule ${r.status === 'rented' ? 'capsule-danger' : 'capsule-accent'}">${r.status === 'rented' ? 'مؤجر' : 'متاح'}</span></td>
                         <td>${r.tenant_name || '-'}</td>
                         <td style="text-align:left;">
-                            <button class="sukna-btn sukna-delete-room" data-id="${r.id}" style="padding:4px 8px; background:#ef4444;"><span class="dashicons dashicons-trash"></span></button>
+                            <button class="sukna-btn sukna-delete-room" data-id="${r.id}" style="padding:4px 8px; background:#333; border:none; color:#fff;"><span class="dashicons dashicons-trash"></span></button>
                         </td>
                     </tr>`;
                 });
@@ -243,6 +250,8 @@ jQuery(document).ready(function($) {
 
     $('#sukna-refresh-btn, #sukna-mobile-refresh-btn').on('click', function() {
         showSync('جاري مسح التخزين المؤقت وتحديث البيانات...');
+        localStorage.clear();
+        sessionStorage.clear();
         if (window.sessionStorage) window.sessionStorage.clear();
         setTimeout(() => { window.location.reload(true); }, 500);
     });
@@ -302,5 +311,14 @@ jQuery(document).ready(function($) {
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         $('#sukna-install-banner').fadeIn(300);
+    });
+
+    // Tab switching for settings
+    $('.sukna-tab-btn').on('click', function() {
+        const tab = $(this).data('tab');
+        $('.sukna-tab-btn').removeClass('active');
+        $(this).addClass('active');
+        $('.sukna-tab-content').hide();
+        $('#' + tab).fadeIn(200);
     });
 });

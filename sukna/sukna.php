@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define constants
-define( 'SUKNA_VERSION', '1.0.0' );
+define( 'SUKNA_VERSION', time() ); // Use time() to bypass cache during development/updates
 define( 'SUKNA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SUKNA_URL', plugin_dir_url( __FILE__ ) );
 
@@ -78,13 +78,13 @@ class Sukna_System {
 	public function enqueue_assets() {
 		wp_enqueue_media();
 
-		// Enqueue Cairo font as fallback
-		wp_enqueue_style( 'sukna-font-cairo', 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap', array(), SUKNA_VERSION );
+		// Enqueue Rubik font from Google Fonts
+		wp_enqueue_style( 'sukna-font-rubik', 'https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800&display=swap', array(), SUKNA_VERSION );
 
-		wp_enqueue_style( 'sukna-rtl-style', SUKNA_URL . 'assets/css/style-rtl.css', array( 'sukna-font-cairo' ), SUKNA_VERSION );
+		wp_enqueue_style( 'sukna-rtl-style', SUKNA_URL . 'assets/css/style-rtl.css', array( 'sukna-font-rubik' ), SUKNA_VERSION );
 		wp_enqueue_style( 'sukna-print-style', SUKNA_URL . 'assets/css/print.css', array(), SUKNA_VERSION, 'print' );
 
-		// Enqueue html2pdf for bulk export (Still needed for audit logs/users)
+		// Enqueue html2pdf for bulk export
 		wp_enqueue_script( 'html2pdf', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', array(), '0.10.1', true );
 
 		wp_enqueue_script( 'sukna-scripts', SUKNA_URL . 'assets/js/scripts.js', array( 'jquery' ), SUKNA_VERSION, true );

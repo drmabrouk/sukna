@@ -7,7 +7,7 @@ $can_manage = Sukna_Auth::is_admin();
     <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('إدارة مستخدمي النظام', 'sukna'); ?></h2>
     <div style="display:flex; gap:10px;">
         <?php if($can_manage): ?>
-            <button id="sukna-add-user-btn" class="sukna-btn" style="background:#1e293b;">
+            <button id="sukna-add-user-btn" class="sukna-btn" style="background:#000; border:none; border-radius: 8px;">
                 <span class="dashicons dashicons-plus-alt" style="margin-left:8px;"></span><?php _e('إضافة مستخدم جديد', 'sukna'); ?>
             </button>
         <?php endif; ?>
@@ -15,35 +15,29 @@ $can_manage = Sukna_Auth::is_admin();
 </div>
 
 <!-- User Modal -->
-<div id="sukna-user-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
-    <div class="sukna-card" style="width:100%; max-width:550px; padding:40px; border-radius:8px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-        <h3 id="modal-title" style="font-size:1.4rem; margin-bottom:30px;"><?php _e('بيانات المستخدم', 'sukna'); ?></h3>
+<div id="sukna-user-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0, 0, 0, 0.6); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+    <div class="sukna-card" style="width:100%; max-width:550px; padding:40px; border-radius:12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        <h3 id="modal-title" style="font-size:1.4rem; margin-bottom:30px; color: #000;"><?php _e('بيانات المستخدم', 'sukna'); ?></h3>
         <form id="sukna-user-form">
             <input type="hidden" name="id" id="user-id">
             <div class="sukna-form-group">
-                <label><?php _e('اسم المستخدم', 'sukna'); ?></label>
-                <input type="text" name="username" id="user-username" placeholder="<?php _e('Username', 'sukna'); ?>">
+                <input type="text" name="username" id="user-username" placeholder="<?php _e('اسم المستخدم', 'sukna'); ?>" style="width:100%;">
             </div>
             <div class="sukna-form-group">
-                <label><?php _e('رقم الهاتف', 'sukna'); ?></label>
-                <input type="text" name="phone" id="user-phone" placeholder="20123456789" required>
+                <input type="text" name="phone" id="user-phone" placeholder="<?php _e('رقم الهاتف', 'sukna'); ?>" required style="width:100%;">
             </div>
             <div class="sukna-form-group">
-                <label><?php _e('الاسم بالكامل', 'sukna'); ?></label>
-                <input type="text" name="name" id="user-name" placeholder="<?php _e('الاسم الحقيقي', 'sukna'); ?>" required>
+                <input type="text" name="name" id="user-name" placeholder="<?php _e('الاسم بالكامل', 'sukna'); ?>" required style="width:100%;">
             </div>
             <div class="sukna-form-group">
-                <label><?php _e('البريد الإلكتروني', 'sukna'); ?></label>
-                <input type="email" name="email" id="user-email" placeholder="example@sukna.online">
+                <input type="email" name="email" id="user-email" placeholder="<?php _e('البريد الإلكتروني', 'sukna'); ?>" style="width:100%;">
             </div>
             <div class="sukna-form-group">
-                <label><?php _e('كلمة المرور', 'sukna'); ?></label>
-                <input type="password" name="password" id="user-password" placeholder="********">
-                <small id="password-help" style="display:none; color:#64748b;"><?php _e('اتركه فارغاً للحفاظ على الحالي', 'sukna'); ?></small>
+                <input type="password" name="password" id="user-password" placeholder="<?php _e('كلمة المرور', 'sukna'); ?>" style="width:100%;">
+                <small id="password-help" style="display:none; color:#64748b; padding-right: 5px;"><?php _e('اتركه فارغاً للحفاظ على الحالي', 'sukna'); ?></small>
             </div>
             <div class="sukna-form-group">
-                <label><?php _e('الصلاحية', 'sukna'); ?></label>
-                <select name="role" id="user-role">
+                <select name="role" id="user-role" style="width:100%;">
                     <option value="admin"><?php _e('مدير نظام', 'sukna'); ?></option>
                     <option value="owner"><?php _e('مالك عقار', 'sukna'); ?></option>
                     <option value="investor"><?php _e('مستثمر', 'sukna'); ?></option>
@@ -52,14 +46,14 @@ $can_manage = Sukna_Auth::is_admin();
                 </select>
             </div>
             <div style="display:flex; gap:15px; margin-top:30px;">
-                <button type="submit" class="sukna-btn" style="flex:1; height:50px; background:#2563eb;"><?php _e('حفظ البيانات', 'sukna'); ?></button>
-                <button type="button" class="sukna-btn close-user-modal" style="flex:1; height:50px; background:#64748b;"><?php _e('إلغاء', 'sukna'); ?></button>
+                <button type="submit" class="sukna-btn" style="flex:1; background:#000; border:none; border-radius: 8px;"><?php _e('حفظ البيانات', 'sukna'); ?></button>
+                <button type="button" class="sukna-btn close-user-modal" style="flex:1; background:#64748b; border:none; border-radius: 8px;"><?php _e('إلغاء', 'sukna'); ?></button>
             </div>
         </form>
     </div>
 </div>
 
-<div style="background:#fff; border:1px solid #e2e8f0; overflow:hidden;">
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius: 12px; overflow:hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
     <table class="sukna-table" id="sukna-user-table">
         <thead>
             <tr>
@@ -76,16 +70,16 @@ $can_manage = Sukna_Auth::is_admin();
                     <td><strong><?php echo esc_html($u->username ?: '-'); ?></strong></td>
                     <td><?php echo esc_html($u->phone); ?></td>
                     <td><?php echo esc_html($u->name); ?></td>
-                    <td><span class="sukna-capsule capsule-info"><?php
+                    <td><span class="sukna-capsule capsule-accent"><?php
                         $roles = array('admin' => 'مدير نظام', 'owner' => 'مالك', 'investor' => 'مستثمر', 'tenant' => 'مستأجر', 'employee' => 'موظف');
                         echo $roles[$u->role] ?? $u->role;
                     ?></span></td>
                     <td style="text-align:left;">
                         <div style="display:flex; gap:5px; justify-content: flex-end;">
                             <?php if($can_manage): ?>
-                                <button class="sukna-btn sukna-edit-user" style="padding:4px 8px; font-size:0.75rem; background:#3b82f6;"><span class="dashicons dashicons-edit"></span></button>
+                                <button class="sukna-btn sukna-edit-user" style="padding:4px 8px; font-size:0.75rem; background:#000; border:none; border-radius: 4px;"><span class="dashicons dashicons-edit"></span></button>
                                 <?php if($u->username !== 'admin'): ?>
-                                    <button class="sukna-btn sukna-delete-user" data-id="<?php echo $u->id; ?>" style="padding:4px 8px; font-size:0.75rem; background:#ef4444;"><span class="dashicons dashicons-trash"></span></button>
+                                    <button class="sukna-btn sukna-delete-user" data-id="<?php echo $u->id; ?>" style="padding:4px 8px; font-size:0.75rem; background:#333; border:none; border-radius: 4px;"><span class="dashicons dashicons-trash"></span></button>
                                 <?php endif; ?>
                             <?php endif; ?>
                         </div>

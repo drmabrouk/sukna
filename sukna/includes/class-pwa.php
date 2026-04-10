@@ -17,7 +17,7 @@ class Sukna_PWA {
 		echo '<meta name="apple-mobile-web-app-title" content="' . esc_attr( get_bloginfo('name') ) . '">' . PHP_EOL;
 
 		global $wpdb;
-		$theme_color = $wpdb->get_var( "SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'pwa_theme_color'" ) ?: '#2563eb';
+		$theme_color = $wpdb->get_var( "SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'pwa_theme_color'" ) ?: '#000000';
 		echo '<meta name="theme-color" content="' . esc_attr( $theme_color ) . '">' . PHP_EOL;
 		echo '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">' . PHP_EOL;
 
@@ -30,9 +30,9 @@ class Sukna_PWA {
 			if ("serviceWorker" in navigator) {
 				window.addEventListener("load", function() {
 					navigator.serviceWorker.register("' . home_url( '/?ac_pwa=sw' ) . '").then(function(registration) {
-						console.log("AC IS ServiceWorker registration successful with scope: ", registration.scope);
+						console.log("Sukna ServiceWorker registration successful");
 					}, function(err) {
-						console.log("AC IS ServiceWorker registration failed: ", err);
+						console.log("Sukna ServiceWorker registration failed: ", err);
 					});
 				});
 			}
@@ -58,12 +58,12 @@ class Sukna_PWA {
 		$settings = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}sukna_settings", OBJECT_K );
 
 		$manifest = array(
-			'name'             => $settings['pwa_app_name']->setting_value ?? 'نظام المبيعات المتطور',
-			'short_name'        => $settings['pwa_short_name']->setting_value ?? 'المبيعات',
+			'name'             => $settings['pwa_app_name']->setting_value ?? 'Sukna',
+			'short_name'        => $settings['pwa_short_name']->setting_value ?? 'Sukna',
 			'start_url'         => home_url( '/' ),
 			'display'           => 'standalone',
-			'background_color'  => $settings['pwa_bg_color']->setting_value ?? '#f1f5f9',
-			'theme_color'       => $settings['pwa_theme_color']->setting_value ?? '#2563eb',
+			'background_color'  => $settings['pwa_bg_color']->setting_value ?? '#ffffff',
+			'theme_color'       => $settings['pwa_theme_color']->setting_value ?? '#000000',
 			'orientation'       => 'any',
 			'icons'             => array()
 		);
@@ -92,12 +92,12 @@ class Sukna_PWA {
 	private static function serve_service_worker() {
 		header( 'Content-Type: application/javascript' );
 		?>
-		const CACHE_NAME = 'sukna-cache-v2';
+		const CACHE_NAME = 'sukna-cache-v3';
 		const urlsToCache = [
 			'/',
 			'<?php echo SUKNA_URL . 'assets/css/style-rtl.css'; ?>',
 			'<?php echo SUKNA_URL . 'assets/js/scripts.js'; ?>',
-			'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap'
+			'https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800&display=swap'
 		];
 
 		self.addEventListener('install', (event) => {

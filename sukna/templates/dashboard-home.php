@@ -10,8 +10,8 @@ if ( Sukna_Auth::is_admin() ) {
         <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة تحكم المدير', 'sukna'); ?></h2>
     </div>
     <div class="sukna-metrics-row">
-        <div class="sukna-metric-card" style="border-right-color: #2563eb;">
-            <div class="sukna-metric-icon" style="background: #eff6ff; color: #2563eb;">
+        <div class="sukna-metric-card" style="border-right-color: #000000;">
+            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #000000;">
                 <span class="dashicons dashicons-admin-users"></span>
             </div>
             <div class="sukna-metric-content">
@@ -117,8 +117,8 @@ if ( Sukna_Auth::is_admin() ) {
         <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة المالك', 'sukna'); ?></h2>
     </div>
     <div class="sukna-metrics-row">
-        <div class="sukna-metric-card" style="border-right-color: #3b82f6;">
-            <div class="sukna-metric-icon" style="background: #eff6ff; color: #3b82f6;">
+        <div class="sukna-metric-card" style="border-right-color: #D4AF37;">
+            <div class="sukna-metric-icon" style="background: #f8f9fa; color: #D4AF37;">
                 <span class="dashicons dashicons-admin-home"></span>
             </div>
             <div class="sukna-metric-content">
