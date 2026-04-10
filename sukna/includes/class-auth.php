@@ -23,13 +23,9 @@ class Sukna_Auth {
 		return false;
 	}
 
-	public static function login_by_phone( $phone, $password ) {
-		return self::login($phone, $password);
-	}
-
 	private static function set_user_session( $user ) {
 		$_SESSION['sukna_user_id']   = $user->id;
-		$_SESSION['sukna_username']  = $user->username;
+		$_SESSION['sukna_phone']     = $user->phone;
 		$_SESSION['sukna_user_role'] = $user->role;
 		$_SESSION['sukna_user_name'] = $user->name;
 		return true;
@@ -48,6 +44,7 @@ class Sukna_Auth {
 		$inserted = $wpdb->insert( $table, array(
 			'name'     => $data['first_name'] . ' ' . $data['last_name'],
 			'phone'    => $data['phone'],
+			'username' => $data['phone'], // Username is the phone number
 			'email'    => $data['email'],
 			'password' => password_hash( $data['password'], PASSWORD_DEFAULT ),
 			'role'     => 'employee', // Default role for registration
@@ -65,7 +62,7 @@ class Sukna_Auth {
 
 	public static function logout() {
 		unset( $_SESSION['sukna_user_id'] );
-		unset( $_SESSION['sukna_username'] );
+		unset( $_SESSION['sukna_phone'] );
 		unset( $_SESSION['sukna_user_role'] );
 		unset( $_SESSION['sukna_user_name'] );
 	}
@@ -92,7 +89,7 @@ class Sukna_Auth {
 
 		return (object) array(
 			'id'   => $_SESSION['sukna_user_id'],
-			'username' => $_SESSION['sukna_username'],
+			'phone' => $_SESSION['sukna_phone'],
 			'role' => $_SESSION['sukna_user_role'],
 			'name' => $_SESSION['sukna_user_name']
 		);

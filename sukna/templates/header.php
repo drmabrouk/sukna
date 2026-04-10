@@ -64,7 +64,7 @@
         </button>
     </div>
 
-    <div id="sukna-sync-loader" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2563eb; color:#fff; padding:10px 20px; border-radius:30px; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-weight:600;">
+    <div id="sukna-sync-loader" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#000000; color:#fff; padding:10px 20px; border-radius:30px; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.2); font-weight:600;">
         <span class="dashicons dashicons-update spin" style="margin-left:8px; vertical-align:middle;"></span>
         <span class="loader-text"><?php _e('جارٍ تحميل البيانات...', 'sukna'); ?></span>
     </div>
@@ -76,7 +76,7 @@
     <h2 style="margin-bottom:20px;"><?php _e('النظام مغلق - يرجى إدخال كلمة المرور للخروج', 'sukna'); ?></h2>
     <div style="display:flex; gap:10px;">
         <input type="password" id="sukna-unlock-pass" placeholder="********" style="padding:15px; border-radius:8px; border:none; font-size:1.2rem; text-align:center;">
-        <button id="sukna-unlock-submit" class="sukna-btn" style="background:#2563eb; font-size:1.1rem;"><?php _e('فك القفل', 'sukna'); ?></button>
+        <button id="sukna-unlock-submit" class="sukna-btn" style="background:#000000; font-size:1.1rem;"><?php _e('فك القفل', 'sukna'); ?></button>
     </div>
     <p id="sukna-unlock-error" style="color:#991b1b; margin-top:15px; display:none;"><?php _e('كلمة المرور غير صحيحة', 'sukna'); ?></p>
 </div>

@@ -52,6 +52,11 @@ class Sukna_Ajax {
 			wp_send_json_error( array( 'message' => __( 'يرجى ملء جميع الحقول المطلوبة.', 'sukna' ) ) );
 		}
 
+		// Basic regex for GCC/Egypt phone validation (simple check)
+		if ( ! preg_match('/^\+(20|971|966|965|974|973|968)[0-9]{7,12}$/', $data['phone']) ) {
+			wp_send_json_error( array( 'message' => __( 'تنسيق رقم الهاتف غير صالح لهذه الدولة.', 'sukna' ) ) );
+		}
+
 		if ( strlen($data['password']) < 8 ) {
 			wp_send_json_error( array( 'message' => __( 'كلمة المرور يجب أن لا تقل عن 8 أحرف.', 'sukna' ) ) );
 		}
@@ -79,14 +84,13 @@ class Sukna_Ajax {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_staff';
 
-		$username = sanitize_text_field( $_POST['username'] );
 		$phone    = sanitize_text_field( $_POST['phone'] );
 
-		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE username = %s OR phone = %s", $username, $phone ) );
-		if ( $exists ) wp_send_json_error( 'Username or Phone already exists' );
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE phone = %s", $phone ) );
+		if ( $exists ) wp_send_json_error( 'Phone already registered' );
 
 		$data = array(
-			'username' => $username,
+			'username' => $phone,
 			'phone'    => $phone,
 			'password' => password_hash( $_POST['password'], PASSWORD_DEFAULT ),
 			'name'     => sanitize_text_field( $_POST['name'] ),
@@ -95,7 +99,7 @@ class Sukna_Ajax {
 		);
 
 		$wpdb->insert( $table, $data );
-		Sukna_Audit::log('add_user', "User $username added");
+		Sukna_Audit::log('add_user', "User $phone added by admin");
 		wp_send_json_success();
 	}
 
@@ -105,11 +109,10 @@ class Sukna_Ajax {
 
 		global $wpdb;
 		$id = intval( $_POST['id'] );
-		$username = sanitize_text_field( $_POST['username'] );
 		$phone    = sanitize_text_field( $_POST['phone'] );
 
 		$data = array(
-			'username' => $username,
+			'username' => $phone,
 			'phone'    => $phone,
 			'name'     => sanitize_text_field( $_POST['name'] ),
 			'email'    => sanitize_email( $_POST['email'] ),
@@ -121,7 +124,7 @@ class Sukna_Ajax {
 		}
 
 		$wpdb->update( $wpdb->prefix . 'sukna_staff', $data, array( 'id' => $id ) );
-		Sukna_Audit::log('edit_user', "User $username updated");
+		Sukna_Audit::log('edit_user', "User $phone updated by admin");
 		wp_send_json_success();
 	}
 
@@ -135,7 +138,7 @@ class Sukna_Ajax {
 		if ( $user && $user->username === 'admin' ) wp_send_json_error( 'Cannot delete admin' );
 
 		if ( $user ) {
-			Sukna_Audit::log( 'delete_user', "User: {$user->username}", $user );
+			Sukna_Audit::log( 'delete_user', "User: {$user->phone}", $user );
 			$wpdb->delete( $wpdb->prefix . 'sukna_staff', array( 'id' => $id ) );
 			wp_send_json_success();
 		} else {

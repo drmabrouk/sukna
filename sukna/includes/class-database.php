@@ -29,8 +29,7 @@ class Sukna_Database {
 			role varchar(50) DEFAULT 'employee',
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
-			UNIQUE KEY phone (phone),
-			UNIQUE KEY username (username)
+			UNIQUE KEY phone (phone)
 		) $charset_collate;
 
 		CREATE TABLE $table_properties (
@@ -127,7 +126,7 @@ class Sukna_Database {
 		$table_settings = $wpdb->prefix . 'sukna_settings';
 
 		// Default admin if not exists
-		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_staff WHERE username = %s OR phone = %s", 'admin', 'admin' ) );
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_staff WHERE phone = %s", 'admin' ) );
 		if ( ! $exists ) {
 			$wpdb->insert( $table_staff, array(
 				'username' => 'admin',
@@ -145,8 +144,8 @@ class Sukna_Database {
 			'company_name'        => 'Sukna',
 			'pwa_app_name'        => 'Sukna',
 			'pwa_short_name'      => 'Sukna',
-			'pwa_theme_color'     => '#2563eb',
-			'pwa_bg_color'        => '#f1f5f9',
+			'pwa_theme_color'     => '#000000',
+			'pwa_bg_color'        => '#ffffff',
 		);
 
 		foreach ( $defaults as $key => $value ) {
