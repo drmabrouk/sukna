@@ -131,10 +131,38 @@ jQuery(document).ready(function($) {
         $('#sukna-property-modal').css('display', 'flex');
     });
 
+    const geoData = sukna_ajax.geo_data;
+
+    function populateStates(countryCode, stateSelector, selectedState = '') {
+        const states = geoData[countryCode] ? geoData[countryCode].states : {};
+        let html = '<option value="">الولاية / الإمارة</option>';
+        for (const [code, data] of Object.entries(states)) {
+            html += `<option value="${code}" ${code === selectedState ? 'selected' : ''}>${data.name}</option>`;
+        }
+        $(stateSelector).html(html);
+    }
+
+    $('#filter-country').on('change', function() {
+        populateStates($(this).val(), '#filter-state');
+    });
+
+    $('#prop-country').on('change', function() {
+        populateStates($(this).val(), '#prop-state');
+    });
+
     $(document).on('click', '.sukna-edit-property', function() {
         const p = $(this).data('property');
         $('#prop-id').val(p.id);
         $('#prop-name').val(p.name);
+        $('#prop-type').val(p.property_type || 'owned');
+        $('#prop-country').val(p.country).trigger('change');
+        setTimeout(() => {
+            $('#prop-state').val(p.state_emirate);
+        }, 100);
+        $('#prop-city').val(p.city);
+        $('#prop-total-rooms').val(p.total_rooms);
+        $('#prop-valuation').val(p.valuation);
+        $('#prop-base-lease').val(p.base_lease_value);
         $('#prop-address').val(p.address);
         $('#prop-owner-id').val(p.owner_id);
         $('#prop-modal-title').text('تعديل عقار');
@@ -180,25 +208,59 @@ jQuery(document).ready(function($) {
             if (res.success) {
                 let html = '';
                 res.data.forEach(r => {
-                    const isGuest = r.guest_tenant_name && !r.tenant_id;
-                    html += `<tr>
-                        <td>${r.room_number}</td>
-                        <td>${r.rental_price}</td>
-                        <td><span class="sukna-capsule ${r.status === 'rented' ? 'capsule-danger' : 'capsule-accent'}">${r.status === 'rented' ? 'مؤجر' : 'متاح'}</span></td>
-                        <td>
-                            <strong>${r.tenant_name || '-'}</strong>
-                            ${isGuest ? '<br><small style="color:#D4AF37; font-weight:600;">(نزيل ضيف)</small>' : (r.tenant_id ? '<br><small style="color:#64748b;">(مستأجر مسجل)</small>' : '')}
-                        </td>
-                        <td style="text-align:left;">
-                            <button class="sukna-btn sukna-delete-room" data-id="${r.id}" style="padding:4px 8px; background:#333; border:none; color:#fff;"><span class="dashicons dashicons-trash"></span></button>
-                            ${r.status === 'available' ? `<button class="sukna-btn sukna-create-contract-btn" data-id="${r.id}" style="padding:4px 8px; background:#D4AF37; color:#000 !important; border:none;"><span class="dashicons dashicons-text-page"></span></button>` : ''}
-                        </td>
-                    </tr>`;
+                    const isRented = r.status === 'rented';
+                    html += `<div class="sukna-room-block ${isRented ? 'is-rented' : 'is-available'}"
+                                  data-room='${JSON.stringify(r)}'
+                                  style="width:100%; aspect-ratio:1/1; border:2px solid ${isRented ? '#ef4444' : '#059669'};
+                                         background:${isRented ? '#ef4444' : 'transparent'}; cursor:pointer;
+                                         display:flex; flex-direction:column; align-items:center; justify-content:center;
+                                         border-radius:8px; transition:0.2s;">
+                                <span style="font-weight:800; font-size:1.2rem; color:${isRented ? '#fff' : '#059669'};">${r.room_number}</span>
+                                <small style="color:${isRented ? '#fff' : '#64748b'}; font-size:0.6rem;">${isRented ? 'مؤجر' : 'متاح'}</small>
+                             </div>`;
                 });
-                $('#sukna-rooms-table-body').html(html || '<tr><td colspan="5" style="text-align:center;">لا توجد غرف مضافة</td></tr>');
+                $('#sukna-rooms-grid').html(html || '<p>لا توجد وحدات</p>');
             }
         });
     }
+
+    $(document).on('click', '.sukna-room-block', function() {
+        const r = $(this).data('room');
+        $('.sukna-room-block').css('transform', 'scale(1)');
+        $(this).css('transform', 'scale(1.05)');
+
+        $('#detail-room-number').text(r.room_number);
+        $('#detail-room-status').text(r.status === 'rented' ? 'مؤجر' : 'متاح');
+        $('#detail-room-price').text(r.rental_price);
+
+        if (r.status === 'rented') {
+            $('#detail-tenant-info').fadeIn();
+            $('#detail-tenant-name').text(r.tenant_name || '-');
+            $('#detail-rental-date').text(r.rental_start_date || '-');
+            $('#detail-contract-btn').hide();
+        } else {
+            $('#detail-tenant-info').hide();
+            $('#detail-contract-btn').show().data('id', r.id);
+        }
+
+        $('#detail-delete-btn').data('id', r.id);
+        $('#sukna-room-details').fadeIn();
+        $('#sukna-contract-form').hide();
+    });
+
+    $(document).on('click', '#detail-contract-btn', function() {
+        $('#contract-room-id').val($(this).data('id'));
+        $('#sukna-contract-form').slideDown();
+        $('#sukna-room-details').fadeOut();
+    });
+
+    $(document).on('click', '#detail-delete-btn', function() {
+        if (!confirm('حذف الوحدة؟')) return;
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_room', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => {
+            $('#sukna-room-details').fadeOut();
+            loadRooms($('#room-property-id').val());
+        });
+    });
 
     $(document).on('click', '.sukna-create-contract-btn', function() {
         $('#contract-room-id').val($(this).data('id'));

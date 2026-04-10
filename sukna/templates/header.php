@@ -45,7 +45,7 @@
                     <small style="font-size:0.6rem; margin-top:2px;"><?php _e('تحديث', 'sukna'); ?></small>
                 </button>
                 <button id="sukna-logout-btn" class="sidebar-ctrl-icon logout" title="<?php _e('خروج', 'sukna'); ?>" style="background:none; border:none; color:#ef4444 !important; cursor:pointer; padding:5px; flex:1; display:flex; flex-direction:column; align-items:center;">
-                    <span class="dashicons dashicons-exit" style="font-size:18px; width:18px; height:18px;"></span>
+                    <span class="dashicons dashicons-no-alt" style="font-size:18px; width:18px; height:18px;"></span>
                     <small style="font-size:0.6rem; margin-top:2px;"><?php _e('خروج', 'sukna'); ?></small>
                 </button>
             </div>
@@ -59,7 +59,7 @@
             <small><?php _e('تحديث', 'sukna'); ?></small>
         </button>
         <button id="sukna-mobile-logout-btn" class="sidebar-ctrl-icon logout" title="<?php _e('خروج', 'sukna'); ?>">
-            <span class="dashicons dashicons-logout"></span>
+            <span class="dashicons dashicons-no-alt"></span>
             <small><?php _e('خروج', 'sukna'); ?></small>
         </button>
     </div>

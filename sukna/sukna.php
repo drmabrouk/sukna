@@ -46,6 +46,7 @@ class Sukna_System {
 	private function includes() {
 		// Module classes
 		require_once SUKNA_PATH . 'includes/class-database.php';
+		require_once SUKNA_PATH . 'includes/class-geo.php';
 		require_once SUKNA_PATH . 'includes/class-auth.php';
 		require_once SUKNA_PATH . 'includes/class-users.php';
 		require_once SUKNA_PATH . 'includes/class-properties.php';
@@ -77,6 +78,7 @@ class Sukna_System {
 
 	public function enqueue_assets() {
 		wp_enqueue_media();
+		wp_enqueue_style( 'dashicons' );
 
 		// Enqueue Rubik font from Google Fonts
 		wp_enqueue_style( 'sukna-font-rubik', 'https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800&display=swap', array(), SUKNA_VERSION );
@@ -92,6 +94,7 @@ class Sukna_System {
 		wp_localize_script( 'sukna-scripts', 'sukna_ajax', array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'sukna_nonce' ),
+			'geo_data' => Sukna_Geo::get_data(),
 		) );
 	}
 }
