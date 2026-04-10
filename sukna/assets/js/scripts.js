@@ -350,6 +350,7 @@ jQuery(document).ready(function($) {
         $('#sukna-install-banner').fadeIn(300);
     });
 
+    // Tab switching for settings
     $('.sukna-tab-btn').on('click', function() {
         const tab = $(this).data('tab');
         $('.sukna-tab-btn').removeClass('active');

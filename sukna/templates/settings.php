@@ -19,32 +19,32 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
     <div class="sukna-tab-content-container">
         <!-- Section 1: System Identity -->
         <div id="tab-identity" class="sukna-tab-content active">
-        <div class="sukna-card" style="border-top: 4px solid #D4AF37; border-radius: 12px;">
+        <div class="sukna-card" style="border-top: 5px solid #D4AF37;">
             <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:20px; color: #000;">
                 <span class="dashicons dashicons-id"></span> <?php _e('هوية النظام والشركة', 'sukna'); ?>
             </h3>
             <form id="sukna-identity-form" class="sukna-system-settings-form">
                 <div class="sukna-form-group">
-                    <input type="text" name="system_name" value="<?php echo esc_attr($settings['system_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('اسم النظام (يظهر في القائمة)', 'sukna'); ?>" style="width:100%;">
+                    <input type="text" name="system_name" value="<?php echo esc_attr($settings['system_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('اسم النظام (يظهر في القائمة)', 'sukna'); ?>">
                 </div>
                 <div class="sukna-form-group">
-                    <input type="text" name="company_name" value="<?php echo esc_attr($settings['company_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('اسم الشركة / المؤسسة', 'sukna'); ?>" style="width:100%;">
+                    <input type="text" name="company_name" value="<?php echo esc_attr($settings['company_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('اسم الشركة / المؤسسة', 'sukna'); ?>">
                 </div>
                 <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
                     <div class="sukna-form-group">
-                        <input type="text" name="company_phone" value="<?php echo esc_attr($settings['company_phone']->setting_value ?? ''); ?>" placeholder="<?php _e('رقم الهاتف', 'sukna'); ?>" style="width:100%;">
+                        <input type="text" name="company_phone" value="<?php echo esc_attr($settings['company_phone']->setting_value ?? ''); ?>" placeholder="<?php _e('رقم الهاتف', 'sukna'); ?>">
                     </div>
                     <div class="sukna-form-group">
-                        <input type="email" name="company_email" value="<?php echo esc_attr($settings['company_email']->setting_value ?? ''); ?>" placeholder="<?php _e('البريد الإلكتروني', 'sukna'); ?>" style="width:100%;">
+                        <input type="email" name="company_email" value="<?php echo esc_attr($settings['company_email']->setting_value ?? ''); ?>" placeholder="<?php _e('البريد الإلكتروني', 'sukna'); ?>">
                     </div>
                 </div>
                 <div class="sukna-form-group">
-                    <textarea name="company_address" rows="2" placeholder="<?php _e('العنوان بالتفصيل ليظهر في التقارير', 'sukna'); ?>" style="width:100%;"></textarea>
+                    <textarea name="company_address" rows="2" placeholder="<?php _e('العنوان بالتفصيل ليظهر في التقارير', 'sukna'); ?>"><?php echo esc_textarea($settings['company_address']->setting_value ?? ''); ?></textarea>
                 </div>
                 <div class="sukna-form-group">
                     <div style="display:flex; gap:10px; align-items: center;">
                         <input type="text" name="company_logo" id="company-logo-url" value="<?php echo esc_attr($settings['company_logo']->setting_value ?? ''); ?>" placeholder="<?php _e('رابط شعار الشركة', 'sukna'); ?>" style="flex:1;">
-                        <button type="button" class="sukna-upload-btn sukna-btn" style="background:#000; border:none; border-radius: 6px;"><span class="dashicons dashicons-upload"></span></button>
+                        <button type="button" class="sukna-upload-btn sukna-btn" style="background:#000; border:none;"><span class="dashicons dashicons-upload"></span></button>
                     </div>
                     <div id="logo-preview-container" style="margin-top: 15px; text-align: center; <?php echo empty($settings['company_logo']->setting_value) ? 'display:none;' : ''; ?>">
                         <img id="logo-preview" src="<?php echo esc_url($settings['company_logo']->setting_value ?? ''); ?>" style="max-height: 80px; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; object-fit: contain;">
@@ -53,51 +53,48 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
                 <div class="sukna-form-group">
                     <div style="display:flex; gap:10px; align-items: center;">
                         <input type="text" name="pwa_icon_url" id="pwa-icon-url" value="<?php echo esc_attr($settings['pwa_icon_url']->setting_value ?? ''); ?>" placeholder="<?php _e('رابط أيقونة التطبيق (PWA Icon)', 'sukna'); ?>" style="flex:1;">
-                        <button type="button" class="sukna-upload-btn sukna-btn" style="background:#000; border:none; border-radius: 6px;"><span class="dashicons dashicons-upload"></span></button>
+                        <button type="button" class="sukna-upload-btn sukna-btn" style="background:#000; border:none;"><span class="dashicons dashicons-upload"></span></button>
                     </div>
                 </div>
-                <div class="sukna-form-group" style="background:#000; padding:20px; border-radius:10px; margin-top: 20px;">
-                    <label style="color:#D4AF37; font-weight:700; display:block; margin-bottom:10px;"><?php _e('أمن ملء الشاشة (كلمة مرور الخروج)', 'sukna'); ?></label>
-                    <input type="text" name="fullscreen_password" value="<?php echo esc_attr($fullscreen_pass); ?>" placeholder="<?php _e('كلمة مرور الخروج', 'sukna'); ?>" style="width:100%; background:#1a1a1a; color:#fff; border: 1px solid #333;">
+                <div class="sukna-form-group" style="background:#000; padding:20px; border-radius:10px;">
+                    <input type="text" name="fullscreen_password" value="<?php echo esc_attr($fullscreen_pass); ?>" placeholder="<?php _e('كلمة مرور الخروج من ملء الشاشة', 'sukna'); ?>" style="width:100%; background:#1a1a1a; color:#fff; border: 1px solid #333;">
                 </div>
-                <button type="submit" class="sukna-btn" style="width:100%; height:50px; background:#000; border:none; border-radius: 8px; margin-top: 20px; font-weight: 800;"><?php _e('حفظ كافة التعديلات', 'sukna'); ?></button>
+                <button type="submit" class="sukna-btn sukna-btn-accent" style="width:100%; height:50px; border-radius: 8px; font-weight: 800;"><?php _e('حفظ كافة التعديلات', 'sukna'); ?></button>
             </form>
         </div>
         </div>
 
         <!-- Section 2: PWA & Mobile App Settings -->
         <div id="tab-pwa" class="sukna-tab-content" style="display:none;">
-        <div class="sukna-card" style="border-top: 4px solid #000; border-radius: 12px; margin-bottom: 25px;">
+        <div class="sukna-card" style="border-top: 5px solid #000;">
             <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:25px; color:#000;">
                 <span class="dashicons dashicons-smartphone"></span> <?php _e('إعدادات تطبيق الجوال', 'sukna'); ?>
             </h3>
             <form class="sukna-system-settings-form">
                 <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
                     <div class="sukna-form-group">
-                        <input type="text" name="pwa_app_name" value="<?php echo esc_attr($settings['pwa_app_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('اسم التطبيق', 'sukna'); ?>" style="width:100%;">
+                        <input type="text" name="pwa_app_name" value="<?php echo esc_attr($settings['pwa_app_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('اسم التطبيق', 'sukna'); ?>">
                     </div>
                     <div class="sukna-form-group">
-                        <input type="text" name="pwa_short_name" value="<?php echo esc_attr($settings['pwa_short_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('الاسم المختصر', 'sukna'); ?>" style="width:100%;">
+                        <input type="text" name="pwa_short_name" value="<?php echo esc_attr($settings['pwa_short_name']->setting_value ?? 'Sukna'); ?>" placeholder="<?php _e('الاسم المختصر', 'sukna'); ?>">
                     </div>
                 </div>
                 <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
                     <div class="sukna-form-group">
-                        <label style="font-size:0.8rem; color:#64748b; margin-bottom:8px; display:block;"><?php _e('لون السمة (Theme)', 'sukna'); ?></label>
-                        <input type="color" name="pwa_theme_color" value="<?php echo esc_attr($settings['pwa_theme_color']->setting_value ?? '#000000'); ?>" style="width:100%; height:45px; border-radius: 6px; cursor: pointer;">
+                        <input type="color" name="pwa_theme_color" value="<?php echo esc_attr($settings['pwa_theme_color']->setting_value ?? '#000000'); ?>" style="height:45px; cursor: pointer;">
                     </div>
                     <div class="sukna-form-group">
-                        <label style="font-size:0.8rem; color:#64748b; margin-bottom:8px; display:block;"><?php _e('لون الخلفية', 'sukna'); ?></label>
-                        <input type="color" name="pwa_bg_color" value="<?php echo esc_attr($settings['pwa_bg_color']->setting_value ?? '#ffffff'); ?>" style="width:100%; height:45px; border-radius: 6px; cursor: pointer;">
+                        <input type="color" name="pwa_bg_color" value="<?php echo esc_attr($settings['pwa_bg_color']->setting_value ?? '#ffffff'); ?>" style="height:45px; cursor: pointer;">
                     </div>
                 </div>
-                <button type="submit" class="sukna-btn" style="width:100%; height:45px; background:#000; border:none; border-radius: 8px; margin-top:10px;"><?php _e('تحديث إعدادات التطبيق', 'sukna'); ?></button>
+                <button type="submit" class="sukna-btn sukna-btn-accent" style="width:100%; height:45px; border-radius: 8px;"><?php _e('تحديث إعدادات التطبيق', 'sukna'); ?></button>
             </form>
         </div>
         </div>
 
         <!-- Section 3: Activity Audit Log -->
         <div id="tab-audit" class="sukna-tab-content" style="display:none;">
-            <div class="sukna-card" style="border-top: 4px solid #000; border-radius: 12px;">
+            <div class="sukna-card" style="border-top: 5px solid #000;">
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:25px;">
                     <h3 style="margin:0; color:#000;"><?php _e('سجل النشاطات', 'sukna'); ?></h3>
                     <button id="sukna-export-audit-pdf" class="sukna-btn" style="background:#000; border:none; border-radius: 6px;"><span class="dashicons dashicons-pdf" style="margin-left:5px;"></span><?php _e('تصدير التقرير', 'sukna'); ?></button>
@@ -137,21 +134,3 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
         </div>
     </div>
 </div>
-
-<style>
-.sukna-tab-btn {
-    padding: 12px 25px;
-    border: none;
-    background: #f1f5f9;
-    color: #475569;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 0.85rem;
-    transition: 0.2s;
-}
-.sukna-tab-btn.active {
-    background: #000;
-    color: #fff;
-}
-</style>

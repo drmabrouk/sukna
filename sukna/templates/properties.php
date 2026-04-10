@@ -32,7 +32,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
         $rented_count = count(array_filter($rooms, function($r){ return $r->status === 'rented'; }));
         $perf = Sukna_Properties::get_property_performance($p->id);
     ?>
-        <div class="sukna-card" style="border-top: 4px solid #D4AF37; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div class="sukna-card" style="border-top: 5px solid #D4AF37;">
             <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom:15px;">
                 <div>
                     <h3 style="margin:0; font-size:1.2rem; color:#000;"><?php echo esc_html($p->name); ?></h3>
@@ -83,21 +83,21 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
         <form id="sukna-property-form">
             <input type="hidden" name="id" id="prop-id">
             <div class="sukna-form-group">
-                <input type="text" name="name" id="prop-name" placeholder="<?php _e('اسم العقار', 'sukna'); ?>" required style="width:100%;">
+                <input type="text" name="name" id="prop-name" placeholder="<?php _e('اسم العقار', 'sukna'); ?>" required>
             </div>
             <div class="sukna-form-group">
-                <textarea name="address" id="prop-address" placeholder="<?php _e('العنوان بالتفصيل', 'sukna'); ?>" rows="2" style="width:100%;"></textarea>
+                <textarea name="address" id="prop-address" placeholder="<?php _e('العنوان بالتفصيل', 'sukna'); ?>" rows="2"></textarea>
             </div>
             <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
                 <div class="sukna-form-group">
-                    <input type="number" step="0.01" name="valuation" placeholder="<?php _e('قيمة العقار', 'sukna'); ?>" style="width:100%;">
+                    <input type="number" step="0.01" name="valuation" placeholder="<?php _e('قيمة العقار', 'sukna'); ?>">
                 </div>
                 <div class="sukna-form-group">
-                    <input type="number" step="0.01" name="annual_rent_value" placeholder="<?php _e('قيمة الإيجار السنوي', 'sukna'); ?>" style="width:100%;">
+                    <input type="number" step="0.01" name="annual_rent_value" placeholder="<?php _e('قيمة الإيجار السنوي', 'sukna'); ?>">
                 </div>
             </div>
             <div class="sukna-form-group">
-                <select name="owner_id" id="prop-owner-id" style="width:100%;">
+                <select name="owner_id" id="prop-owner-id">
                     <option value=""><?php _e('اختر المالك', 'sukna'); ?></option>
                     <?php foreach($owners as $o): ?>
                         <option value="<?php echo $o->id; ?>"><?php echo esc_html($o->name); ?></option>
@@ -123,10 +123,9 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
         <form id="sukna-contract-form" style="background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:30px; border: 1px solid #e2e8f0;">
             <input type="hidden" name="property_id" id="room-property-id">
             <input type="hidden" name="room_id" id="contract-room-id">
-            <h4 style="margin-top:0;"><?php _e('إنشاء عقد إيجار لوحدة', 'sukna'); ?></h4>
             <div class="sukna-grid" style="grid-template-columns: repeat(3, 1fr); gap:15px;">
                 <div class="sukna-form-group">
-                    <select name="tenant_id" required style="width:100%;">
+                    <select name="tenant_id" required>
                         <option value=""><?php _e('اختر المستأجر', 'sukna'); ?></option>
                         <?php foreach($tenants as $t): ?>
                             <option value="<?php echo $t->id; ?>"><?php echo esc_html($t->name); ?></option>
@@ -134,18 +133,18 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                     </select>
                 </div>
                 <div class="sukna-form-group">
-                    <input type="text" onfocus="(this.type='date')" name="start_date" placeholder="<?php _e('تاريخ بداية العقد', 'sukna'); ?>" required style="width:100%;">
+                    <input type="text" onfocus="(this.type='date')" name="start_date" placeholder="<?php _e('تاريخ بداية العقد', 'sukna'); ?>" required>
                 </div>
                 <div class="sukna-form-group">
-                    <input type="number" name="duration_years" placeholder="<?php _e('مدة العقد (سنوات)', 'sukna'); ?>" required value="1" style="width:100%;">
+                    <input type="number" name="duration_years" placeholder="<?php _e('مدة العقد (سنوات)', 'sukna'); ?>" required value="1">
                 </div>
             </div>
             <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
                 <div class="sukna-form-group">
-                    <input type="number" step="0.01" name="total_value" placeholder="<?php _e('إجمالي قيمة العقد', 'sukna'); ?>" required style="width:100%;">
+                    <input type="number" step="0.01" name="total_value" placeholder="<?php _e('إجمالي قيمة العقد', 'sukna'); ?>" required>
                 </div>
                 <div class="sukna-form-group">
-                    <select name="installment_count" style="width:100%;">
+                    <select name="installment_count">
                         <option value="4"><?php _e('4 أقساط (ربع سنوي)', 'sukna'); ?></option>
                         <option value="12"><?php _e('12 قسط (شهري)', 'sukna'); ?></option>
                     </select>
@@ -181,7 +180,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
         <form id="sukna-expense-form">
             <input type="hidden" name="property_id" id="expense-property-id">
             <div class="sukna-form-group">
-                <select name="category" required style="width:100%;">
+                <select name="category" required>
                     <option value="electricity"><?php _e('كهرباء', 'sukna'); ?></option>
                     <option value="water"><?php _e('مياه', 'sukna'); ?></option>
                     <option value="internet"><?php _e('إنترنت', 'sukna'); ?></option>
@@ -190,7 +189,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 </select>
             </div>
             <div class="sukna-form-group">
-                <input type="number" step="0.01" name="amount" placeholder="<?php _e('المبلغ', 'sukna'); ?>" required style="width:100%;">
+                <input type="number" step="0.01" name="amount" placeholder="<?php _e('المبلغ', 'sukna'); ?>" required>
             </div>
             <button type="submit" class="sukna-btn" style="width:100%; background:#000; border:none; border-radius: 8px;"><?php _e('حفظ المصروفات', 'sukna'); ?></button>
         </form>
@@ -208,7 +207,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
         <form id="sukna-investment-form" style="background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:30px; border: 1px solid #e2e8f0;">
             <input type="hidden" name="property_id" id="invest-property-id">
             <div class="sukna-form-group">
-                <select name="investor_id" required style="width:100%;">
+                <select name="investor_id" required>
                     <option value=""><?php _e('اختر المستثمر', 'sukna'); ?></option>
                     <?php foreach($investors as $i): ?>
                         <option value="<?php echo $i->id; ?>"><?php echo esc_html($i->name); ?></option>
@@ -216,7 +215,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 </select>
             </div>
             <div class="sukna-form-group">
-                <input type="number" step="0.01" name="amount" placeholder="<?php _e('مبلغ المساهمة', 'sukna'); ?>" required style="width:100%;">
+                <input type="number" step="0.01" name="amount" placeholder="<?php _e('مبلغ المساهمة', 'sukna'); ?>" required>
             </div>
             <button type="submit" class="sukna-btn" style="width:100%; background:#000; border:none; border-radius: 8px;"><?php _e('إضافة مساهمة', 'sukna'); ?></button>
         </form>

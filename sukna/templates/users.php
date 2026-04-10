@@ -34,7 +34,6 @@ $can_manage = Sukna_Auth::is_admin();
             </div>
             <div class="sukna-form-group">
                 <input type="password" name="password" id="user-password" placeholder="<?php _e('كلمة المرور', 'sukna'); ?>" style="width:100%;">
-                <small id="password-help" style="display:none; color:#64748b; padding-right: 5px;"><?php _e('اتركه فارغاً للحفاظ على الحالي', 'sukna'); ?></small>
             </div>
             <div class="sukna-form-group">
                 <select name="role" id="user-role" style="width:100%;">
@@ -97,7 +96,6 @@ jQuery(document).ready(function($) {
     $('#sukna-add-user-btn').on('click', function() {
         $('#sukna-user-form')[0].reset();
         $('#user-id').val('');
-        $('#password-help').hide();
         $('#user-password').prop('required', true);
         $('#modal-title').text('<?php _e('إضافة مستخدم جديد', 'sukna'); ?>');
         modal.css('display', 'flex');
@@ -112,7 +110,6 @@ jQuery(document).ready(function($) {
         $('#user-email').val(u.email);
         $('#user-role').val(u.role);
         $('#user-password').val('').prop('required', false);
-        $('#password-help').show();
         $('#modal-title').text('<?php _e('تعديل بيانات المستخدم', 'sukna'); ?>');
         modal.css('display', 'flex');
     });
