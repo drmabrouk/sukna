@@ -1,20 +1,27 @@
 <div class="sukna-dashboard" id="sukna-system-root">
     <aside class="sukna-sidebar">
         <div class="sukna-sidebar-logo">
-            <h2><?php
+            <?php
                 global $wpdb;
-                echo esc_html($wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'system_name'") ?: 'Sukna');
-            ?></h2>
+                $logo_url = $wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'company_logo'");
+                $system_name = $wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'system_name'") ?: 'Sukna';
+
+                if ( $logo_url ) : ?>
+                    <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($system_name); ?>" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+                <?php else : ?>
+                    <h2><?php echo esc_html($system_name); ?></h2>
+                <?php endif;
+            ?>
         </div>
         <nav class="sukna-sidebar-nav">
-            <a href="<?php echo add_query_arg('ac_view', 'dashboard'); ?>" class="<?php echo (!isset($_GET['ac_view']) || $_GET['ac_view'] == 'dashboard') ? 'active' : ''; ?>">
+            <a href="<?php echo add_query_arg('sukna_view', 'dashboard'); ?>" class="<?php echo (!isset($_GET['sukna_view']) || $_GET['sukna_view'] == 'dashboard') ? 'active' : ''; ?>">
                 <span class="dashicons dashicons-dashboard"></span> <?php _e('لوحة المعلومات', 'sukna'); ?>
             </a>
-            <a href="<?php echo add_query_arg('ac_view', 'customers'); ?>" class="<?php echo (isset($_GET['ac_view']) && $_GET['ac_view'] == 'customers') ? 'active' : ''; ?>">
-                <span class="dashicons dashicons-groups"></span> <?php _e('إدارة العملاء', 'sukna'); ?>
+            <a href="<?php echo add_query_arg('sukna_view', 'users'); ?>" class="<?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'users') ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-admin-users"></span> <?php _e('إدارة المستخدمين', 'sukna'); ?>
             </a>
             <?php if ( Sukna_Auth::is_system_admin() ) : ?>
-                <a href="<?php echo add_query_arg('ac_view', 'settings'); ?>" class="<?php echo (isset($_GET['ac_view']) && $_GET['ac_view'] == 'settings') ? 'active' : ''; ?>">
+                <a href="<?php echo add_query_arg('sukna_view', 'settings'); ?>" class="<?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'settings') ? 'active' : ''; ?>">
                     <span class="dashicons dashicons-admin-generic"></span> <?php _e('الإعدادات', 'sukna'); ?>
                 </a>
             <?php endif; ?>

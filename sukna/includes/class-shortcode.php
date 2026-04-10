@@ -17,14 +17,18 @@ class Sukna_Shortcode {
 			return ob_get_clean();
 		}
 
-		$view = isset( $_GET['ac_view'] ) ? sanitize_text_field( $_GET['ac_view'] ) : 'dashboard';
+		$view = isset( $_GET['sukna_view'] ) ? sanitize_text_field( $_GET['sukna_view'] ) : 'dashboard';
 		$is_admin = Sukna_Auth::is_admin();
 
 		include SUKNA_PATH . 'templates/header.php';
 
 		switch ( $view ) {
-			case 'customers':
-				include SUKNA_PATH . 'templates/customers.php';
+			case 'users':
+				if ( ! $is_admin ) {
+					echo '<p>' . __( 'ليس لديك صلاحية للوصول لهذه الصفحة.', 'sukna' ) . '</p>';
+				} else {
+					include SUKNA_PATH . 'templates/users.php';
+				}
 				break;
 			case 'settings':
 				if ( ! $is_admin ) {

@@ -7,8 +7,7 @@ class Sukna_Ajax {
 
 	public function __construct() {
 		$actions = array(
-			'logout', 'add_staff', 'save_staff', 'delete_staff', 'save_settings',
-			'save_customer', 'delete_customer',
+			'logout', 'add_user', 'save_user', 'delete_user', 'save_settings',
 			'verify_fullscreen_password', 'undo_activity'
 		);
 
@@ -41,53 +40,70 @@ class Sukna_Ajax {
 		wp_send_json_success();
 	}
 
-	public function add_staff() {
+	public function add_user() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_staff';
 
+		$username = sanitize_text_field( $_POST['username'] );
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE username = %s", $username ) );
+		if ( $exists ) wp_send_json_error( 'Username already exists' );
+
 		$data = array(
-			'username'      => sanitize_text_field( $_POST['staff_username'] ),
-			'password'      => password_hash( $_POST['staff_password'], PASSWORD_DEFAULT ),
-			'name'          => sanitize_text_field( $_POST['staff_name'] ),
-			'role'          => sanitize_text_field( $_POST['staff_role'] ),
+			'username' => $username,
+			'password' => password_hash( $_POST['password'], PASSWORD_DEFAULT ),
+			'name'     => sanitize_text_field( $_POST['name'] ),
+			'email'    => sanitize_email( $_POST['email'] ),
+			'role'     => sanitize_text_field( $_POST['role'] ),
 		);
 
 		$wpdb->insert( $table, $data );
+		Sukna_Audit::log('add_user', "User $username added");
 		wp_send_json_success();
 	}
 
-	public function save_staff() {
+	public function save_user() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
 		global $wpdb;
 		$id = intval( $_POST['id'] );
+		$username = sanitize_text_field( $_POST['username'] );
 
 		$data = array(
-			'username'      => sanitize_text_field( $_POST['staff_username'] ),
-			'name'          => sanitize_text_field( $_POST['staff_name'] ),
-			'role'          => sanitize_text_field( $_POST['staff_role'] ),
+			'username' => $username,
+			'name'     => sanitize_text_field( $_POST['name'] ),
+			'email'    => sanitize_email( $_POST['email'] ),
+			'role'     => sanitize_text_field( $_POST['role'] ),
 		);
 
-		if ( ! empty( $_POST['staff_password'] ) ) {
-			$data['password'] = password_hash( $_POST['staff_password'], PASSWORD_DEFAULT );
+		if ( ! empty( $_POST['password'] ) ) {
+			$data['password'] = password_hash( $_POST['password'], PASSWORD_DEFAULT );
 		}
 
 		$wpdb->update( $wpdb->prefix . 'sukna_staff', $data, array( 'id' => $id ) );
+		Sukna_Audit::log('edit_user', "User $username updated");
 		wp_send_json_success();
 	}
 
-	public function delete_staff() {
+	public function delete_user() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
 		$id = intval( $_POST['id'] );
 		global $wpdb;
-		$wpdb->delete( $wpdb->prefix . 'sukna_staff', array( 'id' => $id ) );
-		wp_send_json_success();
+		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}sukna_staff WHERE id = %d", $id ) );
+		if ( $user && $user->username === 'admin' ) wp_send_json_error( 'Cannot delete admin' );
+
+		if ( $user ) {
+			Sukna_Audit::log( 'delete_user', "User: {$user->username}", $user );
+			$wpdb->delete( $wpdb->prefix . 'sukna_staff', array( 'id' => $id ) );
+			wp_send_json_success();
+		} else {
+			wp_send_json_error( 'User not found' );
+		}
 	}
 
 	public function save_settings() {
@@ -106,43 +122,6 @@ class Sukna_Ajax {
 			}
 		}
 
-		wp_send_json_success();
-	}
-
-	public function save_customer() {
-		check_ajax_referer( 'sukna_nonce', 'nonce' );
-		if ( ! Sukna_Auth::is_manager() ) wp_send_json_error( 'Unauthorized' );
-
-		$id = isset( $_POST['id'] ) ? intval( $_POST['id'] ) : 0;
-		$name = sanitize_text_field( $_POST['name'] );
-		Sukna_Audit::log( $id ? 'edit_customer' : 'add_customer', "Customer: $name" );
-		$data = array(
-			'name'            => sanitize_text_field( $_POST['name'] ),
-			'phone'           => sanitize_text_field( $_POST['phone'] ),
-			'phone_secondary' => sanitize_text_field( $_POST['phone_secondary'] ),
-			'address'         => sanitize_text_field( $_POST['address'] ),
-			'email'           => sanitize_email( $_POST['email'] ),
-		);
-
-		if ( $id ) {
-			Sukna_Customers::update_customer( $id, $data );
-		} else {
-			Sukna_Customers::add_customer( $data );
-		}
-		wp_send_json_success();
-	}
-
-	public function delete_customer() {
-		check_ajax_referer( 'sukna_nonce', 'nonce' );
-		if ( ! Sukna_Auth::is_manager() ) wp_send_json_error( 'Unauthorized' );
-
-		$id = intval( $_POST['id'] );
-		global $wpdb;
-		$customer = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}sukna_customers WHERE id = %d", $id ) );
-		if ( $customer ) {
-			Sukna_Audit::log( 'delete_customer', "Customer: {$customer->name}", $customer );
-		}
-		Sukna_Customers::delete_customer( $id );
 		wp_send_json_success();
 	}
 
@@ -172,8 +151,8 @@ class Sukna_Ajax {
 		$data = json_decode( $log->meta_data, true );
 		unset($data['id']); // Prevent ID collisions
 
-		if ( $log->action_type === 'delete_customer' ) {
-			$wpdb->insert( "{$wpdb->prefix}sukna_customers", $data );
+		if ( $log->action_type === 'delete_user' ) {
+			$wpdb->insert( "{$wpdb->prefix}sukna_staff", $data );
 			$wpdb->delete( "{$wpdb->prefix}sukna_activity_logs", array( 'id' => $log_id ) );
 			wp_send_json_success();
 		}

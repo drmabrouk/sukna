@@ -10,26 +10,15 @@ class Sukna_Database {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$table_customers = $wpdb->prefix . 'sukna_customers';
 		$table_staff     = $wpdb->prefix . 'sukna_staff';
 		$table_settings  = $wpdb->prefix . 'sukna_settings';
 
-		$sql = "CREATE TABLE $table_customers (
-			id mediumint(9) NOT NULL AUTO_INCREMENT,
-			name varchar(255) NOT NULL,
-			phone varchar(50) NOT NULL,
-			phone_secondary varchar(50),
-			address text,
-			email varchar(255),
-			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY  (id)
-		) $charset_collate;
-
-		CREATE TABLE $table_staff (
+		$sql = "CREATE TABLE $table_staff (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			username varchar(100) NOT NULL,
 			password varchar(255) NOT NULL,
 			name varchar(255),
+			email varchar(255),
 			role varchar(50) DEFAULT 'employee',
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
