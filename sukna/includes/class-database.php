@@ -20,6 +20,7 @@ class Sukna_Database {
 		$table_payments     = $wpdb->prefix . 'sukna_payments';
 		$table_contracts    = $wpdb->prefix . 'sukna_contracts';
 		$table_expenses     = $wpdb->prefix . 'sukna_expenses';
+		$table_setup_items  = $wpdb->prefix . 'sukna_setup_items';
 
 		$sql = "CREATE TABLE $table_staff (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
@@ -44,11 +45,18 @@ class Sukna_Database {
 			state_emirate varchar(100),
 			property_type varchar(50) DEFAULT 'owned',
 			total_rooms int DEFAULT 0,
-			base_lease_value decimal(15,2) DEFAULT '0.00',
-			valuation decimal(15,2) DEFAULT '0.00',
-			annual_rent_value decimal(15,2) DEFAULT '0.00',
+			base_value decimal(15,2) DEFAULT '0.00',
+			total_setup_cost decimal(15,2) DEFAULT '0.00',
 			initiator_id mediumint(9),
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id)
+		) $charset_collate;
+
+		CREATE TABLE $table_setup_items (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			property_id mediumint(9) NOT NULL,
+			item_name varchar(255) NOT NULL,
+			item_cost decimal(15,2) DEFAULT '0.00',
 			PRIMARY KEY  (id)
 		) $charset_collate;
 

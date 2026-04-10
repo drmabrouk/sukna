@@ -88,7 +88,7 @@ class Sukna_Investments {
 
 		$investments = self::get_property_investments($property_id);
 
-		$base_value = ($property->property_type === 'leased') ? floatval($property->base_lease_value) : floatval($property->valuation);
+		$base_value = floatval($property->base_value);
 		if ( $base_value <= 0 ) return;
 
 		$total_investor_contribution = 0;

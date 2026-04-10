@@ -109,10 +109,7 @@ if ( Sukna_Auth::is_admin() ) {
     <?php if ($active_property):
         $rented_rooms = array_filter($rooms, function($r){ return $r->status === 'rented'; });
         $vacant_rooms = array_filter($rooms, function($r){ return $r->status === 'available'; });
-        $share_percent = ($active_property->valuation > 0) ? ($contribution / $active_property->valuation) * 100 : 0;
-        if ($active_property->property_type === 'leased' && $active_property->base_lease_value > 0) {
-            $share_percent = ($contribution / $active_property->base_lease_value) * 100;
-        }
+        $share_percent = ($active_property->base_value > 0) ? ($contribution / $active_property->base_value) * 100 : 0;
     ?>
         <div class="sukna-grid" style="grid-template-columns: 2fr 1fr; gap: 25px;">
             <div class="sukna-column">

@@ -8,8 +8,16 @@ class Sukna_Properties {
 	public static function add_property( $data ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_properties';
+
+		$setup_items = $data['setup_items'] ?? array();
+		unset($data['setup_items']);
+
 		$wpdb->insert( $table, $data );
 		$id = $wpdb->insert_id;
+
+		if ( ! empty( $setup_items ) ) {
+			self::save_setup_items( $id, $setup_items );
+		}
 
 		if ( ! empty( $data['total_rooms'] ) ) {
 			self::auto_generate_rooms( $id, intval( $data['total_rooms'] ) );
@@ -24,11 +32,45 @@ class Sukna_Properties {
 
 		$old_rooms = $wpdb->get_var( $wpdb->prepare( "SELECT total_rooms FROM $table WHERE id = %d", $id ) );
 
+		$setup_items = $data['setup_items'] ?? array();
+		unset($data['setup_items']);
+
 		$wpdb->update( $table, $data, array( 'id' => $id ) );
+
+		if ( ! empty( $setup_items ) ) {
+			self::save_setup_items( $id, $setup_items );
+		}
 
 		if ( isset( $data['total_rooms'] ) && intval( $data['total_rooms'] ) != intval( $old_rooms ) ) {
 			self::auto_generate_rooms( $id, intval( $data['total_rooms'] ) );
 		}
+	}
+
+	private static function save_setup_items( $property_id, $items ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'sukna_setup_items';
+
+		$wpdb->delete( $table, array( 'property_id' => $property_id ) );
+
+		$total_setup_cost = 0;
+		foreach ( $items as $item ) {
+			if ( empty($item['name']) ) continue;
+			$cost = floatval($item['cost']);
+			$wpdb->insert( $table, array(
+				'property_id' => $property_id,
+				'item_name'   => sanitize_text_field($item['name']),
+				'item_cost'   => $cost
+			) );
+			$total_setup_cost += $cost;
+		}
+
+		$wpdb->update( $wpdb->prefix . 'sukna_properties', array( 'total_setup_cost' => $total_setup_cost ), array( 'id' => $property_id ) );
+	}
+
+	public static function get_setup_items( $property_id ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'sukna_setup_items';
+		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table WHERE property_id = %d", $property_id ) );
 	}
 
 	private static function auto_generate_rooms( $property_id, $count ) {
@@ -58,8 +100,9 @@ class Sukna_Properties {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_properties';
 		$wpdb->delete( $table, array( 'id' => $id ) );
-		// Also delete rooms
+		// Also delete rooms and setup items
 		$wpdb->delete( $wpdb->prefix . 'sukna_rooms', array( 'property_id' => $id ) );
+		$wpdb->delete( $wpdb->prefix . 'sukna_setup_items', array( 'property_id' => $id ) );
 	}
 
 	public static function get_property( $id ) {
@@ -117,6 +160,16 @@ class Sukna_Properties {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_rooms';
 		$wpdb->delete( $table, array( 'id' => $id ) );
+	}
+
+	public static function reset_rooms_occupancy( $property_id ) {
+		global $wpdb;
+		$wpdb->update( "{$wpdb->prefix}sukna_rooms", array(
+			'status' => 'available',
+			'tenant_id' => null,
+			'guest_tenant_name' => null,
+			'rental_start_date' => null
+		), array( 'property_id' => $property_id ) );
 	}
 
 	public static function get_rooms( $property_id ) {
@@ -183,9 +236,15 @@ class Sukna_Properties {
 		global $wpdb;
 
 		$property = self::get_property($property_id);
-		if ( ! $property ) return array('income' => 0, 'expenses' => 0, 'net' => 0, 'roi' => 0);
+		if ( ! $property ) return array('income' => 0, 'expenses' => 0, 'net' => 0, 'roi' => 0, 'monthly_income' => 0, 'total_invested' => 0);
 
-		// Income from all rented rooms of this property
+		// Total Investment (Sum of investor contributions)
+		$total_invested = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_investments WHERE property_id = %d", $property_id ) ) ?: 0;
+
+		// Monthly Income (Sum of monthly rents of occupied rooms)
+		$monthly_income = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(rental_price) FROM {$wpdb->prefix}sukna_rooms WHERE property_id = %d AND status = 'rented'", $property_id ) ) ?: 0;
+
+		// Total Income from all rented rooms of this property (Historical Paid)
 		$income = $wpdb->get_var( $wpdb->prepare( "
 			SELECT SUM(p.amount)
 			FROM {$wpdb->prefix}sukna_payments p
@@ -194,31 +253,28 @@ class Sukna_Properties {
 			WHERE r.property_id = %d AND p.status = 'paid'
 		", $property_id ) ) ?: 0;
 
-		// Expenses
+		// Total Expenses recorded
 		$expenses = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses WHERE property_id = %d", $property_id ) ) ?: 0;
 
-		// If leased, base lease value is a cost
-		$costs = $expenses;
-		if ( $property->property_type === 'leased' ) {
-			$costs += floatval($property->base_lease_value);
-		}
+		// Total Cost = Expenses + Setup
+		$costs = $expenses + floatval($property->total_setup_cost);
 
 		$net = $income - $costs;
 
 		// ROI calculation
 		$roi = 0;
-		if ( $property->property_type === 'owned' && $property->valuation > 0 ) {
-			$roi = ($net / $property->valuation) * 100;
-		} elseif ( $property->property_type === 'leased' && $property->base_lease_value > 0 ) {
-			$roi = ($net / $property->base_lease_value) * 100;
+		if ( $property->base_value > 0 ) {
+			$roi = ($net / ($property->base_value + $property->total_setup_cost)) * 100;
 		}
 
 		return array(
-			'income'   => $income,
-			'expenses' => $expenses,
-			'costs'    => $costs,
-			'net'      => $net,
-			'roi'      => round($roi, 2)
+			'income'         => $income,
+			'expenses'       => $expenses,
+			'costs'          => $costs,
+			'net'            => $net,
+			'roi'            => round($roi, 2),
+			'monthly_income' => $monthly_income,
+			'total_invested' => $total_invested
 		);
 	}
 }
