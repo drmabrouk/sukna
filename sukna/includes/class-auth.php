@@ -15,16 +15,60 @@ class Sukna_Auth {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_staff';
 
-		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE username = %s", $username ) );
+		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE username = %s OR phone = %s", $username, $username ) );
 
 		if ( $user && password_verify( $password, $user->password ) ) {
-			$_SESSION['sukna_user_id']   = $user->id;
-			$_SESSION['sukna_username']  = $user->username;
-			$_SESSION['sukna_user_role'] = $user->role;
-			$_SESSION['sukna_user_name'] = $user->name;
-			return true;
+			return self::set_user_session( $user );
 		}
 		return false;
+	}
+
+	public static function login_by_phone( $phone, $password ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'sukna_staff';
+
+		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE phone = %s", $phone ) );
+
+		if ( $user && password_verify( $password, $user->password ) ) {
+			return self::set_user_session( $user );
+		}
+		return false;
+	}
+
+	private static function set_user_session( $user ) {
+		$_SESSION['sukna_user_id']   = $user->id;
+		$_SESSION['sukna_username']  = $user->username;
+		$_SESSION['sukna_user_role'] = $user->role;
+		$_SESSION['sukna_user_name'] = $user->name;
+		return true;
+	}
+
+	public static function register_user( $data ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'sukna_staff';
+
+		// Check if phone or email already exists
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE phone = %s OR (email IS NOT NULL AND email != '' AND email = %s)", $data['phone'], $data['email'] ) );
+		if ( $exists ) {
+			return new WP_Error( 'duplicate', __( 'رقم الهاتف أو البريد الإلكتروني مسجل بالفعل.', 'sukna' ) );
+		}
+
+		$inserted = $wpdb->insert( $table, array(
+			'name'     => $data['first_name'] . ' ' . $data['last_name'],
+			'phone'    => $data['phone'],
+			'email'    => $data['email'],
+			'password' => password_hash( $data['password'], PASSWORD_DEFAULT ),
+			'role'     => 'employee', // Default role for registration
+		) );
+
+		if ( $inserted ) {
+			$user_id = $wpdb->insert_id;
+			$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $user_id ) );
+			self::set_user_session( $user );
+			return $user_id;
+		}
+
+		return new WP_Error( 'db_error', __( 'حدث خطأ أثناء حفظ البيانات.', 'sukna' ) );
 	}
 
 	public static function logout() {
