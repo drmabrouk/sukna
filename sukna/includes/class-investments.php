@@ -80,6 +80,25 @@ class Sukna_Investments {
 		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}sukna_transactions WHERE user_id = %d ORDER BY transaction_date DESC LIMIT 50", $user_id ) );
 	}
 
+	public static function get_system_wide_stats() {
+		global $wpdb;
+
+		$total_invested = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_investments" ) ?: 0;
+		$total_payouts  = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_transactions WHERE type = 'dividend'" ) ?: 0;
+		$total_expenses = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses" ) ?: 0;
+
+		// Sum of all paid payments
+		$total_revenue  = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_payments WHERE status = 'paid'" ) ?: 0;
+
+		return array(
+			'total_invested' => $total_invested,
+			'total_revenue'  => $total_revenue,
+			'total_expenses' => $total_expenses,
+			'net_profit'     => $total_revenue - $total_expenses,
+			'investor_count' => $wpdb->get_var( "SELECT COUNT(DISTINCT id) FROM {$wpdb->prefix}sukna_staff WHERE role = 'investor'" ) ?: 0,
+		);
+	}
+
 	public static function distribute_revenue( $property_id, $total_revenue ) {
 		global $wpdb;
 

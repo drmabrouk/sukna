@@ -178,9 +178,11 @@ class Sukna_Ajax {
 
 		if ( $id ) {
 			Sukna_Properties::update_property( $id, $data );
+			Sukna_Audit::log('edit_property', sprintf(__('تعديل بيانات العقار: %s', 'sukna'), $data['name']));
 		} else {
 			$data['initiator_id'] = Sukna_Auth::current_user()->id;
 			Sukna_Properties::add_property( $data );
+			Sukna_Audit::log('add_property', sprintf(__('إضافة عقار جديد: %s', 'sukna'), $data['name']));
 		}
 		wp_send_json_success();
 	}
@@ -190,7 +192,9 @@ class Sukna_Ajax {
 		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
 		$id = intval( $_POST['id'] );
+		$p = Sukna_Properties::get_property($id);
 		Sukna_Properties::delete_property( $id );
+		Sukna_Audit::log('delete_property', sprintf(__('حذف العقار: %s', 'sukna'), $p->name ?? $id));
 		wp_send_json_success();
 	}
 
@@ -217,6 +221,10 @@ class Sukna_Ajax {
 		);
 
 		Sukna_Properties::save_contract($data);
+
+		$tenant_name = $data['guest_tenant_name'] ?: 'ID: ' . $data['tenant_id'];
+		Sukna_Audit::log('save_contract', sprintf(__('تفعيل عقد إيجار جديد للمستأجر: %s', 'sukna'), $tenant_name));
+
 		wp_send_json_success();
 	}
 
@@ -238,8 +246,10 @@ class Sukna_Ajax {
 
 		if ( $id ) {
 			Sukna_Properties::update_room( $id, $data );
+			Sukna_Audit::log('edit_room', sprintf(__('تعديل بيانات الوحدة: %s', 'sukna'), $data['room_number']));
 		} else {
 			Sukna_Properties::add_room( $data );
+			Sukna_Audit::log('add_room', sprintf(__('إضافة وحدة جديدة: %s', 'sukna'), $data['room_number']));
 		}
 		wp_send_json_success();
 	}
@@ -255,6 +265,9 @@ class Sukna_Ajax {
 		);
 
 		Sukna_Properties::record_expense($data);
+		$p = Sukna_Properties::get_property($data['property_id']);
+		Sukna_Audit::log('record_expense', sprintf(__('تسجيل مصروفات للعقار %s: %s EGP (%s)', 'sukna'), $p->name ?? $data['property_id'], $data['amount'], $data['category']));
+
 		wp_send_json_success();
 	}
 
@@ -264,6 +277,9 @@ class Sukna_Ajax {
 
 		$id = intval( $_POST['id'] );
 		Sukna_Properties::reset_rooms_occupancy($id);
+		$p = Sukna_Properties::get_property($id);
+		Sukna_Audit::log('reset_rooms', sprintf(__('تصفير كافة وحدات العقار: %s', 'sukna'), $p->name ?? $id));
+
 		wp_send_json_success();
 	}
 
@@ -275,6 +291,9 @@ class Sukna_Ajax {
 		$net_profit  = floatval( $_POST['net_profit'] );
 
 		Sukna_Investments::distribute_revenue($property_id, $net_profit);
+		$p = Sukna_Properties::get_property($property_id);
+		Sukna_Audit::log('distribute_revenue', sprintf(__('توزيع أرباح العقار %s بقيمة %s EGP', 'sukna'), $p->name ?? $property_id, $net_profit));
+
 		wp_send_json_success();
 	}
 
@@ -296,6 +315,10 @@ class Sukna_Ajax {
 		);
 
 		Sukna_Investments::add_investment( $data );
+		$p = Sukna_Properties::get_property($data['property_id']);
+		$u = $wpdb->get_row($wpdb->prepare("SELECT name FROM {$wpdb->prefix}sukna_staff WHERE id = %d", $data['investor_id']));
+		Sukna_Audit::log('add_investment', sprintf(__('إضافة مساهمة من %s للعقار %s بقيمة %s EGP', 'sukna'), $u->name ?? $data['investor_id'], $p->name ?? $data['property_id'], $data['amount']));
+
 		wp_send_json_success();
 	}
 
