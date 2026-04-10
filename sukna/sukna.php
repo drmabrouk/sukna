@@ -65,6 +65,11 @@ class Sukna_System {
 		add_action( 'init', array( 'Sukna_PWA', 'init' ) );
 		add_action( 'init', array( $this, 'send_nocache_headers' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'wp_head', array( $this, 'add_viewport_meta' ) );
+	}
+
+	public function add_viewport_meta() {
+		echo '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">';
 	}
 
 	public function send_nocache_headers() {

@@ -378,36 +378,6 @@ jQuery(document).ready(function($) {
         setTimeout(() => { window.location.reload(true); }, 500);
     });
 
-    const systemRoot = document.getElementById('sukna-system-root');
-
-    $('#sukna-fullscreen-btn').on('click', function() {
-        if (!document.fullscreenElement) {
-            if (systemRoot.requestFullscreen) systemRoot.requestFullscreen();
-            else if (systemRoot.webkitRequestFullscreen) systemRoot.webkitRequestFullscreen();
-            localStorage.setItem('sukna_fullscreen', '1');
-        } else {
-            $('#sukna-unlock-overlay').css('display', 'flex').hide().fadeIn(300);
-            $('#sukna-unlock-pass').focus();
-        }
-    });
-
-    $('#sukna-unlock-submit').on('click', function() {
-        $.post(sukna_ajax.ajax_url, {
-            action: 'sukna_verify_fullscreen_password',
-            password: $('#sukna-unlock-pass').val(),
-            nonce: sukna_ajax.nonce
-        }, function(res) {
-            if (res.success) {
-                $('#sukna-unlock-overlay').fadeOut(300, function() {
-                    if (document.exitFullscreen) document.exitFullscreen();
-                    $('#sukna-unlock-pass').val('');
-                    localStorage.removeItem('sukna_fullscreen');
-                });
-            } else {
-                alert('كلمة المرور غير صحيحة');
-            }
-        });
-    });
 
     $('#sukna-logout-btn, #sukna-mobile-logout-btn').on('click', function() {
         $.post(sukna_ajax.ajax_url, { action: 'sukna_logout', nonce: sukna_ajax.nonce }, () => location.reload());

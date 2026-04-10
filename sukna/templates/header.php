@@ -36,10 +36,6 @@
 
         <div class="sukna-sidebar-footer" style="padding: 10px; border-top: 1px solid #334155; margin-top: auto;">
             <div class="sukna-sidebar-controls" style="display: flex; justify-content: space-around; align-items: center; gap: 2px;">
-                <button id="sukna-fullscreen-btn" class="sidebar-ctrl-icon" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:5px; flex:1; display:flex; flex-direction:column; align-items:center;">
-                    <span class="dashicons dashicons-fullscreen-alt" style="font-size:18px; width:18px; height:18px;"></span>
-                    <small style="font-size:0.6rem; margin-top:2px;"><?php _e('ملء', 'sukna'); ?></small>
-                </button>
                 <button id="sukna-refresh-btn" class="sidebar-ctrl-icon" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:5px; flex:1; display:flex; flex-direction:column; align-items:center;">
                     <span class="dashicons dashicons-update" style="font-size:18px; width:18px; height:18px;"></span>
                     <small style="font-size:0.6rem; margin-top:2px;"><?php _e('تحديث', 'sukna'); ?></small>
@@ -70,13 +66,11 @@
     </div>
 
     <main class="sukna-main-content">
+        <div id="sukna-install-banner" style="display:none; background:#D4AF37; color:#000; padding:15px 25px; border-radius:12px; margin-bottom:25px; align-items:center; justify-content:space-between; font-weight:700; box-shadow:0 4px 12px rgba(212,175,55,0.3);">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <span class="dashicons dashicons-smartphone" style="font-size:24px; width:24px; height:24px;"></span>
+                <span><?php _e('تثبيت تطبيق سكنى على هاتفك للوصول السريع', 'sukna'); ?></span>
+            </div>
+            <button onclick="window.suknaInstallPrompt.prompt()" class="sukna-btn" style="background:#000; border:none; padding:8px 20px; font-size:0.85rem;"><?php _e('تثبيت الآن', 'sukna'); ?></button>
+        </div>
         <div class="sukna-content-inner">
-
-<div id="sukna-unlock-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:9999; align-items:center; justify-content:center; flex-direction:column; color:#fff;">
-    <h2 style="margin-bottom:20px;"><?php _e('النظام مغلق - يرجى إدخال كلمة المرور للخروج', 'sukna'); ?></h2>
-    <div style="display:flex; gap:10px;">
-        <input type="password" id="sukna-unlock-pass" placeholder="********" style="padding:15px; border-radius:8px; border:none; font-size:1.2rem; text-align:center;">
-        <button id="sukna-unlock-submit" class="sukna-btn" style="background:#000000; font-size:1.1rem;"><?php _e('فك القفل', 'sukna'); ?></button>
-    </div>
-    <p id="sukna-unlock-error" style="color:#991b1b; margin-top:15px; display:none;"><?php _e('كلمة المرور غير صحيحة', 'sukna'); ?></p>
-</div>
