@@ -69,37 +69,46 @@ class Sukna_Properties {
 	public static function get_rooms( $property_id ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_rooms';
-		return $wpdb->get_results( $wpdb->prepare( "SELECT r.*, s.name as tenant_name FROM $table r LEFT JOIN {$wpdb->prefix}sukna_staff s ON r.tenant_id = s.id WHERE r.property_id = %d", $property_id ) );
+		return $wpdb->get_results( $wpdb->prepare( "SELECT r.*, COALESCE(s.name, r.guest_tenant_name) as tenant_name FROM $table r LEFT JOIN {$wpdb->prefix}sukna_staff s ON r.tenant_id = s.id WHERE r.property_id = %d", $property_id ) );
 	}
 
 	public static function save_contract( $data ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_contracts';
 
-		// Set checkout time to 12:00 PM for informational purposes
-		// In a real DB we'd store the timestamp, but here we calculate based on start date
-
 		$wpdb->insert( $table, $data );
 		$contract_id = $wpdb->insert_id;
 
 		// Generate Installments
-		self::generate_installments( $contract_id, $data['total_value'], $data['duration_years'], $data['start_date'] );
+		$installment_count = $data['installment_count'] ?? ( $data['duration_years'] * 4 );
+		self::generate_installments( $contract_id, $data['total_value'], $installment_count, $data['start_date'] );
 
 		// Update room status
-		$wpdb->update( "{$wpdb->prefix}sukna_rooms", array('status' => 'rented', 'tenant_id' => $data['tenant_id'], 'rental_start_date' => $data['start_date']), array('id' => $data['room_id']) );
+		$room_data = array(
+			'status' => 'rented',
+			'tenant_id' => $data['tenant_id'] ?? null,
+			'guest_tenant_name' => $data['guest_tenant_name'] ?? null,
+			'rental_start_date' => $data['start_date']
+		);
+		$wpdb->update( "{$wpdb->prefix}sukna_rooms", $room_data, array('id' => $data['room_id']) );
 
 		return $contract_id;
 	}
 
-	private static function generate_installments( $contract_id, $total_value, $years, $start_date ) {
+	private static function generate_installments( $contract_id, $total_value, $count, $start_date ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_payments';
 
-		$total_installments = $years * 4;
+		$total_installments = intval( $count );
+		if ( $total_installments <= 0 ) return;
+
 		$amount_per_installment = $total_value / $total_installments;
 
+		// We default to quarterly (3 months)
+		$months_step = 3;
+
 		for ( $i = 0; $i < $total_installments; $i++ ) {
-			$due_date = date( 'Y-m-d', strtotime( "+ " . ($i * 3) . " months", strtotime( $start_date ) ) );
+			$due_date = date( 'Y-m-d', strtotime( "+ " . ($i * $months_step) . " months", strtotime( $start_date ) ) );
 			$wpdb->insert( $table, array(
 				'contract_id' => $contract_id,
 				'amount'      => $amount_per_installment,

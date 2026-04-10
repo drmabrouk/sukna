@@ -54,6 +54,7 @@ class Sukna_Database {
 			rental_price decimal(10,2) DEFAULT '0.00',
 			status varchar(50) DEFAULT 'available',
 			tenant_id mediumint(9),
+			guest_tenant_name varchar(255),
 			rental_start_date date,
 			payment_frequency varchar(50) DEFAULT 'monthly',
 			is_rented_to_third_party tinyint(1) DEFAULT 0,
@@ -64,7 +65,8 @@ class Sukna_Database {
 		CREATE TABLE $table_contracts (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			room_id mediumint(9) NOT NULL,
-			tenant_id mediumint(9) NOT NULL,
+			tenant_id mediumint(9),
+			guest_tenant_name varchar(255),
 			start_date date NOT NULL,
 			duration_years int NOT NULL DEFAULT 1,
 			total_value decimal(15,2) NOT NULL,
