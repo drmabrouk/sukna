@@ -23,6 +23,13 @@ class Sukna_Shortcode {
 		include SUKNA_PATH . 'templates/header.php';
 
 		switch ( $view ) {
+			case 'properties':
+				if ( ! Sukna_Auth::is_admin() && ! Sukna_Auth::is_owner() ) {
+					echo '<p>' . __( 'ليس لديك صلاحية للوصول لهذه الصفحة.', 'sukna' ) . '</p>';
+				} else {
+					include SUKNA_PATH . 'templates/properties.php';
+				}
+				break;
 			case 'users':
 				if ( ! $is_admin ) {
 					echo '<p>' . __( 'ليس لديك صلاحية للوصول لهذه الصفحة.', 'sukna' ) . '</p>';

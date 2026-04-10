@@ -48,6 +48,8 @@ class Sukna_System {
 		require_once SUKNA_PATH . 'includes/class-database.php';
 		require_once SUKNA_PATH . 'includes/class-auth.php';
 		require_once SUKNA_PATH . 'includes/class-users.php';
+		require_once SUKNA_PATH . 'includes/class-properties.php';
+		require_once SUKNA_PATH . 'includes/class-investments.php';
 		require_once SUKNA_PATH . 'includes/class-audit.php';
 		require_once SUKNA_PATH . 'includes/class-pwa.php';
 

@@ -11,19 +11,7 @@ class Sukna_Auth {
 		}
 	}
 
-	public static function login( $username, $password ) {
-		global $wpdb;
-		$table = $wpdb->prefix . 'sukna_staff';
-
-		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE username = %s OR phone = %s", $username, $username ) );
-
-		if ( $user && password_verify( $password, $user->password ) ) {
-			return self::set_user_session( $user );
-		}
-		return false;
-	}
-
-	public static function login_by_phone( $phone, $password ) {
+	public static function login( $phone, $password ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_staff';
 
@@ -33,6 +21,10 @@ class Sukna_Auth {
 			return self::set_user_session( $user );
 		}
 		return false;
+	}
+
+	public static function login_by_phone( $phone, $password ) {
+		return self::login($phone, $password);
 	}
 
 	private static function set_user_session( $user ) {
@@ -118,6 +110,24 @@ class Sukna_Auth {
 		if ( self::is_admin() ) return true;
 		$user = self::current_user();
 		return $user && $user->role === 'manager';
+	}
+
+	public static function is_investor() {
+		if ( self::is_admin() ) return true;
+		$user = self::current_user();
+		return $user && $user->role === 'investor';
+	}
+
+	public static function is_owner() {
+		if ( self::is_admin() ) return true;
+		$user = self::current_user();
+		return $user && $user->role === 'owner';
+	}
+
+	public static function is_tenant() {
+		if ( self::is_admin() ) return true;
+		$user = self::current_user();
+		return $user && $user->role === 'tenant';
 	}
 
 	public static function is_system_admin() {

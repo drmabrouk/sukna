@@ -10,8 +10,14 @@ class Sukna_Database {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$table_staff     = $wpdb->prefix . 'sukna_staff';
-		$table_settings  = $wpdb->prefix . 'sukna_settings';
+		$table_staff        = $wpdb->prefix . 'sukna_staff';
+		$table_settings     = $wpdb->prefix . 'sukna_settings';
+		$table_properties   = $wpdb->prefix . 'sukna_properties';
+		$table_rooms        = $wpdb->prefix . 'sukna_rooms';
+		$table_investments  = $wpdb->prefix . 'sukna_investments';
+		$table_wallets      = $wpdb->prefix . 'sukna_wallets';
+		$table_transactions = $wpdb->prefix . 'sukna_transactions';
+		$table_payments     = $wpdb->prefix . 'sukna_payments';
 
 		$sql = "CREATE TABLE $table_staff (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
@@ -25,6 +31,66 @@ class Sukna_Database {
 			PRIMARY KEY  (id),
 			UNIQUE KEY phone (phone),
 			UNIQUE KEY username (username)
+		) $charset_collate;
+
+		CREATE TABLE $table_properties (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			name varchar(255) NOT NULL,
+			address text,
+			owner_id mediumint(9),
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id)
+		) $charset_collate;
+
+		CREATE TABLE $table_rooms (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			property_id mediumint(9) NOT NULL,
+			room_number varchar(50) NOT NULL,
+			rental_price decimal(10,2) DEFAULT '0.00',
+			status varchar(50) DEFAULT 'available',
+			tenant_id mediumint(9),
+			rental_start_date date,
+			payment_frequency varchar(50) DEFAULT 'monthly',
+			PRIMARY KEY  (id)
+		) $charset_collate;
+
+		CREATE TABLE $table_investments (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			investor_id mediumint(9) NOT NULL,
+			property_id mediumint(9) NOT NULL,
+			amount decimal(10,2) NOT NULL,
+			investment_date datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id)
+		) $charset_collate;
+
+		CREATE TABLE $table_wallets (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			user_id mediumint(9) NOT NULL,
+			balance decimal(10,2) DEFAULT '0.00',
+			last_updated datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id),
+			UNIQUE KEY user_id (user_id)
+		) $charset_collate;
+
+		CREATE TABLE $table_transactions (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			user_id mediumint(9) NOT NULL,
+			amount decimal(10,2) NOT NULL,
+			type varchar(50) NOT NULL,
+			description text,
+			transaction_date datetime DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id)
+		) $charset_collate;
+
+		CREATE TABLE $table_payments (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			room_id mediumint(9) NOT NULL,
+			tenant_id mediumint(9) NOT NULL,
+			amount decimal(10,2) NOT NULL,
+			due_date date,
+			payment_date datetime,
+			status varchar(50) DEFAULT 'pending',
+			PRIMARY KEY  (id)
 		) $charset_collate;
 
 		CREATE TABLE $table_settings (
