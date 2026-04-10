@@ -30,6 +30,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
     <?php foreach($properties as $p):
         $rooms = Sukna_Properties::get_rooms($p->id);
         $rented_count = count(array_filter($rooms, function($r){ return $r->status === 'rented'; }));
+        $perf = Sukna_Properties::get_property_performance($p->id);
     ?>
         <div class="sukna-card" style="border-top: 4px solid #D4AF37; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
             <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom:15px;">
@@ -49,6 +50,10 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                     <span style="font-size:0.85rem; color:#64748b;"><?php _e('إجمالي الوحدات:', 'sukna'); ?></span>
                     <span style="font-weight:700;"><?php echo count($rooms); ?></span>
                 </div>
+                <div style="display:flex; justify-content: space-between; margin-bottom:10px;">
+                    <span style="font-size:0.85rem; color:#64748b;"><?php _e('صافي الربح:', 'sukna'); ?></span>
+                    <span style="font-weight:700; color: <?php echo ($perf['net'] >= 0) ? '#059669' : '#ef4444'; ?>"><?php echo number_format($perf['net'], 2); ?></span>
+                </div>
                 <div style="display:flex; justify-content: space-between;">
                     <span style="font-size:0.85rem; color:#64748b;"><?php _e('الحالة:', 'sukna'); ?></span>
                     <span class="sukna-capsule <?php echo ($rented_count == count($rooms) && count($rooms) > 0) ? 'capsule-danger' : 'capsule-accent'; ?>">
@@ -57,10 +62,14 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 </div>
             </div>
 
-            <div style="display:flex; gap:10px;">
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <button class="sukna-btn sukna-manage-rooms" data-id="<?php echo $p->id; ?>" style="flex:1; font-size:0.8rem; background:#000; border:none; border-radius: 6px;"><?php _e('إدارة الوحدات', 'sukna'); ?></button>
+                <button class="sukna-btn sukna-record-expense-btn" data-id="<?php echo $p->id; ?>" style="flex:1; font-size:0.8rem; background:#333; border:none; border-radius: 6px;"><?php _e('تسجيل مصاريف', 'sukna'); ?></button>
+            </div>
+            <div style="display:flex; gap:10px;">
                 <?php if($is_admin): ?>
                     <button class="sukna-btn sukna-manage-investors" data-id="<?php echo $p->id; ?>" style="flex:1; font-size:0.8rem; background:#D4AF37; color:#000 !important; border:none; border-radius: 6px;"><?php _e('المستثمرون', 'sukna'); ?></button>
+                    <button class="sukna-btn sukna-distribute-revenue-btn" data-id="<?php echo $p->id; ?>" data-net="<?php echo $perf['net']; ?>" style="flex:1; font-size:0.8rem; background:#059669; border:none; border-radius: 6px;"><?php _e('توزيع الأرباح', 'sukna'); ?></button>
                 <?php endif; ?>
             </div>
         </div>
@@ -78,6 +87,14 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
             </div>
             <div class="sukna-form-group">
                 <textarea name="address" id="prop-address" placeholder="<?php _e('العنوان بالتفصيل', 'sukna'); ?>" rows="2" style="width:100%;"></textarea>
+            </div>
+            <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="sukna-form-group">
+                    <input type="number" step="0.01" name="valuation" placeholder="<?php _e('قيمة العقار', 'sukna'); ?>" style="width:100%;">
+                </div>
+                <div class="sukna-form-group">
+                    <input type="number" step="0.01" name="annual_rent_value" placeholder="<?php _e('قيمة الإيجار السنوي', 'sukna'); ?>" style="width:100%;">
+                </div>
             </div>
             <div class="sukna-form-group">
                 <select name="owner_id" id="prop-owner-id" style="width:100%;">
@@ -99,48 +116,42 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
 <div id="sukna-room-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0, 0, 0, 0.6); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
     <div class="sukna-card" style="width:100%; max-width:900px; max-height: 90vh; overflow-y: auto; padding:40px; border-radius:12px;">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h3 style="margin:0; font-size:1.4rem;"><?php _e('إدارة الوحدات والغرف', 'sukna'); ?></h3>
+            <h3 style="margin:0; font-size:1.4rem;"><?php _e('إدارة الوحدات والعقود', 'sukna'); ?></h3>
             <button type="button" class="sukna-btn close-room-modal" style="background:#333; border:none; padding: 5px 15px; border-radius: 4px;">X</button>
         </div>
 
-        <form id="sukna-room-form" style="background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:30px; border: 1px solid #e2e8f0;">
+        <form id="sukna-contract-form" style="background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:30px; border: 1px solid #e2e8f0;">
             <input type="hidden" name="property_id" id="room-property-id">
+            <input type="hidden" name="room_id" id="contract-room-id">
+            <h4 style="margin-top:0;"><?php _e('إنشاء عقد إيجار لوحدة', 'sukna'); ?></h4>
             <div class="sukna-grid" style="grid-template-columns: repeat(3, 1fr); gap:15px;">
                 <div class="sukna-form-group">
-                    <input type="text" name="room_number" placeholder="<?php _e('رقم الوحدة/الغرفة', 'sukna'); ?>" required style="width:100%;">
-                </div>
-                <div class="sukna-form-group">
-                    <input type="number" step="0.01" name="rental_price" placeholder="<?php _e('سعر الإيجار', 'sukna'); ?>" required style="width:100%;">
-                </div>
-                <div class="sukna-form-group">
-                    <select name="status" style="width:100%;">
-                        <option value="available"><?php _e('متاحة', 'sukna'); ?></option>
-                        <option value="rented"><?php _e('مؤجرة', 'sukna'); ?></option>
-                        <option value="maintenance"><?php _e('صيانة', 'sukna'); ?></option>
-                    </select>
-                </div>
-            </div>
-            <div class="sukna-grid" style="grid-template-columns: repeat(3, 1fr); gap:15px; margin-top:10px;">
-                <div class="sukna-form-group">
-                    <select name="tenant_id" style="width:100%;">
-                        <option value=""><?php _e('المستأجر (اختياري)', 'sukna'); ?></option>
+                    <select name="tenant_id" required style="width:100%;">
+                        <option value=""><?php _e('اختر المستأجر', 'sukna'); ?></option>
                         <?php foreach($tenants as $t): ?>
                             <option value="<?php echo $t->id; ?>"><?php echo esc_html($t->name); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="sukna-form-group">
-                    <input type="text" onfocus="(this.type='date')" name="rental_start_date" placeholder="<?php _e('بداية الإيجار', 'sukna'); ?>" style="width:100%;">
+                    <input type="text" onfocus="(this.type='date')" name="start_date" placeholder="<?php _e('تاريخ بداية العقد', 'sukna'); ?>" required style="width:100%;">
                 </div>
                 <div class="sukna-form-group">
-                    <select name="payment_frequency" style="width:100%;">
-                        <option value="monthly"><?php _e('شهري', 'sukna'); ?></option>
-                        <option value="quarterly"><?php _e('ربع سنوي', 'sukna'); ?></option>
-                        <option value="yearly"><?php _e('سنوي', 'sukna'); ?></option>
+                    <input type="number" name="duration_years" placeholder="<?php _e('مدة العقد (سنوات)', 'sukna'); ?>" required value="1" style="width:100%;">
+                </div>
+            </div>
+            <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
+                <div class="sukna-form-group">
+                    <input type="number" step="0.01" name="total_value" placeholder="<?php _e('إجمالي قيمة العقد', 'sukna'); ?>" required style="width:100%;">
+                </div>
+                <div class="sukna-form-group">
+                    <select name="installment_count" style="width:100%;">
+                        <option value="4"><?php _e('4 أقساط (ربع سنوي)', 'sukna'); ?></option>
+                        <option value="12"><?php _e('12 قسط (شهري)', 'sukna'); ?></option>
                     </select>
                 </div>
             </div>
-            <button type="submit" class="sukna-btn" style="width:100%; margin-top:10px; background:#D4AF37; color:#000 !important; border:none; border-radius: 8px;"><?php _e('إضافة الوحدة', 'sukna'); ?></button>
+            <button type="submit" class="sukna-btn" style="width:100%; margin-top:10px; background:#D4AF37; color:#000 !important; border:none; border-radius: 8px;"><?php _e('تفعيل العقد', 'sukna'); ?></button>
         </form>
 
         <table class="sukna-table">
@@ -157,6 +168,32 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 <!-- Loaded via AJAX -->
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Expense Modal -->
+<div id="sukna-expense-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0, 0, 0, 0.6); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+    <div class="sukna-card" style="width:100%; max-width:500px; padding:40px; border-radius:12px;">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h3 style="margin:0; font-size:1.4rem;"><?php _e('تسجيل مصاريف تشغيلية', 'sukna'); ?></h3>
+            <button type="button" class="sukna-btn close-expense-modal" style="background:#333; border:none; padding: 5px 15px; border-radius: 4px;">X</button>
+        </div>
+        <form id="sukna-expense-form">
+            <input type="hidden" name="property_id" id="expense-property-id">
+            <div class="sukna-form-group">
+                <select name="category" required style="width:100%;">
+                    <option value="electricity"><?php _e('كهرباء', 'sukna'); ?></option>
+                    <option value="water"><?php _e('مياه', 'sukna'); ?></option>
+                    <option value="internet"><?php _e('إنترنت', 'sukna'); ?></option>
+                    <option value="cleaning"><?php _e('نظافة', 'sukna'); ?></option>
+                    <option value="maintenance"><?php _e('صيانة', 'sukna'); ?></option>
+                </select>
+            </div>
+            <div class="sukna-form-group">
+                <input type="number" step="0.01" name="amount" placeholder="<?php _e('المبلغ', 'sukna'); ?>" required style="width:100%;">
+            </div>
+            <button type="submit" class="sukna-btn" style="width:100%; background:#000; border:none; border-radius: 8px;"><?php _e('حفظ المصروفات', 'sukna'); ?></button>
+        </form>
     </div>
 </div>
 
