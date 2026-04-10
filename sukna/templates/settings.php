@@ -21,7 +21,7 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
         <div id="tab-identity" class="sukna-tab-content active">
         <div class="sukna-card" style="border-top: 5px solid #D4AF37;">
             <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:20px; color: #000;">
-                <span class="dashicons dashicons-id"></span> <?php _e('هوية النظام والشركة', 'sukna'); ?>
+                <span class="dashicons dashicons-id-alt"></span> <?php _e('هوية النظام والشركة', 'sukna'); ?>
             </h3>
             <form id="sukna-identity-form" class="sukna-system-settings-form">
                 <div class="sukna-form-group">
@@ -97,7 +97,7 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
             <div class="sukna-card" style="border-top: 5px solid #000;">
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:25px;">
                     <h3 style="margin:0; color:#000;"><?php _e('سجل النشاطات', 'sukna'); ?></h3>
-                    <button id="sukna-export-audit-pdf" class="sukna-btn" style="background:#000; border:none; border-radius: 6px;"><span class="dashicons dashicons-pdf" style="margin-left:5px;"></span><?php _e('تصدير التقرير', 'sukna'); ?></button>
+                    <button id="sukna-export-audit-pdf" class="sukna-btn" style="background:#000; border:none; border-radius: 6px;"><span class="dashicons dashicons-media-document" style="margin-left:5px;"></span><?php _e('تصدير التقرير', 'sukna'); ?></button>
                 </div>
                 <div style="max-height:600px; overflow-y:auto;">
                     <table class="sukna-table">

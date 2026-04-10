@@ -9,13 +9,49 @@ class Sukna_Properties {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_properties';
 		$wpdb->insert( $table, $data );
-		return $wpdb->insert_id;
+		$id = $wpdb->insert_id;
+
+		if ( ! empty( $data['total_rooms'] ) ) {
+			self::auto_generate_rooms( $id, intval( $data['total_rooms'] ) );
+		}
+
+		return $id;
 	}
 
 	public static function update_property( $id, $data ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_properties';
+
+		$old_rooms = $wpdb->get_var( $wpdb->prepare( "SELECT total_rooms FROM $table WHERE id = %d", $id ) );
+
 		$wpdb->update( $table, $data, array( 'id' => $id ) );
+
+		if ( isset( $data['total_rooms'] ) && intval( $data['total_rooms'] ) != intval( $old_rooms ) ) {
+			self::auto_generate_rooms( $id, intval( $data['total_rooms'] ) );
+		}
+	}
+
+	private static function auto_generate_rooms( $property_id, $count ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'sukna_rooms';
+
+		$existing_rooms = $wpdb->get_results( $wpdb->prepare( "SELECT room_number FROM $table WHERE property_id = %d", $property_id ) );
+		$existing_numbers = wp_list_pluck( $existing_rooms, 'room_number' );
+
+		for ( $i = 1; $i <= $count; $i++ ) {
+			$room_number = (string) $i;
+			if ( ! in_array( $room_number, $existing_numbers ) ) {
+				$wpdb->insert( $table, array(
+					'property_id' => $property_id,
+					'room_number' => $room_number,
+					'status'      => 'available'
+				) );
+			}
+		}
+
+		// Optionally delete rooms if count decreased?
+		// For safety, we only add. If the user wants to remove, they should do it manually or we can add a cleanup logic.
+		// Requirement says "Automatically generate and display all rooms based on the defined number".
 	}
 
 	public static function delete_property( $id ) {
@@ -37,9 +73,26 @@ class Sukna_Properties {
 		$table = $wpdb->prefix . 'sukna_properties';
 
 		$query = "SELECT p.*, s.name as owner_name FROM $table p LEFT JOIN {$wpdb->prefix}sukna_staff s ON p.owner_id = s.id";
+		$where = array();
 
 		if ( ! empty( $args['owner_id'] ) ) {
-			$query .= $wpdb->prepare( " WHERE p.owner_id = %d", $args['owner_id'] );
+			$where[] = $wpdb->prepare( "p.owner_id = %d", $args['owner_id'] );
+		}
+
+		if ( ! empty( $args['country'] ) ) {
+			$where[] = $wpdb->prepare( "p.country = %s", $args['country'] );
+		}
+
+		if ( ! empty( $args['state_emirate'] ) ) {
+			$where[] = $wpdb->prepare( "p.state_emirate = %s", $args['state_emirate'] );
+		}
+
+		if ( ! empty( $args['property_type'] ) ) {
+			$where[] = $wpdb->prepare( "p.property_type = %s", $args['property_type'] );
+		}
+
+		if ( ! empty( $where ) ) {
+			$query .= " WHERE " . implode( " AND ", $where );
 		}
 
 		$query .= " ORDER BY p.created_at DESC";
@@ -85,8 +138,8 @@ class Sukna_Properties {
 
 		// Update room status
 		$room_data = array(
-			'status' => 'rented',
-			'tenant_id' => $data['tenant_id'] ?? null,
+			'status'            => 'rented',
+			'tenant_id'         => $data['tenant_id'] ?? null,
 			'guest_tenant_name' => $data['guest_tenant_name'] ?? null,
 			'rental_start_date' => $data['start_date']
 		);
@@ -113,7 +166,8 @@ class Sukna_Properties {
 				'contract_id' => $contract_id,
 				'amount'      => $amount_per_installment,
 				'due_date'    => $due_date,
-				'status'      => 'pending'
+				'status'      => ($i === 0) ? 'paid' : 'pending',
+				'payment_date' => ($i === 0) ? current_time('mysql') : null
 			) );
 		}
 	}
@@ -128,6 +182,9 @@ class Sukna_Properties {
 	public static function get_property_performance( $property_id ) {
 		global $wpdb;
 
+		$property = self::get_property($property_id);
+		if ( ! $property ) return array('income' => 0, 'expenses' => 0, 'net' => 0, 'roi' => 0);
+
 		// Income from all rented rooms of this property
 		$income = $wpdb->get_var( $wpdb->prepare( "
 			SELECT SUM(p.amount)
@@ -140,10 +197,28 @@ class Sukna_Properties {
 		// Expenses
 		$expenses = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses WHERE property_id = %d", $property_id ) ) ?: 0;
 
+		// If leased, base lease value is a cost
+		$costs = $expenses;
+		if ( $property->property_type === 'leased' ) {
+			$costs += floatval($property->base_lease_value);
+		}
+
+		$net = $income - $costs;
+
+		// ROI calculation
+		$roi = 0;
+		if ( $property->property_type === 'owned' && $property->valuation > 0 ) {
+			$roi = ($net / $property->valuation) * 100;
+		} elseif ( $property->property_type === 'leased' && $property->base_lease_value > 0 ) {
+			$roi = ($net / $property->base_lease_value) * 100;
+		}
+
 		return array(
-			'income' => $income,
+			'income'   => $income,
 			'expenses' => $expenses,
-			'net' => $income - $expenses
+			'costs'    => $costs,
+			'net'      => $net,
+			'roi'      => round($roi, 2)
 		);
 	}
 }
