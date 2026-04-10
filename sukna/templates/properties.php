@@ -120,38 +120,64 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
             <button type="button" class="sukna-btn close-room-modal" style="background:#333; border:none; padding: 5px 15px; border-radius: 4px;">X</button>
         </div>
 
-        <form id="sukna-contract-form" style="background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:30px; border: 1px solid #e2e8f0;">
-            <input type="hidden" name="property_id" id="room-property-id">
-            <input type="hidden" name="room_id" id="contract-room-id">
-            <div class="sukna-grid" style="grid-template-columns: repeat(3, 1fr); gap:15px;">
-                <div class="sukna-form-group">
-                    <select name="tenant_id" required>
-                        <option value=""><?php _e('اختر المستأجر', 'sukna'); ?></option>
-                        <?php foreach($tenants as $t): ?>
-                            <option value="<?php echo $t->id; ?>"><?php echo esc_html($t->name); ?></option>
-                        <?php endforeach; ?>
+        <div style="display:flex; gap:20px; margin-bottom:30px;">
+            <!-- Add Room Form -->
+            <form id="sukna-room-quick-add" style="flex:1; background:#f8fafc; padding:20px; border-radius:8px; border: 1px solid #e2e8f0;">
+                <h4 style="margin:0 0 15px 0;"><?php _e('إضافة وحدة سريعة', 'sukna'); ?></h4>
+                <input type="hidden" name="property_id" id="room-property-id">
+                <input type="hidden" name="status" value="available">
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="sukna-form-group" style="margin-bottom:10px;">
+                        <input type="text" name="room_number" placeholder="<?php _e('رقم الوحدة', 'sukna'); ?>" required>
+                    </div>
+                    <div class="sukna-form-group" style="margin-bottom:10px;">
+                        <input type="number" step="0.01" name="rental_price" placeholder="<?php _e('سعر الإيجار', 'sukna'); ?>" required>
+                    </div>
+                </div>
+                <div class="sukna-form-group" style="margin-bottom:10px;">
+                    <select name="payment_frequency">
+                        <option value="monthly"><?php _e('شهري', 'sukna'); ?></option>
+                        <option value="quarterly"><?php _e('ربع سنوي', 'sukna'); ?></option>
+                        <option value="annually"><?php _e('سنوي', 'sukna'); ?></option>
                     </select>
                 </div>
-                <div class="sukna-form-group">
-                    <input type="text" onfocus="(this.type='date')" name="start_date" placeholder="<?php _e('تاريخ بداية العقد', 'sukna'); ?>" required>
+                <button type="submit" class="sukna-btn" style="width:100%; background:#000; border:none; border-radius: 6px; padding:8px;"><?php _e('إضافة الوحدة', 'sukna'); ?></button>
+            </form>
+
+            <!-- Contract Form (initially hidden) -->
+            <form id="sukna-contract-form" style="display:none; flex:2; background:#fff; padding:20px; border-radius:8px; border: 2px solid #D4AF37;">
+                <h4 style="margin:0 0 15px 0; color:#D4AF37;"><?php _e('تفعيل عقد إيجار جديد', 'sukna'); ?></h4>
+                <input type="hidden" name="room_id" id="contract-room-id">
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div class="sukna-form-group">
+                        <select name="tenant_id" id="contract-tenant-id">
+                            <option value=""><?php _e('مستأجر غير مسجل (ضيف)', 'sukna'); ?></option>
+                            <?php foreach($tenants as $t): ?>
+                                <option value="<?php echo $t->id; ?>"><?php echo esc_html($t->name); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="text" name="guest_tenant_name" id="contract-guest-name" placeholder="<?php _e('اسم الضيف / المستأجر', 'sukna'); ?>">
+                    </div>
                 </div>
-                <div class="sukna-form-group">
-                    <input type="number" name="duration_years" placeholder="<?php _e('مدة العقد (سنوات)', 'sukna'); ?>" required value="1">
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-top:10px;">
+                    <div class="sukna-form-group">
+                        <input type="text" onfocus="(this.type='date')" name="start_date" placeholder="<?php _e('تاريخ البداية', 'sukna'); ?>" required>
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="number" name="duration_years" placeholder="<?php _e('المدة (سنوات)', 'sukna'); ?>" required value="1">
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="number" step="0.01" name="total_value" placeholder="<?php _e('إجمالي العقد', 'sukna'); ?>" required>
+                    </div>
                 </div>
-            </div>
-            <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
-                <div class="sukna-form-group">
-                    <input type="number" step="0.01" name="total_value" placeholder="<?php _e('إجمالي قيمة العقد', 'sukna'); ?>" required>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button type="submit" class="sukna-btn" style="flex:2; background:#D4AF37; color:#000 !important; border:none; border-radius: 6px; font-weight:700;"><?php _e('تأكيد وتفعيل العقد', 'sukna'); ?></button>
+                    <button type="button" onclick="jQuery('#sukna-contract-form').slideUp()" class="sukna-btn" style="flex:1; background:#64748b; border:none; border-radius: 6px;"><?php _e('إلغاء', 'sukna'); ?></button>
                 </div>
-                <div class="sukna-form-group">
-                    <select name="installment_count">
-                        <option value="4"><?php _e('4 أقساط (ربع سنوي)', 'sukna'); ?></option>
-                        <option value="12"><?php _e('12 قسط (شهري)', 'sukna'); ?></option>
-                    </select>
-                </div>
-            </div>
-            <button type="submit" class="sukna-btn" style="width:100%; margin-top:10px; background:#D4AF37; color:#000 !important; border:none; border-radius: 8px;"><?php _e('تفعيل العقد', 'sukna'); ?></button>
-        </form>
+            </form>
+        </div>
 
         <table class="sukna-table">
             <thead>

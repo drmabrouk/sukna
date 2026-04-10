@@ -158,8 +158,21 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.sukna-manage-rooms', function() {
         const propId = $(this).data('id');
         $('#room-property-id').val(propId);
+        $('#sukna-room-quick-add')[0].reset();
+        $('#sukna-contract-form').hide();
         loadRooms(propId);
         $('#sukna-room-modal').css('display', 'flex');
+    });
+
+    $('#sukna-room-quick-add').on('submit', function(e) {
+        e.preventDefault();
+        const propId = $('#room-property-id').val();
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_room&nonce=' + sukna_ajax.nonce, function(res) {
+            if (res.success) {
+                $('#sukna-room-quick-add')[0].reset();
+                loadRooms(propId);
+            }
+        });
     });
 
     function loadRooms(propId) {
@@ -167,11 +180,15 @@ jQuery(document).ready(function($) {
             if (res.success) {
                 let html = '';
                 res.data.forEach(r => {
+                    const isGuest = r.guest_tenant_name && !r.tenant_id;
                     html += `<tr>
                         <td>${r.room_number}</td>
                         <td>${r.rental_price}</td>
                         <td><span class="sukna-capsule ${r.status === 'rented' ? 'capsule-danger' : 'capsule-accent'}">${r.status === 'rented' ? 'مؤجر' : 'متاح'}</span></td>
-                        <td>${r.tenant_name || '-'}</td>
+                        <td>
+                            <strong>${r.tenant_name || '-'}</strong>
+                            ${isGuest ? '<br><small style="color:#D4AF37; font-weight:600;">(نزيل ضيف)</small>' : (r.tenant_id ? '<br><small style="color:#64748b;">(مستأجر مسجل)</small>' : '')}
+                        </td>
                         <td style="text-align:left;">
                             <button class="sukna-btn sukna-delete-room" data-id="${r.id}" style="padding:4px 8px; background:#333; border:none; color:#fff;"><span class="dashicons dashicons-trash"></span></button>
                             ${r.status === 'available' ? `<button class="sukna-btn sukna-create-contract-btn" data-id="${r.id}" style="padding:4px 8px; background:#D4AF37; color:#000 !important; border:none;"><span class="dashicons dashicons-text-page"></span></button>` : ''}
@@ -190,6 +207,12 @@ jQuery(document).ready(function($) {
 
     $('#sukna-contract-form').on('submit', function(e) {
         e.preventDefault();
+        // Basic validation: must have either a registered tenant or a guest name
+        if (!$('#contract-tenant-id').val() && !$('#contract-guest-name').val()) {
+            alert('يرجى اختيار مستأجر أو إدخال اسم الضيف');
+            return;
+        }
+
         $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_contract&nonce=' + sukna_ajax.nonce, function(res) {
             if (res.success) {
                 alert('تم تفعيل العقد بنجاح');

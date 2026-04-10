@@ -186,13 +186,15 @@ class Sukna_Ajax {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
+		$duration_years = intval( $_POST['duration_years'] );
 		$data = array(
-			'room_id'          => intval( $_POST['room_id'] ),
-			'tenant_id'        => intval( $_POST['tenant_id'] ),
-			'start_date'       => sanitize_text_field( $_POST['start_date'] ),
-			'duration_years'   => intval( $_POST['duration_years'] ),
-			'total_value'      => floatval( $_POST['total_value'] ),
-			'installment_count'=> intval( $_POST['installment_count'] ),
+			'room_id'           => intval( $_POST['room_id'] ),
+			'tenant_id'         => intval( $_POST['tenant_id'] ?: 0 ) ?: null,
+			'guest_tenant_name' => sanitize_text_field( $_POST['guest_tenant_name'] ?? '' ),
+			'start_date'        => sanitize_text_field( $_POST['start_date'] ),
+			'duration_years'    => $duration_years,
+			'total_value'       => floatval( $_POST['total_value'] ),
+			'installment_count' => intval( $_POST['installment_count'] ?: ($duration_years * 4) ),
 		);
 
 		Sukna_Properties::save_contract($data);
@@ -210,6 +212,7 @@ class Sukna_Ajax {
 			'rental_price'      => floatval( $_POST['rental_price'] ),
 			'status'            => sanitize_text_field( $_POST['status'] ),
 			'tenant_id'         => intval( $_POST['tenant_id'] ?: 0 ) ?: null,
+			'guest_tenant_name' => sanitize_text_field( $_POST['guest_tenant_name'] ?? '' ),
 			'rental_start_date' => sanitize_text_field( $_POST['rental_start_date'] ) ?: null,
 			'payment_frequency' => sanitize_text_field( $_POST['payment_frequency'] ),
 		);
