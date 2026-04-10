@@ -96,22 +96,64 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
 
             <!-- Property Body -->
             <div style="padding:20px;">
+                <!-- Setup and Total Cost -->
+                <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #e2e8f0;">
+                    <div style="display:flex; justify-content: space-between; margin-bottom:8px;">
+                        <span style="font-size:0.8rem; color:#64748b;"><?php _e('قيمة العقار:', 'sukna'); ?></span>
+                        <span style="font-weight:700;"><?php echo number_format($p->base_value); ?></span>
+                    </div>
+                    <div style="display:flex; justify-content: space-between; margin-bottom:8px;">
+                        <span style="font-size:0.8rem; color:#64748b;"><?php _e('تكاليف التجهيز:', 'sukna'); ?></span>
+                        <span style="font-weight:700; color:#ef4444;"><?php echo number_format($p->total_setup_cost); ?></span>
+                    </div>
+                    <div style="display:flex; justify-content: space-between; border-top:1px dashed #cbd5e1; padding-top:8px; margin-top:5px;">
+                        <span style="font-size:0.85rem; font-weight:800; color:#000;"><?php _e('إجمالي تكلفة المشروع:', 'sukna'); ?></span>
+                        <span style="font-weight:800; color:#000;"><?php echo number_format($p->base_value + $p->total_setup_cost); ?></span>
+                    </div>
+                </div>
+
                 <!-- Financial Indicators -->
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
+                        <small style="display:block; color:#64748b; font-size:0.7rem;"><?php _e('إجمالي الاستثمار', 'sukna'); ?></small>
+                        <span style="font-weight:800; font-size:0.9rem; color: #000;"><?php echo number_format($perf['total_invested']); ?></span>
+                    </div>
+                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
+                        <small style="display:block; color:#64748b; font-size:0.7rem;"><?php _e('الدخل الشهري المتوقع', 'sukna'); ?></small>
+                        <span style="font-weight:800; font-size:0.9rem; color: #059669;"><?php echo number_format($perf['monthly_income']); ?></span>
+                    </div>
+                </div>
                 <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b;"><?php _e('صافي الربح', 'sukna'); ?></small>
-                        <span style="font-weight:800; font-size:1.1rem; color: <?php echo ($perf['net'] >= 0) ? '#059669' : '#ef4444'; ?>"><?php echo number_format($perf['net'], 2); ?></span>
+                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
+                        <small style="display:block; color:#64748b; font-size:0.7rem;"><?php _e('صافي الربح الكلي', 'sukna'); ?></small>
+                        <span style="font-weight:800; font-size:0.9rem; color: <?php echo ($perf['net'] >= 0) ? '#059669' : '#ef4444'; ?>"><?php echo number_format($perf['net']); ?></span>
                     </div>
-                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b;"><?php _e('العائد ROI', 'sukna'); ?></small>
-                        <span style="font-weight:800; font-size:1.1rem; color: #D4AF37;"><?php echo $perf['roi']; ?>%</span>
+                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
+                        <small style="display:block; color:#64748b; font-size:0.7rem;"><?php _e('عائد ROI', 'sukna'); ?></small>
+                        <span style="font-weight:800; font-size:0.9rem; color: #D4AF37;"><?php echo $perf['roi']; ?>%</span>
                     </div>
+                </div>
+
+                <!-- Unit Stats -->
+                <div style="display:flex; justify-content: space-between; margin-bottom:20px; background:#fff; border:1px solid #eee; padding:10px; border-radius:8px;">
+                     <div style="text-align:center; flex:1;">
+                        <div style="font-weight:800;"><?php echo count($rooms); ?></div>
+                        <small style="color:#64748b; font-size:0.7rem;"><?php _e('وحدات', 'sukna'); ?></small>
+                     </div>
+                     <div style="text-align:center; flex:1; border-right:1px solid #eee; border-left:1px solid #eee;">
+                        <div style="font-weight:800; color:#ef4444;"><?php echo $rented_count; ?></div>
+                        <small style="color:#64748b; font-size:0.7rem;"><?php _e('مؤجرة', 'sukna'); ?></small>
+                     </div>
+                     <div style="text-align:center; flex:1;">
+                        <div style="font-weight:800; color:#059669;"><?php echo (count($rooms) - $rented_count); ?></div>
+                        <small style="color:#64748b; font-size:0.7rem;"><?php _e('شاغرة', 'sukna'); ?></small>
+                     </div>
                 </div>
 
                 <!-- Investors Section -->
                 <div style="margin-bottom:20px;">
                     <h4 style="font-size:0.85rem; margin:0 0 10px 0; display:flex; justify-content: space-between; align-items: center;">
-                        <span><?php _e('المستثمرون', 'sukna'); ?></span>
+                        <span><?php _e('المستثمرون والشركاء', 'sukna'); ?></span>
                         <span style="background:#D4AF37; color:#000; padding:2px 8px; border-radius:10px; font-size:0.7rem;"><?php echo count($investors_linked); ?></span>
                     </h4>
                     <div style="max-height:80px; overflow-y:auto; border:1px solid #eee; border-radius:6px; padding:5px;">
@@ -185,16 +227,22 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 <textarea name="address" id="prop-address" placeholder="<?php _e('العنوان بالتفصيل', 'sukna'); ?>" rows="2"></textarea>
             </div>
 
-            <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px;">
+            <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="sukna-form-group">
-                    <input type="number" name="total_rooms" id="prop-total-rooms" placeholder="<?php _e('عدد الغرف', 'sukna'); ?>" required>
+                    <input type="number" name="total_rooms" id="prop-total-rooms" placeholder="<?php _e('عدد الوحدات (الغرف)', 'sukna'); ?>" required>
                 </div>
                 <div class="sukna-form-group">
-                    <input type="number" step="0.01" name="valuation" id="prop-valuation" placeholder="<?php _e('قيمة العقار', 'sukna'); ?>">
+                    <input type="number" step="0.01" name="base_value" id="prop-base-value" placeholder="<?php _e('قيمة العقار / العقد الأساسي', 'sukna'); ?>" required>
                 </div>
-                <div class="sukna-form-group">
-                    <input type="number" step="0.01" name="base_lease_value" id="prop-base-lease" placeholder="<?php _e('قيمة عقد الاستئجار الأساسي', 'sukna'); ?>">
+            </div>
+
+            <!-- Setup Cost Items Section -->
+            <div style="background:#f8fafc; padding:20px; border-radius:10px; margin-bottom:20px; border:1px solid #e2e8f0;">
+                <h4 style="margin:0 0 15px 0; font-size:0.9rem;"><?php _e('تكاليف التجهيز والإعداد', 'sukna'); ?></h4>
+                <div id="setup-items-container">
+                    <!-- Dynamic Items -->
                 </div>
+                <button type="button" id="add-setup-item-btn" class="sukna-btn" style="background:#333; padding:5px 15px; font-size:0.75rem;"><span class="dashicons dashicons-plus" style="font-size:14px; width:14px; height:14px; margin-left:5px;"></span><?php _e('إضافة بند تجهيز', 'sukna'); ?></button>
             </div>
 
             <div class="sukna-form-group">
@@ -217,8 +265,14 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
 <div id="sukna-room-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0, 0, 0, 0.6); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
     <div class="sukna-card" style="width:100%; max-width:900px; max-height: 90vh; overflow-y: auto; padding:40px; border-radius:12px;">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h3 style="margin:0; font-size:1.4rem;"><?php _e('إدارة الوحدات والعقود', 'sukna'); ?></h3>
-            <button type="button" class="sukna-btn close-room-modal" style="background:#333; border:none; padding: 5px 15px; border-radius: 4px;">X</button>
+            <div>
+                <h3 style="margin:0; font-size:1.4rem;"><?php _e('إدارة الوحدات والعقود', 'sukna'); ?></h3>
+                <small style="color:#64748b;"><?php _e('يمكنك إعادة تعيين كافة الوحدات كشاغرة في بداية كل شهر.', 'sukna'); ?></small>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button type="button" id="sukna-reset-rooms-btn" class="sukna-btn" style="background:#ef4444; border:none; padding: 5px 15px; border-radius: 4px; font-size:0.75rem;"><span class="dashicons dashicons-calendar-alt" style="margin-left:5px;"></span><?php _e('تصفير كافة الوحدات (بداية الشهر)', 'sukna'); ?></button>
+                <button type="button" class="sukna-btn close-room-modal" style="background:#333; border:none; padding: 5px 15px; border-radius: 4px;">X</button>
+            </div>
         </div>
 
         <div style="display:flex; gap:20px; margin-bottom:30px;">

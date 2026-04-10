@@ -112,8 +112,11 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         const action = $('#user-id').val() ? 'sukna_save_user' : 'sukna_add_user';
         $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=' + action + '&nonce=' + sukna_ajax.nonce, function(res) {
-            if (res.success) location.reload();
-            else alert(res.data || 'Error');
+            if (res.success) {
+                alert('تم حفظ بيانات المستخدم بنجاح');
+                location.reload();
+            }
+            else alert(res.data || 'حدث خطأ أثناء الحفظ');
         });
     });
 
@@ -127,8 +130,26 @@ jQuery(document).ready(function($) {
     $('#sukna-add-property-btn').on('click', function() {
         $('#sukna-property-form')[0].reset();
         $('#prop-id').val('');
+        $('#setup-items-container').empty();
         $('#prop-modal-title').text('إضافة عقار جديد');
         $('#sukna-property-modal').css('display', 'flex');
+    });
+
+    $('#add-setup-item-btn').on('click', function() {
+        addSetupItemRow();
+    });
+
+    function addSetupItemRow(name = '', cost = '') {
+        const row = $(`<div class="setup-item-row" style="display:flex; gap:10px; margin-bottom:10px;">
+            <input type="text" name="setup_item_names[]" value="${name}" placeholder="اسم البند (مثال: أجهزة كهربائية)" style="flex:2;">
+            <input type="number" step="0.01" name="setup_item_costs[]" value="${cost}" placeholder="التكلفة" style="flex:1;">
+            <button type="button" class="remove-setup-item" style="background:#ef4444; border:none; border-radius:4px; padding:0 10px; color:#fff;">X</button>
+        </div>`);
+        $('#setup-items-container').append(row);
+    }
+
+    $(document).on('click', '.remove-setup-item', function() {
+        $(this).closest('.setup-item-row').remove();
     });
 
     const geoData = sukna_ajax.geo_data;
@@ -161,10 +182,19 @@ jQuery(document).ready(function($) {
         }, 100);
         $('#prop-city').val(p.city);
         $('#prop-total-rooms').val(p.total_rooms);
-        $('#prop-valuation').val(p.valuation);
-        $('#prop-base-lease').val(p.base_lease_value);
+        $('#prop-base-value').val(p.base_value);
         $('#prop-address').val(p.address);
         $('#prop-owner-id').val(p.owner_id);
+
+        $('#setup-items-container').empty();
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_get_setup_items', id: p.id, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                res.data.forEach(item => {
+                    addSetupItemRow(item.item_name, item.item_cost);
+                });
+            }
+        });
+
         $('#prop-modal-title').text('تعديل عقار');
         $('#sukna-property-modal').css('display', 'flex');
     });
@@ -173,7 +203,18 @@ jQuery(document).ready(function($) {
 
     $('#sukna-property-form').on('submit', function(e) {
         e.preventDefault();
-        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_property&nonce=' + sukna_ajax.nonce, () => location.reload());
+        const $btn = $(this).find('button[type="submit"]');
+        $btn.prop('disabled', true).text('جاري الحفظ...');
+
+        $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_property&nonce=' + sukna_ajax.nonce, function(res) {
+            if (res.success) {
+                alert('تم حفظ بيانات العقار بنجاح');
+                location.reload();
+            } else {
+                alert('فشل في حفظ البيانات: ' + (res.data || 'خطأ غير معروف'));
+                $btn.prop('disabled', false).text('حفظ العقار');
+            }
+        });
     });
 
     $(document).on('click', '.sukna-delete-property', function() {
@@ -197,8 +238,11 @@ jQuery(document).ready(function($) {
         const propId = $('#room-property-id').val();
         $.post(sukna_ajax.ajax_url, $(this).serialize() + '&action=sukna_save_room&nonce=' + sukna_ajax.nonce, function(res) {
             if (res.success) {
+                alert('تمت إضافة الوحدة بنجاح');
                 $('#sukna-room-quick-add')[0].reset();
                 loadRooms(propId);
+            } else {
+                alert('خطأ: ' + (res.data || 'فشل الحفظ'));
             }
         });
     });
@@ -259,6 +303,17 @@ jQuery(document).ready(function($) {
         $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_room', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => {
             $('#sukna-room-details').fadeOut();
             loadRooms($('#room-property-id').val());
+        });
+    });
+
+    $('#sukna-reset-rooms-btn').on('click', function() {
+        if (!confirm('سيتم مسح كافة المستأجرين وإعادة كافة الوحدات كشاغرة لهذا العقار. هل أنت متأكد؟')) return;
+        const propId = $('#room-property-id').val();
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_reset_property_rooms', id: propId, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                alert('تمت عملية إعادة التعيين بنجاح لبداية دورة إيجارية جديدة.');
+                loadRooms(propId);
+            }
         });
     });
 
