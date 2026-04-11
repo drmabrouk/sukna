@@ -86,7 +86,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
         $is_fully_funded = ($perf['total_invested'] >= $perf['total_project_cost']);
         $setup_items = Sukna_Properties::get_setup_items($p->id);
     ?>
-        <div class="sukna-card property-dashboard-unit" style="border-top: 6px solid <?php echo $is_leased ? '#000' : '#D4AF37'; ?>; padding:0; overflow:hidden;">
+        <div class="sukna-card property-dashboard-unit" data-funded="<?php echo $is_fully_funded ? '1' : '0'; ?>" style="border-top: 6px solid <?php echo $is_leased ? '#000' : '#D4AF37'; ?>; padding:0; overflow:hidden;">
             <!-- Property Header -->
             <div style="padding:20px; border-bottom:1px solid #eee; display:flex; justify-content: space-between; align-items: flex-start; background: #fafafa;">
                 <div>
@@ -106,9 +106,12 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                         <button class="sukna-btn sukna-delete-property" data-id="<?php echo $p->id; ?>" style="padding:5px; background:none; border:none; color:#ef4444;"><span class="dashicons dashicons-trash"></span></button>
                     </div>
                     <?php if(!$is_fully_funded): ?>
-                        <span class="sukna-status-indicator indicator-warning" style="font-size:0.6rem;"><?php _e('قيد التجهيز / تمويل ناقص', 'sukna'); ?></span>
+                        <div style="text-align:left;">
+                            <span class="sukna-status-indicator indicator-warning" style="font-size:0.6rem; display:block; margin-bottom:3px;"><?php _e('تمويل قيد التنفيذ', 'sukna'); ?></span>
+                            <small style="font-weight:700; color:#ef4444; font-size:0.65rem;"><?php _e('المتبقي:', 'sukna'); ?> <?php echo number_format($perf['total_project_cost'] - $perf['total_invested']); ?> AED</small>
+                        </div>
                     <?php else: ?>
-                        <span class="sukna-status-indicator indicator-success" style="font-size:0.6rem;"><?php _e('تشغيل / استثمار نشط', 'sukna'); ?></span>
+                        <span class="sukna-status-indicator indicator-success" style="font-size:0.6rem;"><?php _e('مكتمل التمويل / نشط', 'sukna'); ?></span>
                     <?php endif; ?>
                 </div>
             </div>
@@ -119,7 +122,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #e2e8f0;">
                     <div style="display:flex; justify-content: space-between; margin-bottom:5px;">
                         <span style="font-size:0.75rem; color:#64748b;"><?php _e('تكلفة المشروع الكلية:', 'sukna'); ?></span>
-                        <span style="font-weight:700; color:#000;"><?php echo number_format($perf['total_project_cost']); ?> <small>EGP</small></span>
+                        <span style="font-weight:700; color:#000;"><?php echo number_format($perf['total_project_cost']); ?> <small>AED</small></span>
                     </div>
                     <div style="max-height: 50px; overflow-y: auto; margin: 5px 0 10px 0; border-right: 2px solid #f1f5f9; padding-right: 10px;">
                         <?php foreach($setup_items as $si): ?>
@@ -496,12 +499,16 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
             <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:20px;">
                 <div>
                     <p><strong><?php _e('الحالة:', 'sukna'); ?></strong> <span id="detail-room-status"></span></p>
-                    <p><strong><?php _e('السعر:', 'sukna'); ?></strong> <span id="detail-room-price"></span> EGP</p>
+                    <p><strong><?php _e('السعر:', 'sukna'); ?></strong> <span id="detail-room-price"></span> AED</p>
                 </div>
                 <div id="detail-tenant-info" style="display:none;">
                     <p><strong><?php _e('المستأجر:', 'sukna'); ?></strong> <span id="detail-tenant-name"></span></p>
                     <p><strong><?php _e('تاريخ الإيجار:', 'sukna'); ?></strong> <span id="detail-rental-date"></span></p>
                 </div>
+            </div>
+
+            <div id="detail-installments-section" style="display:none; margin-top:15px; padding-top:15px; border-top:1px dashed #eee;">
+                <!-- Loaded via JS -->
             </div>
             <div style="margin-top:15px; display:flex; flex-wrap:wrap; gap:10px;">
                 <button id="detail-contract-btn" class="sukna-btn" style="background:#D4AF37; color:#000 !important; border:none; font-size:0.8rem; display:none;"><?php _e('تفعيل عقد جديد (Check-in)', 'sukna'); ?></button>
@@ -548,6 +555,10 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h3 style="margin:0; font-size:1.4rem;"><?php _e('إدارة المستثمرين في العقار', 'sukna'); ?></h3>
             <button type="button" class="sukna-btn close-investor-modal" style="background:#333; border:none; padding: 5px 15px; border-radius: 4px;">X</button>
+        </div>
+
+        <div id="investment-lock-msg" style="display:none; background:#fef2f2; color:#991b1b; padding:15px; border-radius:8px; margin-bottom:20px; text-align:center; font-weight:700; border:1px solid #fee2e2;">
+            <span class="dashicons dashicons-lock" style="vertical-align:middle; margin-left:5px;"></span> <?php _e('تم اكتمال التمويل لهذا المشروع. الاستثمار مغلق حالياً.', 'sukna'); ?>
         </div>
 
         <form id="sukna-investment-form" style="background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:30px; border: 1px solid #e2e8f0;">

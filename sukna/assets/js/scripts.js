@@ -406,9 +406,10 @@ jQuery(document).ready(function($) {
                                   style="width:100%; aspect-ratio:1/1; border:2px solid ${isRented ? '#ef4444' : '#059669'};
                                          background:${isRented ? '#ef4444' : 'transparent'}; cursor:pointer;
                                          display:flex; flex-direction:column; align-items:center; justify-content:center;
-                                         border-radius:8px; transition:0.2s;">
-                                <span style="font-weight:800; font-size:1.2rem; color:${isRented ? '#fff' : '#059669'};">${r.room_number}</span>
-                                <small style="color:${isRented ? '#fff' : '#64748b'}; font-size:0.6rem;">${isRented ? 'مؤجر' : 'متاح'}</small>
+                                         border-radius:8px; transition:0.2s; position:relative;">
+                                <span style="font-weight:800; font-size:1.1rem; color:${isRented ? '#fff' : '#059669'};">${r.room_number}</span>
+                                <div style="font-size:0.65rem; font-weight:700; color:${isRented ? 'rgba(255,255,255,0.9)' : '#333'}; margin-top:2px;">${parseFloat(r.rental_price).toLocaleString()}</div>
+                                <small style="color:${isRented ? 'rgba(255,255,255,0.7)' : '#94a3b8'}; font-size:0.5rem; position:absolute; bottom:5px;">${isRented ? 'مؤجر' : 'متاح'}</small>
                              </div>`;
                 });
                 $('#sukna-rooms-grid').html(html || '<p>لا توجد وحدات</p>');
@@ -440,8 +441,51 @@ jQuery(document).ready(function($) {
         }
 
         $('#detail-delete-btn').data('id', r.id);
+
+        // Load and display installments if rented
+        if (r.status === 'rented') {
+            loadRoomInstallments(r.id);
+        } else {
+            $('#detail-installments-section').hide();
+        }
+
         $('#sukna-room-details').fadeIn();
         $('#sukna-contract-form').hide();
+    });
+
+    function loadRoomInstallments(roomId) {
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_get_installments', room_id: roomId, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success && res.data.length) {
+                let html = '<h5 style="margin:15px 0 10px 0; font-size:0.75rem; color:#000;">دفعات العقد الحالي:</h5>';
+                html += '<table class="sukna-table" style="font-size:0.7rem;"><thead><tr><th>التاريخ</th><th>المبلغ</th><th>الحالة</th><th>-</th></tr></thead><tbody>';
+                res.data.forEach(p => {
+                    const isPaid = p.status === 'paid';
+                    html += `<tr>
+                        <td>${p.due_date}</td>
+                        <td>${parseFloat(p.amount).toLocaleString()}</td>
+                        <td><span class="sukna-status-indicator ${isPaid ? 'indicator-success' : 'indicator-warning'}">${isPaid ? 'محصل' : 'معلق'}</span></td>
+                        <td>${!isPaid ? `<button class="sukna-btn sukna-record-payment" data-id="${p.id}" style="padding:2px 8px; font-size:0.6rem; background:#059669; border:none;">تحصيل</button>` : '-'}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                $('#detail-installments-section').html(html).show();
+            } else {
+                $('#detail-installments-section').hide();
+            }
+        });
+    }
+
+    $(document).on('click', '.sukna-record-payment', function() {
+        const id = $(this).data('id');
+        const $btn = $(this);
+        if (!confirm('تأكيد تحصيل هذه الدفعة؟')) return;
+        $btn.prop('disabled', true);
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_record_payment', id: id, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                alert('تم التحصيل بنجاح');
+                location.reload(); // Reload to update all real-time stats
+            }
+        });
     });
 
     $(document).on('click', '#detail-contract-btn, #detail-renew-btn', function() {
@@ -535,7 +579,7 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.sukna-distribute-revenue-btn', function() {
         const id = $(this).data('id');
         const net = $(this).data('net');
-        if (!confirm(`هل أنت متأكد من توزيع مبلغ ${net} EGP على كافة الشركاء؟`)) return;
+        if (!confirm(`هل أنت متأكد من توزيع مبلغ ${net} AED على كافة الشركاء؟`)) return;
         $.post(sukna_ajax.ajax_url, { action: 'sukna_distribute_revenue', id: id, net_profit: net, nonce: sukna_ajax.nonce }, function(res) {
             if (res.success) alert('تم توزيع الأرباح بنجاح');
         });
@@ -545,7 +589,17 @@ jQuery(document).ready(function($) {
 
     $(document).on('click', '.sukna-manage-investors', function() {
         const propId = $(this).data('id');
+        const isFunded = $(this).closest('.property-dashboard-unit').data('funded') == '1';
+
         $('#invest-property-id').val(propId);
+        if (isFunded) {
+            $('#sukna-investment-form').hide();
+            $('#investment-lock-msg').show();
+        } else {
+            $('#sukna-investment-form').show();
+            $('#investment-lock-msg').hide();
+        }
+
         loadInvestments(propId);
         $('#sukna-investor-modal').css('display', 'flex');
     });
@@ -557,7 +611,7 @@ jQuery(document).ready(function($) {
                 res.data.forEach(i => {
                     html += `<tr>
                         <td><strong>${i.investor_name}</strong><br><small style="color:#64748b;">${i.investor_role === 'owner' ? 'المالك / المشغل' : 'مستثمر شريك'}</small></td>
-                        <td>${parseFloat(i.amount).toLocaleString()} EGP</td>
+                        <td>${parseFloat(i.amount).toLocaleString()} AED</td>
                         <td style="text-align:center;">${i.installments_paid}</td>
                         <td>
                             <button class="sukna-btn sukna-download-invoice" data-id="${i.id}" style="padding:4px 8px; font-size:0.7rem; background:#fff; color:#000 !important; border:1px solid #ddd;">

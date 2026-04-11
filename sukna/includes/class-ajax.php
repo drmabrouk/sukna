@@ -13,7 +13,8 @@ class Sukna_Ajax {
 			'delete_room', 'save_investment', 'get_rooms', 'get_investments',
 			'save_contract', 'record_expense', 'distribute_revenue',
 			'reset_property_rooms', 'toggle_user_restriction', 'get_setup_items',
-			'get_report_html', 'terminate_contract', 'export_data', 'import_data', 'get_invoice_html'
+			'get_report_html', 'terminate_contract', 'export_data', 'import_data', 'get_invoice_html',
+			'get_installments', 'record_payment'
 		);
 
 		foreach ( $private_actions as $action ) {
@@ -221,8 +222,8 @@ class Sukna_Ajax {
 			'apartment_number'         => sanitize_text_field( $_POST['apartment_number'] ),
 			'floor_number'             => sanitize_text_field( $_POST['floor_number'] ),
 			'total_rooms'              => intval( $_POST['total_rooms'] ),
-			'contract_start_date'      => sanitize_text_field( $_POST['contract_start_date'] ),
-			'investment_start_date'    => sanitize_text_field( $_POST['investment_start_date'] ),
+			'contract_start_date'      => sanitize_text_field( $_POST['contract_start_date'] ) ?: current_time('Y-m-d'),
+			'investment_start_date'    => sanitize_text_field( $_POST['investment_start_date'] ) ?: current_time('Y-m-d'),
 			'contract_duration'        => intval( $_POST['contract_duration'] ),
 			'installments_per_year'    => intval( $_POST['installments_per_year'] ?? 4 ),
 			'base_value'               => floatval( $_POST['base_value'] ),
@@ -300,11 +301,12 @@ class Sukna_Ajax {
 		}
 
 		$duration_years = intval( $_POST['duration_years'] );
+		$start_date = sanitize_text_field( $_POST['start_date'] ) ?: current_time('Y-m-d');
 		$data = array(
 			'room_id'           => $room_id,
 			'tenant_id'         => intval( $_POST['tenant_id'] ?: 0 ) ?: null,
 			'guest_tenant_name' => sanitize_text_field( $_POST['guest_tenant_name'] ?? '' ),
-			'start_date'        => sanitize_text_field( $_POST['start_date'] ),
+			'start_date'        => $start_date,
 			'duration_years'    => $duration_years,
 			'total_value'       => floatval( $_POST['total_value'] ),
 			'installment_count' => intval( $_POST['installment_count'] ?: ($duration_years * 4) ),
@@ -339,7 +341,7 @@ class Sukna_Ajax {
 			'status'            => sanitize_text_field( $_POST['status'] ),
 			'tenant_id'         => intval( $_POST['tenant_id'] ?: 0 ) ?: null,
 			'guest_tenant_name' => sanitize_text_field( $_POST['guest_tenant_name'] ?? '' ),
-			'rental_start_date' => sanitize_text_field( $_POST['rental_start_date'] ) ?: null,
+			'rental_start_date' => sanitize_text_field( $_POST['rental_start_date'] ) ?: current_time('Y-m-d'),
 			'payment_frequency' => sanitize_text_field( $_POST['payment_frequency'] ),
 		);
 
@@ -374,7 +376,16 @@ class Sukna_Ajax {
 
 		Sukna_Properties::record_expense($data);
 		$p = Sukna_Properties::get_property($data['property_id']);
-		Sukna_Audit::log('record_expense', sprintf(__('تسجيل مصروفات للعقار %s: %s EGP (%s)', 'sukna'), $p->name ?? $data['property_id'], $data['amount'], $data['category']));
+
+		// Proportional Deduction for Expense
+		Sukna_Investments::distribute_proportional_amount(
+			$data['property_id'],
+			$data['amount'],
+			'expense',
+			sprintf(__('مصروف تشغيلي - %s (%s)', 'sukna'), $p->name, $data['category'])
+		);
+
+		Sukna_Audit::log('record_expense', sprintf(__('تسجيل مصروفات للعقار %s: %s AED (%s)', 'sukna'), $p->name ?? $data['property_id'], $data['amount'], $data['category']));
 
 		wp_send_json_success();
 	}
@@ -408,7 +419,7 @@ class Sukna_Ajax {
 
 		Sukna_Investments::distribute_revenue($property_id, $net_profit);
 		$p = Sukna_Properties::get_property($property_id);
-		Sukna_Audit::log('distribute_revenue', sprintf(__('توزيع أرباح العقار %s بقيمة %s EGP', 'sukna'), $p->name ?? $property_id, $net_profit));
+		Sukna_Audit::log('distribute_revenue', sprintf(__('توزيع أرباح العقار %s بقيمة %s AED', 'sukna'), $p->name ?? $property_id, $net_profit));
 
 		wp_send_json_success();
 	}
@@ -432,10 +443,14 @@ class Sukna_Ajax {
 			'installments_paid' => intval( $_POST['installments_paid'] ?? 1 )
 		);
 
-		Sukna_Investments::add_investment( $data );
+		$result = Sukna_Investments::add_investment( $data );
+		if ( is_wp_error($result) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
 		$p = Sukna_Properties::get_property($data['property_id']);
 		$u = $wpdb->get_row($wpdb->prepare("SELECT name FROM {$wpdb->prefix}sukna_staff WHERE id = %d", $data['investor_id']));
-		Sukna_Audit::log('add_investment', sprintf(__('إضافة مساهمة من %s للعقار %s بقيمة %s EGP', 'sukna'), $u->name ?? $data['investor_id'], $p->name ?? $data['property_id'], $data['amount']));
+		Sukna_Audit::log('add_investment', sprintf(__('إضافة مساهمة من %s للعقار %s بقيمة %s AED', 'sukna'), $u->name ?? $data['investor_id'], $p->name ?? $data['property_id'], $data['amount']));
 
 		wp_send_json_success();
 	}
@@ -514,7 +529,7 @@ class Sukna_Ajax {
 				<table style="width: 100%;">
 					<tr style="font-size: 1.2rem;">
 						<td style="padding: 10px 0;"><?php _e('إجمالي مبلغ المساهمة:', 'sukna'); ?></td>
-						<td style="padding: 10px 0; text-align: left; font-weight: 800; color: #D4AF37;"><?php echo number_format($inv->amount); ?> EGP</td>
+						<td style="padding: 10px 0; text-align: left; font-weight: 800; color: #D4AF37;"><?php echo number_format($inv->amount); ?> AED</td>
 					</tr>
 					<tr>
 						<td style="padding: 5px 0; color: #64748b;"><?php _e('نسبة الملكية المترتبة:', 'sukna'); ?></td>
@@ -566,7 +581,7 @@ class Sukna_Ajax {
 		if ( $type === 'users' ) {
 			$data = $wpdb->get_results( "SELECT username, phone, name, email, role, is_restricted FROM {$wpdb->prefix}sukna_staff", ARRAY_A );
 		} elseif ( $type === 'properties' ) {
-			$data = $wpdb->get_results( "SELECT name, address, country, city, state_emirate, property_type, property_subtype, total_rooms, base_value, gov_fees FROM {$wpdb->prefix}sukna_properties", ARRAY_A );
+			$data = $wpdb->get_results( "SELECT name, address, country, city, state_emirate, property_type, property_subtype, apartment_number, floor_number, total_rooms, contract_start_date, investment_start_date, contract_duration, installments_per_year, base_value, gov_fees FROM {$wpdb->prefix}sukna_properties", ARRAY_A );
 		}
 
 		if ( empty($data) ) wp_send_json_error( 'No data found' );
@@ -621,13 +636,68 @@ class Sukna_Ajax {
 					$count++;
 				}
 			} elseif ( $type === 'properties' ) {
-				$wpdb->insert( "{$wpdb->prefix}sukna_properties", $row );
-				$count++;
+				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}sukna_properties WHERE name = %s AND city = %s", $row['name'], $row['city'] ) );
+				if ( ! $exists ) {
+					// Use class method to ensure room generation
+					Sukna_Properties::add_property( $row );
+					$count++;
+				}
 			}
 		}
 
 		Sukna_Audit::log('import_data', sprintf(__('استيراد %d سجل من نوع %s', 'sukna'), $count, $type));
 		wp_send_json_success( sprintf(__('تم استيراد %d سجل بنجاح.', 'sukna'), $count) );
+	}
+
+	public function get_installments() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		$room_id = intval( $_POST['room_id'] );
+
+		global $wpdb;
+		$installments = $wpdb->get_results( $wpdb->prepare( "
+			SELECT p.* FROM {$wpdb->prefix}sukna_payments p
+			JOIN {$wpdb->prefix}sukna_contracts c ON p.contract_id = c.id
+			WHERE c.room_id = %d AND c.status = 'active'
+			ORDER BY p.due_date ASC
+		", $room_id ) );
+
+		wp_send_json_success( $installments );
+	}
+
+	public function record_payment() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$id = intval( $_POST['id'] );
+		global $wpdb;
+
+		$payment = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}sukna_payments WHERE id = %d", $id ) );
+		if ( !$payment ) wp_send_json_error( 'Payment not found' );
+
+		$wpdb->update( "{$wpdb->prefix}sukna_payments", array(
+			'status' => 'paid',
+			'payment_date' => current_time('mysql')
+		), array( 'id' => $id ) );
+
+		// Proportional Revenue Capture
+		$room = $wpdb->get_row($wpdb->prepare("
+			SELECT r.property_id, r.room_number
+			FROM {$wpdb->prefix}sukna_rooms r
+			JOIN {$wpdb->prefix}sukna_contracts c ON r.id = c.room_id
+			JOIN {$wpdb->prefix}sukna_payments p ON c.id = p.contract_id
+			WHERE p.id = %d
+		", $id));
+
+		Sukna_Investments::distribute_proportional_amount(
+			$room->property_id,
+			$payment->amount,
+			'room_revenue',
+			sprintf(__('تحصيل دفعة إيجار - وحدة #%s', 'sukna'), $room->room_number)
+		);
+
+		Sukna_Audit::log('record_payment', sprintf(__('تحصيل دفعة إيجار بقيمة %s AED للوحدة %s', 'sukna'), $payment->amount, $room->room_number));
+
+		wp_send_json_success();
 	}
 
 	public function undo_activity() {

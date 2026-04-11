@@ -112,6 +112,9 @@ class Sukna_Database {
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			user_id mediumint(9) NOT NULL,
 			balance decimal(15,2) DEFAULT '0.00',
+			available_balance decimal(15,2) DEFAULT '0.00',
+			pending_balance decimal(15,2) DEFAULT '0.00',
+			reserved_balance decimal(15,2) DEFAULT '0.00',
 			last_updated datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			UNIQUE KEY user_id (user_id)
