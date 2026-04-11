@@ -84,11 +84,14 @@ class Sukna_Investments {
 		global $wpdb;
 
 		$total_invested = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_investments" ) ?: 0;
-		$total_payouts  = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_transactions WHERE type = 'dividend'" ) ?: 0;
 		$total_expenses = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses" ) ?: 0;
 
 		// Sum of all paid payments
 		$total_revenue  = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_payments WHERE status = 'paid'" ) ?: 0;
+
+		// Room stats
+		$total_rooms = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}sukna_rooms" ) ?: 0;
+		$occupied_rooms = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}sukna_rooms WHERE status = 'rented'" ) ?: 0;
 
 		return array(
 			'total_invested' => $total_invested,
@@ -96,6 +99,9 @@ class Sukna_Investments {
 			'total_expenses' => $total_expenses,
 			'net_profit'     => $total_revenue - $total_expenses,
 			'investor_count' => $wpdb->get_var( "SELECT COUNT(DISTINCT id) FROM {$wpdb->prefix}sukna_staff WHERE role = 'investor'" ) ?: 0,
+			'total_rooms'    => $total_rooms,
+			'occupied_rooms' => $occupied_rooms,
+			'occupancy_rate' => $total_rooms > 0 ? round(($occupied_rooms / $total_rooms) * 100) : 0,
 		);
 	}
 

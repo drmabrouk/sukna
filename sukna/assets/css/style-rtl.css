@@ -16,6 +16,10 @@
     font-family: 'Rubik', sans-serif !important;
 }
 
+.dashicons, .dashicons-before:before {
+    font-family: dashicons !important;
+}
+
 body, .sukna-dashboard {
     direction: rtl;
     text-align: right;
@@ -226,7 +230,13 @@ body, .sukna-dashboard {
     display: flex;
     align-items: center;
     gap: 15px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    transition: transform 0.2s;
+}
+
+.sukna-metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .sukna-metric-icon {
@@ -261,6 +271,11 @@ body, .sukna-dashboard {
     padding: 2px 8px;
     border-radius: 20px;
 }
+
+.indicator-success { background: #ecfdf5; color: #059669; }
+.indicator-danger { background: #fef2f2; color: #ef4444; }
+.indicator-warning { background: #fffbeb; color: #d97706; }
+.indicator-accent { background: #fffcf0; color: #D4AF37; }
 
 @media (max-width: 1024px) {
     .sukna-sidebar { position: relative !important; width: 100% !important; height: auto !important; border-left: none; border-bottom: 1px solid #1a1a1a; }

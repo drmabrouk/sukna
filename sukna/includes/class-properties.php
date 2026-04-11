@@ -256,6 +256,10 @@ class Sukna_Properties {
 		// Total Expenses recorded
 		$expenses = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses WHERE property_id = %d", $property_id ) ) ?: 0;
 
+		// Monthly Expenses (Current Month)
+		$current_month_start = date('Y-m-01 00:00:00');
+		$monthly_expenses = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses WHERE property_id = %d AND expense_date >= %s", $property_id, $current_month_start ) ) ?: 0;
+
 		// Total Cost = Expenses + Setup
 		$costs = $expenses + floatval($property->total_setup_cost);
 
@@ -268,13 +272,14 @@ class Sukna_Properties {
 		}
 
 		return array(
-			'income'         => $income,
-			'expenses'       => $expenses,
-			'costs'          => $costs,
-			'net'            => $net,
-			'roi'            => round($roi, 2),
-			'monthly_income' => $monthly_income,
-			'total_invested' => $total_invested
+			'income'           => $income,
+			'expenses'         => $expenses,
+			'monthly_expenses' => $monthly_expenses,
+			'costs'            => $costs,
+			'net'              => $net,
+			'roi'              => round($roi, 2),
+			'monthly_income'   => $monthly_income,
+			'total_invested'   => $total_invested
 		);
 	}
 }
