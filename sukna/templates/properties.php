@@ -458,7 +458,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
             </form>
         </div>
 
-        <div id="sukna-rooms-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap:15px;">
+        <div id="sukna-rooms-grid" class="sukna-grid" style="grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));">
             <!-- Loaded via AJAX -->
         </div>
 
@@ -478,9 +478,14 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                     <p><strong><?php _e('تاريخ الإيجار:', 'sukna'); ?></strong> <span id="detail-rental-date"></span></p>
                 </div>
             </div>
-            <div style="margin-top:15px; display:flex; gap:10px;">
-                <button id="detail-delete-btn" class="sukna-btn" style="background:#ef4444; border:none; font-size:0.8rem;"><?php _e('حذف الوحدة', 'sukna'); ?></button>
-                <button id="detail-contract-btn" class="sukna-btn" style="background:#D4AF37; color:#000 !important; border:none; font-size:0.8rem; display:none;"><?php _e('تفعيل عقد جديد', 'sukna'); ?></button>
+            <div style="margin-top:15px; display:flex; flex-wrap:wrap; gap:10px;">
+                <button id="detail-contract-btn" class="sukna-btn" style="background:#D4AF37; color:#000 !important; border:none; font-size:0.8rem; display:none;"><?php _e('تفعيل عقد جديد (Check-in)', 'sukna'); ?></button>
+                <button id="detail-terminate-btn" class="sukna-btn" style="background:#ef4444; border:none; font-size:0.8rem; display:none;"><?php _e('إنهاء التعاقد (Check-out)', 'sukna'); ?></button>
+                <button id="detail-renew-btn" class="sukna-btn" style="background:#000; border:none; font-size:0.8rem; display:none;"><?php _e('تجديد العقد', 'sukna'); ?></button>
+                <button id="detail-delete-btn" class="sukna-btn" style="background:#333; border:none; font-size:0.8rem;"><?php _e('حذف الوحدة نهائياً', 'sukna'); ?></button>
+            </div>
+            <div style="margin-top:10px; font-size:0.7rem; color:#64748b;">
+                * <?php _e('وقت تسجيل المغادرة القياسي (Check-out) هو 12:00 ظهراً.', 'sukna'); ?>
             </div>
         </div>
     </div>

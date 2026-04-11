@@ -146,7 +146,8 @@ class Sukna_Investments {
 
 		$investments = self::get_property_investments($property_id);
 
-		$total_project_cost = floatval($property->base_value) + floatval($property->total_setup_cost);
+		// Unified formula: base_value + total_setup_cost + gov_fees
+		$total_project_cost = floatval($property->base_value) + floatval($property->total_setup_cost) + floatval($property->gov_fees);
 		if ( $total_project_cost <= 0 ) return;
 
 		$total_investor_contribution = 0;

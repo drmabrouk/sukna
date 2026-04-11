@@ -72,6 +72,7 @@ $can_manage = Sukna_Auth::is_admin();
 </div>
 
 <div style="background:#fff; border:1px solid #e2e8f0; border-radius: 12px; overflow:hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+    <div class="sukna-table-container">
     <table class="sukna-table" id="sukna-user-table">
         <thead>
             <tr>
@@ -117,6 +118,7 @@ $can_manage = Sukna_Auth::is_admin();
             <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <script>

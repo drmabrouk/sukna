@@ -346,9 +346,13 @@ jQuery(document).ready(function($) {
             $('#detail-tenant-name').text(r.tenant_name || '-');
             $('#detail-rental-date').text(r.rental_start_date || '-');
             $('#detail-contract-btn').hide();
+            $('#detail-terminate-btn').show().data('id', r.id);
+            $('#detail-renew-btn').show().data('id', r.id);
         } else {
             $('#detail-tenant-info').hide();
             $('#detail-contract-btn').show().data('id', r.id);
+            $('#detail-terminate-btn').hide();
+            $('#detail-renew-btn').hide();
         }
 
         $('#detail-delete-btn').data('id', r.id);
@@ -356,10 +360,22 @@ jQuery(document).ready(function($) {
         $('#sukna-contract-form').hide();
     });
 
-    $(document).on('click', '#detail-contract-btn', function() {
+    $(document).on('click', '#detail-contract-btn, #detail-renew-btn', function() {
         $('#contract-room-id').val($(this).data('id'));
         $('#sukna-contract-form').slideDown();
         $('#sukna-room-details').fadeOut();
+    });
+
+    $(document).on('click', '#detail-terminate-btn', function() {
+        const id = $(this).data('id');
+        if (!confirm('هل أنت متأكد من إنهاء التعاقد وإخلاء الوحدة (Check-out)؟')) return;
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_terminate_contract', room_id: id, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                alert('تم إنهاء التعاقد بنجاح.');
+                loadRooms($('#room-property-id').val());
+                $('#sukna-room-details').fadeOut();
+            }
+        });
     });
 
     $(document).on('click', '#detail-delete-btn', function() {
@@ -567,5 +583,21 @@ jQuery(document).ready(function($) {
         $(this).addClass('active');
         $('.sukna-tab-content').hide();
         $('#' + tab).fadeIn(200);
+    });
+
+    // Mobile Sidebar Toggle
+    $('#sukna-toggle-sidebar').on('click', function() {
+        $('#sukna-sidebar-main').toggleClass('is-open');
+    });
+
+    // Close sidebar when clicking outside on mobile
+    $(document).on('click', function(e) {
+        if ($(window).width() <= 1024) {
+            const sidebar = $('#sukna-sidebar-main');
+            const toggle = $('#sukna-toggle-sidebar');
+            if (!sidebar.is(e.target) && sidebar.has(e.target).length === 0 && !toggle.is(e.target) && toggle.has(e.target).length === 0) {
+                sidebar.removeClass('is-open');
+            }
+        }
     });
 });
