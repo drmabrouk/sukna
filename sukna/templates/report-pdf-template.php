@@ -288,7 +288,7 @@ function sukna_get_property_report_html($property_id) {
             </div>
         </div>
 
-        <!-- Page 4: Unit Inventory & Audit -->
+        <!-- Page 4: Unit Status & Audit -->
         <div class="pdf-page">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2pt solid #000; padding-bottom: 5mm; margin-bottom: 10mm;">
                 <h3 style="margin: 0; font-size: 16pt;"><?php _e('رابعاً: الحالة التشغيلية للوحدات والتدقيق', 'sukna'); ?></h3>

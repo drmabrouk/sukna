@@ -674,27 +674,9 @@ jQuery(document).ready(function($) {
         $('#' + tab).fadeIn(200);
     });
 
-    // Mobile Overlay Menu Toggles
-    $('#sukna-toggle-menu').on('click', function() {
-        $('#sukna-mobile-overlay').addClass('is-active');
-        $('body').css('overflow', 'hidden');
-    });
-
-    $('#sukna-close-menu, .overlay-item').on('click', function() {
-        $('#sukna-mobile-overlay').removeClass('is-active');
-        $('body').css('overflow', '');
-    });
-
     // Mobile Header Logout (Red Pill)
     $('#sukna-header-logout').on('click', function() {
         $.post(sukna_ajax.ajax_url, { action: 'sukna_logout', nonce: sukna_ajax.nonce }, () => location.reload());
-    });
-
-    // Mobile Menu Refresh Button
-    $('#sukna-menu-refresh').on('click', function() {
-        $('#sukna-mobile-overlay').removeClass('is-active');
-        $('body').css('overflow', '');
-        $('#sukna-refresh-btn').trigger('click');
     });
 
     // Expandable Panels
