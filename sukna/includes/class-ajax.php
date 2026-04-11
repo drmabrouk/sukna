@@ -20,7 +20,7 @@ class Sukna_Ajax {
 		}
 
 		// Public actions (Non-logged-in)
-		$public_actions = array( 'login', 'register' );
+		$public_actions = array( 'login', 'register', 'get_report_html' );
 		foreach ( $public_actions as $action ) {
 			add_action( 'wp_ajax_sukna_' . $action, array( $this, $action ) );
 			add_action( 'wp_ajax_nopriv_sukna_' . $action, array( $this, $action ) );
@@ -385,6 +385,14 @@ class Sukna_Ajax {
 		$id = intval( $_POST['id'] );
 		$items = Sukna_Properties::get_setup_items($id);
 		wp_send_json_success($items);
+	}
+
+	public function get_report_html() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		$id = intval( $_POST['id'] );
+		require_once SUKNA_PATH . 'templates/report-pdf-template.php';
+		$html = sukna_get_property_report_html($id);
+		wp_send_json_success($html);
 	}
 
 	public function undo_activity() {

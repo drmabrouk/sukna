@@ -209,6 +209,11 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                     <button class="sukna-btn sukna-manage-rooms" data-id="<?php echo $p->id; ?>" style="flex:2; font-size:0.8rem; background:#000; border:none;"><?php _e('إدارة الوحدات', 'sukna'); ?></button>
                     <button class="sukna-btn sukna-record-expense-btn" data-id="<?php echo $p->id; ?>" style="flex:1; font-size:0.8rem; background:#333; border:none;"><?php _e('المصاريف', 'sukna'); ?></button>
                 </div>
+                <div style="margin-top:8px;">
+                    <button class="sukna-btn sukna-export-pdf-btn" data-id="<?php echo $p->id; ?>" data-name="<?php echo esc_attr($p->name); ?>" style="width:100%; font-size:0.8rem; background:#fff; color:#000 !important; border:1px solid #000; border-radius:8px;">
+                        <span class="dashicons dashicons-pdf" style="font-size:16px; margin-left:5px;"></span> <?php _e('تحميل التقرير الكامل (PDF)', 'sukna'); ?>
+                    </button>
+                </div>
                 <div style="display:flex; gap:8px; margin-top:8px;">
                     <?php if($is_admin): ?>
                         <button class="sukna-btn sukna-manage-investors" data-id="<?php echo $p->id; ?>" style="flex:1; font-size:0.8rem; background:#D4AF37; color:#000 !important; border:none;"><?php _e('الشركاء', 'sukna'); ?></button>
