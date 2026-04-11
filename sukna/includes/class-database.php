@@ -49,7 +49,6 @@ class Sukna_Database {
 			apartment_number varchar(50),
 			floor_number varchar(50),
 			total_rooms int DEFAULT 0,
-			expected_rent_per_room decimal(15,2) DEFAULT '0.00',
 			contract_start_date date,
 			investment_start_date date,
 			contract_duration int DEFAULT 1,
