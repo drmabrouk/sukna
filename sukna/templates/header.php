@@ -4,19 +4,19 @@
     $system_name = $wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'system_name'") ?: 'Sukna';
 ?>
 <div class="sukna-dashboard" id="sukna-system-root">
-    <div class="sukna-mobile-header" style="display:none; background:#000; padding:10px 15px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10005; border-bottom:1px solid #1a1a1a;">
-        <div style="display:flex; align-items:center;">
-            <button id="sukna-header-logout" class="sukna-pill-logout" style="background:#ef4444; color:#fff; border:none; border-radius:20px; padding:6px 14px; font-size:0.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+    <div class="sukna-mobile-header" style="display:none; background:#000; padding:10px 15px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10005; border-bottom:1px solid #1a1a1a; direction: rtl;">
+        <div class="mobile-header-logo" style="flex: 1; text-align: right;">
+            <?php if ( $logo_url ) : ?>
+                <img src="<?php echo esc_url($logo_url); ?>" alt="Sukna" style="max-height:30px; width:auto; object-fit:contain; display:block;">
+            <?php else : ?>
+                <h2 style="color:#D4AF37; margin:0; font-size:1rem; letter-spacing:1px; font-weight: 800;">SUKNA</h2>
+            <?php endif; ?>
+        </div>
+        <div style="display:flex; align-items:center; gap: 10px;">
+            <button id="sukna-header-logout" class="sukna-pill-logout" style="background:#ef4444; color:#fff; border:none; border-radius:30px; padding:8px 16px; font-size:0.75rem; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:6px;">
                 <span class="dashicons dashicons-no-alt" style="font-size:16px; width:16px; height:16px;"></span>
                 <span>Logout</span>
             </button>
-        </div>
-        <div class="mobile-header-logo">
-            <?php if ( $logo_url ) : ?>
-                <img src="<?php echo esc_url($logo_url); ?>" alt="Sukna" style="max-height:35px; width:auto; object-fit:contain; display:block;">
-            <?php else : ?>
-                <h2 style="color:#D4AF37; margin:0; font-size:1.1rem; letter-spacing:1px;">SUKNA</h2>
-            <?php endif; ?>
         </div>
     </div>
 

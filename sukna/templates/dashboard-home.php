@@ -10,7 +10,7 @@ if ( Sukna_Auth::is_admin() ) {
         <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة تحكم النظام', 'sukna'); ?></h2>
     </div>
 
-    <!-- Administrative Overview Metrics -->
+    <!-- Administrative Overview Metrics (Key KPIs at top for mobile) -->
     <div class="sukna-metrics-grid" style="margin-bottom:25px;">
         <div class="sukna-metric-card">
             <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
@@ -55,7 +55,7 @@ if ( Sukna_Auth::is_admin() ) {
     </div>
 
 
-    <div class="sukna-grid" style="grid-template-columns: 2fr 1fr; gap: 25px;">
+    <div class="sukna-grid main-dashboard-grid" style="grid-template-columns: 2fr 1fr; gap: 25px;">
         <div class="sukna-card" style="border-top: 5px solid #000;">
             <h3 style="margin-bottom:20px;"><?php _e('الأداء التشغيلي والمالي', 'sukna'); ?></h3>
             <div class="sukna-grid" style="grid-template-columns: repeat(4, 1fr); gap: 15px;">
@@ -238,7 +238,7 @@ if ( Sukna_Auth::is_admin() ) {
         $total_project_cost = floatval($active_property->base_value) + floatval($active_property->total_setup_cost);
         $share_percent = ($total_project_cost > 0) ? ($contribution / $total_project_cost) * 100 : 0;
     ?>
-        <div class="sukna-grid" style="grid-template-columns: 2fr 1fr; gap: 25px;">
+        <div class="sukna-grid investor-main-grid" style="grid-template-columns: 2fr 1fr; gap: 25px;">
             <div class="sukna-column">
                 <!-- Property Analytics -->
                 <div class="sukna-card" style="border-top: 5px solid #D4AF37;">
