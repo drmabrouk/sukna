@@ -11,7 +11,7 @@ class Sukna_Ajax {
 			'undo_activity', 'register',
 			'save_property', 'delete_property', 'save_room', 'delete_room', 'save_investment',
 			'get_rooms', 'get_investments', 'save_contract', 'record_expense', 'distribute_revenue',
-			'reset_property_rooms'
+			'reset_property_rooms', 'toggle_user_restriction'
 		);
 
 		foreach ( $actions as $action ) {
@@ -30,7 +30,11 @@ class Sukna_Ajax {
 		$phone = sanitize_text_field( $_POST['phone'] ?? '' );
 		$password = $_POST['password'] ?? '';
 
-		if ( Sukna_Auth::login( $phone, $password ) ) {
+		$result = Sukna_Auth::login( $phone, $password );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		} elseif ( $result ) {
 			Sukna_Audit::log('login', "User with phone $phone logged in");
 			wp_send_json_success();
 		} else {
@@ -135,15 +139,34 @@ class Sukna_Ajax {
 		$id = intval( $_POST['id'] );
 		global $wpdb;
 		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}sukna_staff WHERE id = %d", $id ) );
-		if ( $user && $user->username === 'admin' ) wp_send_json_error( 'Cannot delete admin' );
+		if ( $user && ($user->username === 'admin' || $user->phone === '1234567890')) wp_send_json_error( 'Cannot delete admin' );
 
 		if ( $user ) {
-			Sukna_Audit::log( 'delete_user', "User: {$user->phone}", $user );
+			Sukna_Audit::log( 'delete_user', sprintf(__('حذف المستخدم: %s', 'sukna'), $user->name), $user );
 			$wpdb->delete( $wpdb->prefix . 'sukna_staff', array( 'id' => $id ) );
 			wp_send_json_success();
 		} else {
 			wp_send_json_error( 'User not found' );
 		}
+	}
+
+	public function toggle_user_restriction() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		global $wpdb;
+		$id = intval( $_POST['id'] );
+		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}sukna_staff WHERE id = %d", $id ) );
+		if ( ! $user ) wp_send_json_error( 'User not found' );
+		if ( $user->username === 'admin' || $user->phone === '1234567890' ) wp_send_json_error( 'Cannot restrict admin' );
+
+		$new_status = $user->is_restricted ? 0 : 1;
+		$wpdb->update( "{$wpdb->prefix}sukna_staff", array( 'is_restricted' => $new_status ), array( 'id' => $id ) );
+
+		$action = $new_status ? __('تقييد', 'sukna') : __('إلغاء تقييد', 'sukna');
+		Sukna_Audit::log( 'toggle_restriction', sprintf(__('%s حساب المستخدم: %s', 'sukna'), $action, $user->name) );
+
+		wp_send_json_success();
 	}
 
 	public function save_property() {
@@ -164,17 +187,17 @@ class Sukna_Ajax {
 		);
 
 		// Handle setup items
+		$setup_items = array();
 		if ( ! empty($_POST['setup_item_names']) && is_array($_POST['setup_item_names']) ) {
-			$setup_items = array();
 			foreach ( $_POST['setup_item_names'] as $idx => $name ) {
 				if ( empty($name) ) continue;
 				$setup_items[] = array(
-					'name' => $name,
+					'name' => sanitize_text_field($name),
 					'cost' => floatval($_POST['setup_item_costs'][$idx] ?? 0)
 				);
 			}
-			$data['setup_items'] = $setup_items;
 		}
+		$data['setup_items'] = $setup_items;
 
 		if ( $id ) {
 			Sukna_Properties::update_property( $id, $data );
@@ -193,8 +216,11 @@ class Sukna_Ajax {
 
 		$id = intval( $_POST['id'] );
 		$p = Sukna_Properties::get_property($id);
+		if ( ! $p ) wp_send_json_error( 'Not found' );
+
+		Sukna_Audit::log('delete_property', sprintf(__('حذف العقار: %s', 'sukna'), $p->name), $p);
 		Sukna_Properties::delete_property( $id );
-		Sukna_Audit::log('delete_property', sprintf(__('حذف العقار: %s', 'sukna'), $p->name ?? $id));
+
 		wp_send_json_success();
 	}
 
@@ -364,6 +390,12 @@ class Sukna_Ajax {
 
 		if ( $log->action_type === 'delete_user' ) {
 			$wpdb->insert( "{$wpdb->prefix}sukna_staff", $data );
+			$wpdb->delete( "{$wpdb->prefix}sukna_activity_logs", array( 'id' => $log_id ) );
+			wp_send_json_success();
+		}
+
+		if ( $log->action_type === 'delete_property' ) {
+			$wpdb->insert( "{$wpdb->prefix}sukna_properties", $data );
 			$wpdb->delete( "{$wpdb->prefix}sukna_activity_logs", array( 'id' => $log_id ) );
 			wp_send_json_success();
 		}

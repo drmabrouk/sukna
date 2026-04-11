@@ -186,76 +186,106 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
     <?php endforeach; ?>
 </div>
 
-<!-- Property Modal -->
+<!-- Property Modal (3-Step Wizard) -->
 <div id="sukna-property-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0, 0, 0, 0.6); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
-    <div class="sukna-card" style="width:100%; max-width:550px; padding:40px; border-radius:12px;">
-        <h3 id="prop-modal-title" style="font-size:1.4rem; margin-bottom:30px;"><?php _e('بيانات العقار', 'sukna'); ?></h3>
+    <div class="sukna-card" style="width:100%; max-width:600px; padding:40px; border-radius:12px;">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h3 id="prop-modal-title" style="margin:0; font-size:1.4rem;"><?php _e('بيانات العقار', 'sukna'); ?></h3>
+            <div style="display:flex; gap:5px;" id="prop-wizard-dots">
+                <span class="dot active" data-step="1"></span>
+                <span class="dot" data-step="2"></span>
+                <span class="dot" data-step="3"></span>
+            </div>
+        </div>
+
         <form id="sukna-property-form">
             <input type="hidden" name="id" id="prop-id">
-            <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
-                <div class="sukna-form-group">
-                    <input type="text" name="name" id="prop-name" placeholder="<?php _e('اسم العقار', 'sukna'); ?>" required>
+
+            <!-- Step 1: Basic Information -->
+            <div id="prop-step-1" class="prop-wizard-step">
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div class="sukna-form-group">
+                        <input type="text" name="name" id="prop-name" placeholder="<?php _e('اسم العقار', 'sukna'); ?>" required>
+                    </div>
+                    <div class="sukna-form-group">
+                        <select name="property_type" id="prop-type">
+                            <option value="owned"><?php _e('ملك', 'sukna'); ?></option>
+                            <option value="leased"><?php _e('مستأجر (إدارة)', 'sukna'); ?></option>
+                        </select>
+                    </div>
                 </div>
+
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px;">
+                    <div class="sukna-form-group">
+                        <select name="country" id="prop-country" required>
+                            <option value=""><?php _e('الدولة', 'sukna'); ?></option>
+                            <?php foreach($geo_data as $code => $data): ?>
+                                <option value="<?php echo $code; ?>"><?php echo $data['name']; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="sukna-form-group">
+                        <select name="state_emirate" id="prop-state" required>
+                            <option value=""><?php _e('الولاية / الإمارة', 'sukna'); ?></option>
+                        </select>
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="text" name="city" id="prop-city" placeholder="<?php _e('المدينة', 'sukna'); ?>">
+                    </div>
+                </div>
+
                 <div class="sukna-form-group">
-                    <select name="property_type" id="prop-type">
-                        <option value="owned"><?php _e('ملك', 'sukna'); ?></option>
-                        <option value="leased"><?php _e('مستأجر (إدارة)', 'sukna'); ?></option>
-                    </select>
+                    <textarea name="address" id="prop-address" placeholder="<?php _e('العنوان بالتفصيل', 'sukna'); ?>" rows="2"></textarea>
                 </div>
             </div>
 
-            <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px;">
+            <!-- Step 2: Rooms & Structure -->
+            <div id="prop-step-2" class="prop-wizard-step" style="display:none;">
                 <div class="sukna-form-group">
-                    <select name="country" id="prop-country" required>
-                        <option value=""><?php _e('الدولة', 'sukna'); ?></option>
-                        <?php foreach($geo_data as $code => $data): ?>
-                            <option value="<?php echo $code; ?>"><?php echo $data['name']; ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <input type="number" name="total_rooms" id="prop-total-rooms" placeholder="<?php _e('إجمالي عدد الوحدات (الغرف)', 'sukna'); ?>" required>
                 </div>
-                <div class="sukna-form-group">
-                    <select name="state_emirate" id="prop-state" required>
-                        <option value=""><?php _e('الولاية / الإمارة', 'sukna'); ?></option>
-                    </select>
-                </div>
-                <div class="sukna-form-group">
-                    <input type="text" name="city" id="prop-city" placeholder="<?php _e('المدينة', 'sukna'); ?>">
+                <div style="background:#f8fafc; padding:20px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:15px;">
+                    <h4 style="margin:0 0 15px 0; font-size:0.9rem;"><?php _e('تكاليف التجهيز والإعداد', 'sukna'); ?></h4>
+                    <div id="setup-items-container"></div>
+                    <button type="button" id="add-setup-item-btn" class="sukna-btn" style="background:#333; padding:5px 15px; font-size:0.75rem;"><span class="dashicons dashicons-plus" style="font-size:14px; width:14px; height:14px; margin-left:5px;"></span><?php _e('إضافة بند تجهيز', 'sukna'); ?></button>
                 </div>
             </div>
 
-            <div class="sukna-form-group">
-                <textarea name="address" id="prop-address" placeholder="<?php _e('العنوان بالتفصيل', 'sukna'); ?>" rows="2"></textarea>
-            </div>
-
-            <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="sukna-form-group">
-                    <input type="number" name="total_rooms" id="prop-total-rooms" placeholder="<?php _e('عدد الوحدات (الغرف)', 'sukna'); ?>" required>
-                </div>
+            <!-- Step 3: Financial & Investment -->
+            <div id="prop-step-3" class="prop-wizard-step" style="display:none;">
                 <div class="sukna-form-group">
                     <input type="number" step="0.01" name="base_value" id="prop-base-value" placeholder="<?php _e('قيمة العقار / العقد الأساسي', 'sukna'); ?>" required>
                 </div>
-            </div>
-
-            <!-- Setup Cost Items Section -->
-            <div style="background:#f8fafc; padding:20px; border-radius:10px; margin-bottom:20px; border:1px solid #e2e8f0;">
-                <h4 style="margin:0 0 15px 0; font-size:0.9rem;"><?php _e('تكاليف التجهيز والإعداد', 'sukna'); ?></h4>
-                <div id="setup-items-container">
-                    <!-- Dynamic Items -->
+                <div class="sukna-form-group">
+                    <select name="owner_id" id="prop-owner-id">
+                        <option value=""><?php _e('اختر المالك / المدير المسؤول', 'sukna'); ?></option>
+                        <?php foreach($owners as $o): ?>
+                            <option value="<?php echo $o->id; ?>"><?php echo esc_html($o->name); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <button type="button" id="add-setup-item-btn" class="sukna-btn" style="background:#333; padding:5px 15px; font-size:0.75rem;"><span class="dashicons dashicons-plus" style="font-size:14px; width:14px; height:14px; margin-left:5px;"></span><?php _e('إضافة بند تجهيز', 'sukna'); ?></button>
+
+                <div id="prop-summary-final" style="background:#000; color:#fff; padding:20px; border-radius:12px; margin-top:20px;">
+                    <div style="display:flex; justify-content: space-between; margin-bottom:10px; opacity:0.8;">
+                        <span><?php _e('قيمة العقار:', 'sukna'); ?></span>
+                        <span id="sum-base-val">0</span>
+                    </div>
+                    <div style="display:flex; justify-content: space-between; margin-bottom:10px; opacity:0.8;">
+                        <span><?php _e('إجمالي التجهيزات:', 'sukna'); ?></span>
+                        <span id="sum-setup-val">0</span>
+                    </div>
+                    <div style="display:flex; justify-content: space-between; border-top:1px solid #333; padding-top:10px; font-weight:800;">
+                        <span style="color:#D4AF37;"><?php _e('إجمالي رأس المال المطلوب:', 'sukna'); ?></span>
+                        <span id="sum-total-val" style="color:#D4AF37; font-size:1.2rem;">0</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="sukna-form-group">
-                <select name="owner_id" id="prop-owner-id">
-                    <option value=""><?php _e('اختر المالك', 'sukna'); ?></option>
-                    <?php foreach($owners as $o): ?>
-                        <option value="<?php echo $o->id; ?>"><?php echo esc_html($o->name); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div style="display:flex; gap:15px; margin-top:30px;">
-                <button type="submit" class="sukna-btn" style="flex:1; background:#000; border:none; border-radius: 8px;"><?php _e('حفظ العقار', 'sukna'); ?></button>
-                <button type="button" class="sukna-btn close-prop-modal" style="flex:1; background:#64748b; border:none; border-radius: 8px;"><?php _e('إلغاء', 'sukna'); ?></button>
+            <div style="display:flex; gap:15px; margin-top:30px; border-top:1px solid #eee; padding-top:20px;">
+                <button type="button" id="prop-prev" class="sukna-btn" style="flex:1; background:#64748b; border:none; display:none;"><?php _e('السابق', 'sukna'); ?></button>
+                <button type="button" id="prop-next" class="sukna-btn" style="flex:1; background:#000; border:none;"><?php _e('التالي', 'sukna'); ?></button>
+                <button type="submit" id="prop-submit" class="sukna-btn sukna-btn-accent" style="flex:2; display:none;"><?php _e('حفظ وتأكيد البيانات', 'sukna'); ?></button>
+                <button type="button" class="sukna-btn close-prop-modal" style="background:#333; border:none;"><?php _e('إلغاء', 'sukna'); ?></button>
             </div>
         </form>
     </div>

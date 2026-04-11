@@ -125,13 +125,66 @@ jQuery(document).ready(function($) {
         $.post(sukna_ajax.ajax_url, { action: 'sukna_delete_user', id: $(this).data('id'), nonce: sukna_ajax.nonce }, () => location.reload());
     });
 
-    // --- Property Management ---
+    // --- Property Management Wizard ---
+    let propCurrentStep = 1;
+
+    function showPropStep(step) {
+        $('.prop-wizard-step').hide();
+        $(`#prop-step-${step}`).fadeIn(200);
+
+        $('#prop-wizard-dots .dot').removeClass('active');
+        $(`#prop-wizard-dots .dot[data-step="${step}"]`).addClass('active');
+
+        $('#prop-prev').toggle(step > 1);
+        $('#prop-next').toggle(step < 3);
+        $('#prop-submit').toggle(step === 3);
+
+        if (step === 3) updatePropSummary();
+    }
+
+    $('#prop-next').on('click', function() {
+        if (validatePropStep(propCurrentStep)) {
+            propCurrentStep++;
+            showPropStep(propCurrentStep);
+        }
+    });
+
+    $('#prop-prev').on('click', function() {
+        propCurrentStep--;
+        showPropStep(propCurrentStep);
+    });
+
+    function validatePropStep(step) {
+        let valid = true;
+        $(`#prop-step-${step} input[required], #prop-step-${step} select[required]`).each(function() {
+            if (!$(this).val()) {
+                alert('يرجى ملء الحقول المطلوبة');
+                valid = false;
+                return false;
+            }
+        });
+        return valid;
+    }
+
+    function updatePropSummary() {
+        const base = parseFloat($('#prop-base-value').val()) || 0;
+        let setup = 0;
+        $('input[name="setup_item_costs[]"]').each(function() {
+            setup += parseFloat($(this).val()) || 0;
+        });
+
+        $('#sum-base-val').text(base.toLocaleString());
+        $('#sum-setup-val').text(setup.toLocaleString());
+        $('#sum-total-val').text((base + setup).toLocaleString());
+    }
 
     $('#sukna-add-property-btn').on('click', function() {
         $('#sukna-property-form')[0].reset();
         $('#prop-id').val('');
         $('#setup-items-container').empty();
         $('#prop-modal-title').text('إضافة عقار جديد');
+        propCurrentStep = 1;
+        showPropStep(1);
         $('#sukna-property-modal').css('display', 'flex');
     });
 
@@ -196,6 +249,8 @@ jQuery(document).ready(function($) {
         });
 
         $('#prop-modal-title').text('تعديل عقار');
+        propCurrentStep = 1;
+        showPropStep(1);
         $('#sukna-property-modal').css('display', 'flex');
     });
 

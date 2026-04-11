@@ -14,6 +14,25 @@ $can_manage = Sukna_Auth::is_admin();
     </div>
 </div>
 
+<!-- User Search & Filter Engine -->
+<div class="sukna-card" style="margin-bottom:25px; border-top:3px solid #000;">
+    <div style="display:flex; gap:15px; flex-wrap: wrap;">
+        <div class="sukna-form-group" style="flex:2; margin-bottom:0; min-width:200px;">
+            <input type="text" id="user-search-input" placeholder="<?php _e('البحث بالاسم أو رقم الهاتف...', 'sukna'); ?>" style="padding:10px 15px;">
+        </div>
+        <div class="sukna-form-group" style="flex:1; margin-bottom:0; min-width:150px;">
+            <select id="user-role-filter">
+                <option value=""><?php _e('تصفية حسب الدور', 'sukna'); ?></option>
+                <option value="admin"><?php _e('مدير نظام', 'sukna'); ?></option>
+                <option value="owner"><?php _e('مالك عقار', 'sukna'); ?></option>
+                <option value="investor"><?php _e('مستثمر', 'sukna'); ?></option>
+                <option value="tenant"><?php _e('مستأجر', 'sukna'); ?></option>
+                <option value="employee"><?php _e('موظف', 'sukna'); ?></option>
+            </select>
+        </div>
+    </div>
+</div>
+
 <!-- User Modal -->
 <div id="sukna-user-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0, 0, 0, 0.6); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
     <div class="sukna-card" style="width:100%; max-width:550px; padding:40px; border-radius:12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
@@ -60,12 +79,13 @@ $can_manage = Sukna_Auth::is_admin();
                 <th><?php _e('الهاتف', 'sukna'); ?></th>
                 <th><?php _e('الاسم', 'sukna'); ?></th>
                 <th><?php _e('الصلاحية', 'sukna'); ?></th>
+                <th><?php _e('الحالة', 'sukna'); ?></th>
                 <th><?php _e('إجراءات', 'sukna'); ?></th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="sukna-users-table-body">
             <?php foreach($users as $u): ?>
-                <tr data-user='<?php echo json_encode($u); ?>'>
+                <tr data-user='<?php echo json_encode($u); ?>' data-role="<?php echo $u->role; ?>" data-search="<?php echo esc_attr(strtolower($u->name . ' ' . $u->phone)); ?>">
                     <td><strong><?php echo esc_html($u->username ?: '-'); ?></strong></td>
                     <td><?php echo esc_html($u->phone); ?></td>
                     <td><?php echo esc_html($u->name); ?></td>
@@ -73,12 +93,22 @@ $can_manage = Sukna_Auth::is_admin();
                         $roles = array('admin' => 'مدير نظام', 'owner' => 'مالك', 'investor' => 'مستثمر', 'tenant' => 'مستأجر', 'employee' => 'موظف');
                         echo $roles[$u->role] ?? $u->role;
                     ?></span></td>
+                    <td>
+                        <?php if($u->is_restricted): ?>
+                            <span class="sukna-status-indicator indicator-danger"><span class="dashicons dashicons-lock" style="font-size:14px; width:14px; height:14px;"></span> <?php _e('مقيد', 'sukna'); ?></span>
+                        <?php else: ?>
+                            <span class="sukna-status-indicator indicator-success"><?php _e('نشط', 'sukna'); ?></span>
+                        <?php endif; ?>
+                    </td>
                     <td style="text-align:left;">
                         <div style="display:flex; gap:5px; justify-content: flex-end;">
                             <?php if($can_manage): ?>
-                                <button class="sukna-btn sukna-edit-user" style="padding:4px 8px; font-size:0.75rem; background:#000; border:none; border-radius: 4px;"><span class="dashicons dashicons-edit"></span></button>
-                                <?php if($u->username !== 'admin'): ?>
-                                    <button class="sukna-btn sukna-delete-user" data-id="<?php echo $u->id; ?>" style="padding:4px 8px; font-size:0.75rem; background:#333; border:none; border-radius: 4px;"><span class="dashicons dashicons-trash"></span></button>
+                                <button class="sukna-btn sukna-edit-user" title="<?php _e('تعديل', 'sukna'); ?>" style="padding:4px 8px; font-size:0.75rem; background:#000; border:none; border-radius: 4px;"><span class="dashicons dashicons-edit"></span></button>
+                                <?php if($u->username !== 'admin' && $u->phone !== '1234567890'): ?>
+                                    <button class="sukna-btn sukna-restrict-user" data-id="<?php echo $u->id; ?>" title="<?php echo $u->is_restricted ? __('إلغاء التقييد', 'sukna') : __('تقييد الحساب', 'sukna'); ?>" style="padding:4px 8px; background:<?php echo $u->is_restricted ? '#059669' : '#d97706'; ?>; border:none; border-radius: 4px;">
+                                        <span class="dashicons <?php echo $u->is_restricted ? 'dashicons-unlock' : 'dashicons-lock'; ?>"></span>
+                                    </button>
+                                    <button class="sukna-btn sukna-delete-user" data-id="<?php echo $u->id; ?>" title="<?php _e('حذف', 'sukna'); ?>" style="padding:4px 8px; font-size:0.75rem; background:#333; border:none; border-radius: 4px;"><span class="dashicons dashicons-trash"></span></button>
                                 <?php endif; ?>
                             <?php endif; ?>
                         </div>
@@ -115,5 +145,29 @@ jQuery(document).ready(function($) {
     });
 
     $('.close-user-modal').on('click', function() { modal.hide(); });
+
+    // Client-side search and filter
+    $('#user-search-input, #user-role-filter').on('keyup change', function() {
+        const query = $('#user-search-input').val().toLowerCase();
+        const role = $('#user-role-filter').val();
+
+        $('#sukna-users-table-body tr').each(function() {
+            const tr = $(this);
+            const searchVal = tr.data('search');
+            const userRole = tr.data('role');
+
+            const matchesSearch = !query || searchVal.includes(query);
+            const matchesRole = !role || userRole === role;
+
+            if (matchesSearch && matchesRole) tr.show();
+            else tr.hide();
+        });
+    });
+
+    $(document).on('click', '.sukna-restrict-user', function() {
+        const id = $(this).data('id');
+        if (!confirm('هل أنت متأكد من تغيير حالة تقييد هذا الحساب؟')) return;
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_toggle_user_restriction', id: id, nonce: sukna_ajax.nonce }, () => location.reload());
+    });
 });
 </script>

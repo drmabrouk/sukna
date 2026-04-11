@@ -18,6 +18,9 @@ class Sukna_Auth {
 		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE phone = %s", $phone ) );
 
 		if ( $user && password_verify( $password, $user->password ) ) {
+			if ( $user->is_restricted ) {
+				return new WP_Error( 'restricted', __( 'هذا الحساب مقيد حالياً. يرجى التواصل مع الإدارة.', 'sukna' ) );
+			}
 			return self::set_user_session( $user );
 		}
 		return false;
