@@ -231,12 +231,12 @@ function sukna_get_property_report_html($property_id) {
                 <div class="kpi-box">
                     <small style="color: #64748b; font-weight: 700;"><?php _e('الدخل الشهري الفعلي', 'sukna'); ?></small>
                     <div class="kpi-value" style="color: #059669;"><?php echo number_format($perf['monthly_income']); ?></div>
-                    <small>EGP</small>
+                    <small>AED</small>
                 </div>
                 <div class="kpi-box" style="background: #000;">
                     <small style="color: #94a3b8; font-weight: 700;"><?php _e('صافي الربح الشهري', 'sukna'); ?></small>
                     <div class="kpi-value gold"><?php echo number_format($perf['monthly_net']); ?></div>
-                    <small style="color: #fff;">EGP</small>
+                    <small style="color: #fff;">AED</small>
                 </div>
                 <div class="kpi-box">
                     <small style="color: #64748b; font-weight: 700;"><?php _e('العائد على الاستثمار ROI', 'sukna'); ?></small>

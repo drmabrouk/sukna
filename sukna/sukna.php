@@ -62,6 +62,7 @@ class Sukna_System {
 	private function init_hooks() {
 		register_activation_hook( __FILE__, array( 'Sukna_Database', 'create_tables' ) );
 		add_action( 'init', array( 'Sukna_Auth', 'init' ) );
+		add_action( 'init', array( $this, 'schedule_monthly_release' ) );
 		add_action( 'init', array( 'Sukna_PWA', 'init' ) );
 		add_action( 'init', array( $this, 'send_nocache_headers' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
@@ -101,6 +102,14 @@ class Sukna_System {
 			'nonce'    => wp_create_nonce( 'sukna_nonce' ),
 			'geo_data' => Sukna_Geo::get_data(),
 		) );
+	}
+
+	public function schedule_monthly_release() {
+		if ( ! wp_next_scheduled( 'sukna_monthly_profit_release' ) ) {
+			// Schedule for the last day of the month
+			wp_schedule_event( strtotime( 'last day of this month 23:59:00' ), 'monthly', 'sukna_monthly_profit_release' );
+		}
+		add_action( 'sukna_monthly_profit_release', array( 'Sukna_Investments', 'release_monthly_profits' ) );
 	}
 }
 

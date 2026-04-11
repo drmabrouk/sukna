@@ -8,6 +8,16 @@ class Sukna_Investments {
 	public static function add_investment( $data ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_investments';
+
+		// Enforce strict investment limits
+		$property = Sukna_Properties::get_property($data['property_id']);
+		$perf = Sukna_Properties::get_property_performance($data['property_id']);
+		$remaining = $perf['total_project_cost'] - $perf['total_invested'];
+
+		if ( $data['amount'] > $remaining ) {
+			return new WP_Error('overfunding', sprintf(__('المبلغ يتجاوز التمويل المطلوب. المتبقي: %s AED', 'sukna'), number_format($remaining)));
+		}
+
 		$wpdb->insert( $table, $data );
 		$investment_id = $wpdb->insert_id;
 
@@ -53,17 +63,17 @@ class Sukna_Investments {
 		);
 	}
 
-	public static function get_wallet_balance( $user_id ) {
+	public static function get_wallet( $user_id ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_wallets';
-		$balance = $wpdb->get_var( $wpdb->prepare( "SELECT balance FROM $table WHERE user_id = %d", $user_id ) );
+		$wallet = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE user_id = %d", $user_id ) );
 
-		if ( $balance === null ) {
-			$wpdb->insert( $table, array( 'user_id' => $user_id, 'balance' => 0 ) );
-			return 0;
+		if ( ! $wallet ) {
+			$wpdb->insert( $table, array( 'user_id' => $user_id, 'balance' => 0, 'available_balance' => 0, 'pending_balance' => 0, 'reserved_balance' => 0 ) );
+			return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE user_id = %d", $user_id ) );
 		}
 
-		return $balance;
+		return $wallet;
 	}
 
 	public static function record_transaction( $user_id, $amount, $type, $description = '' ) {
@@ -75,11 +85,34 @@ class Sukna_Investments {
 			'description' => $description
 		) );
 
-		// Update wallet balance
-		$current_balance = self::get_wallet_balance($user_id);
-		$new_balance = ($type === 'payout' || $type === 'investment') ? $current_balance - $amount : $current_balance + $amount;
+		// Update wallet balances
+		$wallet = self::get_wallet($user_id);
+		$update_data = array();
 
-		$wpdb->update( "{$wpdb->prefix}sukna_wallets", array('balance' => $new_balance), array('user_id' => $user_id) );
+		if ($type === 'investment') {
+			$update_data['balance'] = $wallet->balance - $amount;
+		} elseif ($type === 'room_revenue') {
+			$update_data['balance'] = $wallet->balance + $amount;
+			$update_data['pending_balance'] = $wallet->pending_balance + $amount;
+		} elseif ($type === 'expense' || $type === 'lease_obligation') {
+			$update_data['balance'] = $wallet->balance - $amount;
+			$update_data['pending_balance'] = $wallet->pending_balance - $amount;
+		} elseif ($type === 'payout') {
+			$update_data['balance'] = $wallet->balance - $amount;
+			$update_data['available_balance'] = $wallet->available_balance - $amount;
+		} elseif ($type === 'dividend') {
+			$update_data['balance'] = $wallet->balance + $amount;
+			$update_data['pending_balance'] = $wallet->pending_balance + $amount;
+		} else {
+			$update_data['balance'] = $wallet->balance + $amount;
+		}
+
+		$wpdb->update( "{$wpdb->prefix}sukna_wallets", $update_data, array('user_id' => $user_id) );
+	}
+
+	public static function get_wallet_balance( $user_id ) {
+		$wallet = self::get_wallet($user_id);
+		return $wallet->balance;
 	}
 
 	public static function get_transactions( $user_id ) {
@@ -137,36 +170,61 @@ class Sukna_Investments {
 		);
 	}
 
-	public static function distribute_revenue( $property_id, $net_profit ) {
+	public static function distribute_proportional_amount( $property_id, $amount, $type, $description = '' ) {
 		global $wpdb;
-
 		$property = Sukna_Properties::get_property($property_id);
 		if ( ! $property ) return;
 
 		$investments = self::get_property_investments($property_id);
-
-		// Unified formula: base_value + total_setup_cost + gov_fees
 		$total_project_cost = floatval($property->base_value) + floatval($property->total_setup_cost) + floatval($property->gov_fees);
 		if ( $total_project_cost <= 0 ) return;
 
 		$total_investor_contribution = 0;
-
-		// Investor Shares (Proportional to Total Project Cost)
 		foreach ($investments as $inv) {
 			$share_percent = ($inv->amount / $total_project_cost);
-			$investor_share = $net_profit * $share_percent;
+			$investor_share = $amount * $share_percent;
 			$total_investor_contribution += $inv->amount;
 
-			self::record_transaction( $inv->investor_id, $investor_share, 'dividend', sprintf(__('عائد أرباح عقار #%d (نسبة %s%%)', 'sukna'), $property_id, round($share_percent * 100, 2)));
+			self::record_transaction( $inv->investor_id, abs($investor_share), $type, $description . sprintf(' (%s%%)', round($share_percent * 100, 2)) );
 		}
 
-		// Owner Share (Remaining balance of the project cost)
+		// Owner Share
 		$owner_contribution = $total_project_cost - $total_investor_contribution;
-		if ( $owner_contribution < 0 ) $owner_contribution = 0;
+		if ( $owner_contribution > 0 ) {
+			$owner_share_percent = ($owner_contribution / $total_project_cost);
+			$owner_share = $amount * $owner_share_percent;
+			self::record_transaction( $property->owner_id, abs($owner_share), $type, $description . sprintf(' (%s%% %s)', round($owner_share_percent * 100, 2), __('حصة المالك', 'sukna')) );
+		}
+	}
 
-		$owner_share_percent = ($owner_contribution / $total_project_cost);
-		$owner_profit = $net_profit * $owner_share_percent;
+	public static function distribute_revenue( $property_id, $net_profit ) {
+		self::distribute_proportional_amount($property_id, $net_profit, 'dividend', sprintf(__('توزيع أرباح يدوية - عقار #%d', 'sukna'), $property_id));
+	}
 
-		self::record_transaction($property->owner_id, $owner_profit, 'dividend', sprintf(__('عائد أرباح عقار #%d (نسبة المالك %s%%)', 'sukna'), $property_id, round($owner_share_percent * 100, 2)));
+	public static function release_monthly_profits() {
+		global $wpdb;
+
+		// 1. Process Master Lease Obligations for all Leased Properties
+		$leased_properties = $wpdb->get_results("SELECT id, name, owner_id, base_value, contract_duration FROM {$wpdb->prefix}sukna_properties WHERE property_type = 'leased'");
+		foreach ($leased_properties as $p) {
+			if ($p->contract_duration > 0) {
+				$monthly_obligation = floatval($p->base_value) / (intval($p->contract_duration) * 12);
+				if ($monthly_obligation > 0) {
+					// Proportional deduction from all investors for this property
+					self::distribute_proportional_amount(
+						$p->id,
+						$monthly_obligation,
+						'lease_obligation',
+						sprintf(__('استقطاع التزام عقد الإيجار الشهري - %s', 'sukna'), $p->name)
+					);
+				}
+			}
+		}
+
+		// 2. Release pending to available for all users
+		$table = $wpdb->prefix . 'sukna_wallets';
+		$wpdb->query("UPDATE $table SET available_balance = available_balance + pending_balance, pending_balance = 0");
+
+		Sukna_Audit::log('profit_release', "Processed monthly obligations and released pending balances to available for withdrawal.");
 	}
 }

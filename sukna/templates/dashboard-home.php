@@ -116,7 +116,8 @@ if ( Sukna_Auth::is_admin() ) {
     <?php
 } elseif ( Sukna_Auth::is_investor() ) {
     $perf = Sukna_Investments::get_investor_performance($current_user->id);
-    $wallet = Sukna_Investments::get_wallet_balance($current_user->id);
+    $wallet_obj = Sukna_Investments::get_wallet($current_user->id);
+    $wallet = $wallet_obj->balance;
     $my_properties = Sukna_Investments::get_investor_properties($current_user->id);
 
     // Switch between properties
@@ -161,42 +162,72 @@ if ( Sukna_Auth::is_admin() ) {
         </div>
     </div>
 
-    <!-- Overall Metrics -->
-    <div class="sukna-metrics-grid" style="margin-bottom:25px;">
-        <div class="sukna-metric-card">
-            <div class="sukna-metric-icon" style="background: #f8fafc; color: #D4AF37;">
-                <span class="dashicons dashicons-money-alt"></span>
+    <!-- Wallet Section -->
+    <div class="sukna-card" style="border-top: 5px solid #D4AF37; margin-bottom: 25px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 style="margin:0;"><?php _e('المحفظة الاستثمارية والسيولة', 'sukna'); ?></h3>
+            <span class="sukna-capsule" style="background:#000; color:#D4AF37;"><?php _e('حساب حقيقي (AED)', 'sukna'); ?></span>
+        </div>
+
+        <div class="sukna-grid" style="grid-template-columns: 1.5fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div style="background:#000; color:#fff; padding:25px; border-radius:15px; position:relative; overflow:hidden;">
+                <div style="position:relative; z-index:2;">
+                    <small style="opacity:0.7; display:block; margin-bottom:5px;"><?php _e('صافي الرصيد الحالي', 'sukna'); ?></small>
+                    <div style="font-size:2.2rem; font-weight:800; color:#D4AF37; line-height:1;"><?php echo number_format($wallet_obj->balance, 2); ?></div>
+                    <div style="margin-top:10px; font-size:0.75rem; opacity:0.6;"><?php _e('بعد خصم كافة الالتزامات والمصاريف', 'sukna'); ?></div>
+                </div>
+                <span class="dashicons dashicons-shield" style="position:absolute; right:-10px; bottom:-10px; font-size:100px; width:100px; height:100px; opacity:0.05;"></span>
             </div>
-            <div class="sukna-metric-content">
-                <div class="sukna-metric-title"><?php _e('المحفظة المالية', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo number_format($wallet); ?></div>
+            <div style="background:#f0fdf4; border:1px solid #dcfce7; padding:20px; border-radius:12px; display:flex; flex-direction:column; justify-content:center;">
+                <small style="color:#166534; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
+                    <span class="dashicons dashicons-yes-alt" style="font-size:16px; width:16px; height:16px;"></span> <?php _e('متاح للسحب الآن', 'sukna'); ?>
+                </small>
+                <div style="font-size:1.6rem; font-weight:800; color:#15803d;"><?php echo number_format($wallet_obj->available_balance, 2); ?></div>
+                <small style="color:#166534; opacity:0.6; font-size:0.65rem; margin-top:5px;"><?php _e('* محول من دورات سابقة', 'sukna'); ?></small>
+            </div>
+            <div style="background:#fff7ed; border:1px solid #ffedd5; padding:20px; border-radius:12px; display:flex; flex-direction:column; justify-content:center;">
+                <small style="color:#9a3412; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
+                    <span class="dashicons dashicons-clock" style="font-size:16px; width:16px; height:16px;"></span> <?php _e('أرباح الشهر (معلقة)', 'sukna'); ?>
+                </small>
+                <div style="font-size:1.6rem; font-weight:800; color:#c2410c;"><?php echo number_format($wallet_obj->pending_balance, 2); ?></div>
+                <small style="color:#9a3412; opacity:0.6; font-size:0.65rem; margin-top:5px;"><?php _e('* تصدر في نهاية الشهر', 'sukna'); ?></small>
             </div>
         </div>
-        <div class="sukna-metric-card">
-            <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
-                <span class="dashicons dashicons-chart-line"></span>
+
+        <div class="sukna-grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom:20px;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:10px;">
+                <small style="color:#64748b; display:block; margin-bottom:5px;"><?php _e('إجمالي التحصيلات (عوائد)', 'sukna'); ?></small>
+                <?php $total_in = $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM {$wpdb->prefix}sukna_transactions WHERE user_id = %d AND amount > 0", $current_user->id)) ?: 0; ?>
+                <div style="font-weight:800; color:#059669;"><?php echo number_format($total_in, 2); ?></div>
             </div>
-            <div class="sukna-metric-content">
-                <div class="sukna-metric-title"><?php _e('رأس المال المستثمر', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo number_format($perf['total_invested']); ?></div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:10px;">
+                <small style="color:#64748b; display:block; margin-bottom:5px;"><?php _e('إجمالي الاستقطاعات', 'sukna'); ?></small>
+                <?php $total_out = $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM {$wpdb->prefix}sukna_transactions WHERE user_id = %d AND amount < 0", $current_user->id)) ?: 0; ?>
+                <div style="font-weight:800; color:#ef4444;"><?php echo number_format(abs($total_out), 2); ?></div>
+            </div>
+            <div style="background:#fefce8; border:1px solid #fef08a; padding:15px; border-radius:10px;">
+                <small style="color:#854d0e; display:block; margin-bottom:5px;"><?php _e('المبالغ المحجوزة', 'sukna'); ?></small>
+                <div style="font-weight:800; color:#854d0e;"><?php echo number_format($wallet_obj->reserved_balance, 2); ?></div>
             </div>
         </div>
-        <div class="sukna-metric-card">
-            <div class="sukna-metric-icon" style="background: #f8fafc; color: #059669;">
-                <span class="dashicons dashicons-chart-area"></span>
+        <div class="sukna-metrics-grid">
+            <div class="sukna-metric-card" style="background:#f8fafc;">
+                <div class="sukna-metric-content">
+                    <div class="sukna-metric-title"><?php _e('رأس المال المستثمر', 'sukna'); ?></div>
+                    <div class="sukna-metric-value"><?php echo number_format($perf['total_invested']); ?></div>
+                </div>
             </div>
-            <div class="sukna-metric-content">
-                <div class="sukna-metric-title"><?php _e('إجمالي الأرباح', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo number_format($total_profit); ?> <small style="font-size:0.7rem; color:#059669; font-weight:700;">(<?php echo round($overall_roi, 1); ?>%)</small></div>
+            <div class="sukna-metric-card" style="background:#f8fafc;">
+                <div class="sukna-metric-content">
+                    <div class="sukna-metric-title"><?php _e('إجمالي الأرباح المستلمة', 'sukna'); ?></div>
+                    <div class="sukna-metric-value"><?php echo number_format($total_profit); ?></div>
+                </div>
             </div>
-        </div>
-        <div class="sukna-metric-card">
-            <div class="sukna-metric-icon" style="background: #f8fafc; color: #000;">
-                <span class="dashicons dashicons-admin-home"></span>
-            </div>
-            <div class="sukna-metric-content">
-                <div class="sukna-metric-title"><?php _e('عائد ROI تراكمي', 'sukna'); ?></div>
-                <div class="sukna-metric-value"><?php echo round($overall_roi, 2); ?>%</div>
+            <div class="sukna-metric-card" style="background:#f8fafc;">
+                <div class="sukna-metric-content">
+                    <div class="sukna-metric-title"><?php _e('عائد ROI تراكمي', 'sukna'); ?></div>
+                    <div class="sukna-metric-value"><?php echo round($overall_roi, 2); ?>%</div>
+                </div>
             </div>
         </div>
     </div>
@@ -238,7 +269,7 @@ if ( Sukna_Auth::is_admin() ) {
                     <div style="margin-top:30px; padding:20px; background:#000; color:#fff; border-radius:12px; display:flex; justify-content: space-between; align-items: center;">
                         <div>
                             <h4 style="margin:0; font-size:0.9rem; opacity:0.8;"><?php _e('أرباحي الشهرية (الواقع الفعلي)', 'sukna'); ?></h4>
-                            <div style="font-size:1.8rem; font-weight:800; margin-top:5px; color:#D4AF37;"><?php echo number_format($prop_perf['monthly_net'] * ($share_percent / 100), 2); ?> EGP</div>
+                            <div style="font-size:1.8rem; font-weight:800; margin-top:5px; color:#D4AF37;"><?php echo number_format($prop_perf['monthly_net'] * ($share_percent / 100), 2); ?> AED</div>
                         </div>
                         <span class="dashicons dashicons-chart-bar" style="font-size:40px; width:40px; height:40px; opacity:0.3;"></span>
                     </div>
@@ -252,36 +283,54 @@ if ( Sukna_Auth::is_admin() ) {
                             <h4 style="margin:0 0 15px 0; font-size:0.85rem; color:#059669; display:flex; align-items:center; gap:8px;">
                                 <span class="dashicons dashicons-arrow-down-alt" style="font-size:16px;"></span> <?php _e('الإيرادات (إيجارات الوحدات)', 'sukna'); ?>
                             </h4>
-                            <div style="font-size:1.4rem; font-weight:800;"><?php echo number_format($prop_perf['income'], 2); ?> <small style="font-size:0.7rem; color:#64748b;">EGP</small></div>
+                            <div style="font-size:1.4rem; font-weight:800;"><?php echo number_format($prop_perf['income'], 2); ?> <small style="font-size:0.7rem; color:#64748b;">AED</small></div>
                         </div>
                         <div style="flex:1; border:1px solid #e2e8f0; border-radius:10px; padding:20px;">
                             <h4 style="margin:0 0 15px 0; font-size:0.85rem; color:#ef4444; display:flex; align-items:center; gap:8px;">
                                 <span class="dashicons dashicons-arrow-up-alt" style="font-size:16px;"></span> <?php _e('تكاليف التجهيز والتشغيل', 'sukna'); ?>
                             </h4>
-                            <div style="font-size:1.4rem; font-weight:800;"><?php echo number_format($prop_perf['expenses'], 2); ?> <small style="font-size:0.7rem; color:#64748b;">EGP</small></div>
+                            <div style="font-size:1.4rem; font-weight:800;"><?php echo number_format($prop_perf['expenses'], 2); ?> <small style="font-size:0.7rem; color:#64748b;">AED</small></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Activity Log -->
+                <!-- Transaction History -->
                 <div class="sukna-card">
-                    <h3 style="margin-bottom:20px;"><?php _e('سجل توزيع الأرباح والعائدات', 'sukna'); ?></h3>
-                    <div style="max-height: 400px; overflow-y: auto;">
-                        <?php
-                        $dividends = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sukna_transactions WHERE user_id = %d AND type = 'dividend' AND description LIKE %s ORDER BY transaction_date DESC LIMIT 10", $current_user->id, '%' . $active_property->name . '%'));
-                        if (empty($dividends)): ?>
-                            <p style="text-align:center; color:#64748b; padding:20px;"><?php _e('لا توجد توزيعات أرباح مسجلة لهذا العقار', 'sukna'); ?></p>
-                        <?php else: ?>
-                            <?php foreach($dividends as $tx): ?>
-                                <div style="padding:12px; border-bottom:1px solid #f1f5f9; display:flex; gap:15px; align-items: center;">
-                                    <div style="width:10px; height:10px; border-radius:50%; background:#059669;"></div>
-                                    <div style="flex:1;">
-                                        <div style="font-size:0.85rem; font-weight:700; color:#059669;">+ <?php echo number_format($tx->amount); ?> EGP</div>
-                                        <small style="color:#94a3b8;"><?php echo date('Y/m/d', strtotime($tx->transaction_date)); ?> - <?php echo esc_html($tx->description); ?></small>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                    <h3 style="margin-bottom:20px;"><?php _e('سجل الحركات المالية (العوائد والخصومات)', 'sukna'); ?></h3>
+                    <div class="sukna-table-container">
+                    <table class="sukna-table" style="font-size:0.85rem;">
+                        <thead>
+                            <tr>
+                                <th><?php _e('التاريخ', 'sukna'); ?></th>
+                                <th><?php _e('الوصف', 'sukna'); ?></th>
+                                <th><?php _e('النوع', 'sukna'); ?></th>
+                                <th><?php _e('المبلغ', 'sukna'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $txs = Sukna_Investments::get_transactions($current_user->id);
+                            if (empty($txs)): ?>
+                                <tr><td colspan="4" style="text-align:center; padding:20px;"><?php _e('لا توجد حركات مالية مسجلة', 'sukna'); ?></td></tr>
+                            <?php else: ?>
+                                <?php foreach($txs as $tx): ?>
+                                    <tr>
+                                        <td><?php echo date('Y/m/d', strtotime($tx->transaction_date)); ?></td>
+                                        <td><?php echo esc_html($tx->description); ?></td>
+                                        <td>
+                                            <?php
+                                            $types = array('dividend' => 'ربح/عائد', 'investment' => 'مساهمة', 'payout' => 'سحب رصيد');
+                                            echo $types[$tx->type] ?? $tx->type;
+                                            ?>
+                                        </td>
+                                        <td style="font-weight:700; color:<?php echo ($tx->type === 'dividend') ? '#059669' : (($tx->type === 'investment' || $tx->type === 'payout') ? '#ef4444' : '#000'); ?>;">
+                                            <?php echo ($tx->type === 'dividend') ? '+' : '-'; ?> <?php echo number_format($tx->amount); ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                     </div>
                 </div>
             </div>
@@ -308,8 +357,9 @@ if ( Sukna_Auth::is_admin() ) {
                     <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px;">
                         <?php foreach($rooms as $r): ?>
                             <div title="<?php echo ($r->status === 'rented') ? __('مؤجرة', 'sukna') : __('شاغرة', 'sukna'); ?>"
-                                 style="aspect-ratio:1/1; border-radius:4px; background:<?php echo ($r->status === 'rented') ? '#ef4444' : '#059669'; ?>; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.7rem; font-weight:700;">
-                                <?php echo $r->room_number; ?>
+                                 style="aspect-ratio:1/1; border-radius:6px; background:<?php echo ($r->status === 'rented') ? '#ef4444' : '#059669'; ?>; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; padding:5px; border: 1px solid rgba(0,0,0,0.1);">
+                                <span style="font-weight:800; font-size:0.8rem; line-height:1;"><?php echo $r->room_number; ?></span>
+                                <span style="font-size:0.5rem; opacity:0.9; margin-top:2px; font-weight:600;"><?php echo number_format($r->rental_price); ?></span>
                             </div>
                         <?php endforeach; ?>
                     </div>

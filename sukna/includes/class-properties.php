@@ -208,6 +208,17 @@ class Sukna_Properties {
 		);
 		$wpdb->update( "{$wpdb->prefix}sukna_rooms", $room_data, array('id' => $data['room_id']) );
 
+		// Immediate Proportional Revenue Capture for first installment
+		$room = $wpdb->get_row($wpdb->prepare("SELECT property_id, room_number FROM {$wpdb->prefix}sukna_rooms WHERE id = %d", $data['room_id']));
+		$first_installment = $data['total_value'] / $data['installment_count'];
+
+		Sukna_Investments::distribute_proportional_amount(
+			$room->property_id,
+			$first_installment,
+			'room_revenue',
+			sprintf(__('إيراد إيجار - وحدة #%s (الدفعة 1)', 'sukna'), $room->room_number)
+		);
+
 		return $contract_id;
 	}
 
@@ -256,8 +267,18 @@ class Sukna_Properties {
 		// Total Investment (Sum of investor contributions)
 		$total_invested = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_investments WHERE property_id = %d", $property_id ) ) ?: 0;
 
-		// Monthly Income (Sum of monthly rents of occupied rooms)
-		$monthly_income = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(rental_price) FROM {$wpdb->prefix}sukna_rooms WHERE property_id = %d AND status = 'rented'", $property_id ) ) ?: 0;
+		// Monthly Income (Actual paid installments this month)
+		$current_month_start = date('Y-m-01 00:00:00');
+		$monthly_income = $wpdb->get_var( $wpdb->prepare( "
+			SELECT SUM(p.amount)
+			FROM {$wpdb->prefix}sukna_payments p
+			JOIN {$wpdb->prefix}sukna_contracts c ON p.contract_id = c.id
+			JOIN {$wpdb->prefix}sukna_rooms r ON c.room_id = r.id
+			WHERE r.property_id = %d AND p.status = 'paid' AND p.payment_date >= %s
+		", $property_id, $current_month_start ) ) ?: 0;
+
+		// Monthly Expected (Occupancy based potential)
+		$monthly_expected = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(rental_price) FROM {$wpdb->prefix}sukna_rooms WHERE property_id = %d AND status = 'rented'", $property_id ) ) ?: 0;
 
 		// Total Income from all rented rooms of this property (Historical Paid)
 		$income = $wpdb->get_var( $wpdb->prepare( "
@@ -284,7 +305,20 @@ class Sukna_Properties {
 		// Total Operational Costs = Expenses recorded
 		$total_operational_costs = $expenses;
 
-		$net = $income - ($total_operational_costs + $initial_setup_cost);
+		// Monthly master lease obligation
+		$monthly_lease_obligation = 0;
+		if ($property->property_type === 'leased' && $property->contract_duration > 0) {
+			$monthly_lease_obligation = floatval($property->base_value) / (intval($property->contract_duration) * 12);
+		}
+
+		// Total master lease obligations accrued to date
+		$total_lease_accrued = 0;
+		if ($property->property_type === 'leased' && $property->contract_duration > 0) {
+			$months_diff = (intval(date('Y')) - intval(date('Y', strtotime($property->contract_start_date)))) * 12 + (intval(date('n')) - intval(date('n', strtotime($property->contract_start_date))));
+			$total_lease_accrued = $monthly_lease_obligation * (max(0, $months_diff) + 1);
+		}
+
+		$net = $income - ($total_operational_costs + $total_lease_accrued + $initial_setup_cost);
 
 		// ROI calculation
 		$roi = 0;
@@ -316,10 +350,12 @@ class Sukna_Properties {
 			'income'                   => $income,
 			'expenses'                 => $expenses,
 			'monthly_expenses'         => $monthly_expenses,
-			'monthly_net'              => $monthly_net,
+			'monthly_lease_obligation' => $monthly_lease_obligation,
+			'monthly_net'              => $monthly_income - $monthly_expenses - $monthly_lease_obligation,
+			'monthly_expected'         => $monthly_expected,
 			'net'                      => $net,
 			'roi'                      => round($roi, 2),
-			'monthly_income'           => $monthly_income, // Live monthly
+			'monthly_income'           => $monthly_income, // Actual collected this month
 			'total_invested'           => $total_invested,
 			'is_activatable'           => $is_activatable,
 			'funding_completion'       => round($funding_completion, 1),
