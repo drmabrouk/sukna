@@ -481,6 +481,41 @@ jQuery(document).ready(function($) {
         });
     });
 
+    // --- PDF Report Export ---
+
+    $(document).on('click', '.sukna-export-pdf-btn', function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        const $btn = $(this);
+        const originalHtml = $btn.html();
+
+        $btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> جاري التجهيز...');
+
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_get_report_html', id: id, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                const element = document.createElement('div');
+                element.innerHTML = res.data;
+                document.body.appendChild(element);
+
+                const opt = {
+                    margin: 0,
+                    filename: `Sukna_Report_${name}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.removeChild(element);
+                    $btn.prop('disabled', false).html(originalHtml);
+                });
+            } else {
+                alert('فشل تجهيز التقرير');
+                $btn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+
     // --- Other Shared Utilities ---
 
     const syncLoader = $('#sukna-sync-loader');

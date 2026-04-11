@@ -311,7 +311,7 @@ if ( Sukna_Auth::is_admin() ) {
                         </div>
                         <div style="background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0; text-align:center;">
                             <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('إشغال العقار', 'sukna'); ?></small>
-                            <span style="font-weight:800; font-size:0.95rem; color:#000;"><?php echo round(($rented_count / (count($rooms) ?: 1)) * 100); ?>%</span>
+                            <span style="font-weight:800; font-size:0.95rem; color:#000;"><?php echo round((count($rented_rooms) / (count($rooms) ?: 1)) * 100); ?>%</span>
                         </div>
                     </div>
 
