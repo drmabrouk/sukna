@@ -501,6 +501,7 @@ if ( Sukna_Auth::is_admin() ) {
     <div class="sukna-grid" style="grid-template-columns: 2fr 1fr; gap: 25px;">
         <div class="sukna-card" style="border-top: 5px solid #D4AF37;">
             <h3 style="margin-bottom:20px;"><?php _e('أداء العقارات المدارة', 'sukna'); ?></h3>
+            <div class="sukna-table-container">
             <table class="sukna-table">
                 <thead>
                     <tr>
@@ -540,6 +541,7 @@ if ( Sukna_Auth::is_admin() ) {
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
         </div>
 
         <div class="sukna-card">

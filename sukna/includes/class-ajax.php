@@ -12,7 +12,8 @@ class Sukna_Ajax {
 			'undo_activity', 'save_property', 'delete_property', 'save_room',
 			'delete_room', 'save_investment', 'get_rooms', 'get_investments',
 			'save_contract', 'record_expense', 'distribute_revenue',
-			'reset_property_rooms', 'toggle_user_restriction', 'get_setup_items'
+			'reset_property_rooms', 'toggle_user_restriction', 'get_setup_items',
+			'get_report_html', 'terminate_contract'
 		);
 
 		foreach ( $private_actions as $action ) {
@@ -20,7 +21,7 @@ class Sukna_Ajax {
 		}
 
 		// Public actions (Non-logged-in)
-		$public_actions = array( 'login', 'register', 'get_report_html' );
+		$public_actions = array( 'login', 'register' );
 		foreach ( $public_actions as $action ) {
 			add_action( 'wp_ajax_sukna_' . $action, array( $this, $action ) );
 			add_action( 'wp_ajax_nopriv_sukna_' . $action, array( $this, $action ) );
@@ -168,6 +169,30 @@ class Sukna_Ajax {
 
 		$action = $new_status ? __('تقييد', 'sukna') : __('إلغاء تقييد', 'sukna');
 		Sukna_Audit::log( 'toggle_restriction', sprintf(__('%s حساب المستخدم: %s', 'sukna'), $action, $user->name) );
+
+		wp_send_json_success();
+	}
+
+	public function terminate_contract() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		global $wpdb;
+		$room_id = intval( $_POST['room_id'] );
+
+		// Update room to available
+		$wpdb->update( "{$wpdb->prefix}sukna_rooms", array(
+			'status' => 'available',
+			'tenant_id' => null,
+			'guest_tenant_name' => null,
+			'rental_start_date' => null
+		), array( 'id' => $room_id ) );
+
+		// Update active contracts for this room to expired/terminated
+		$wpdb->update( "{$wpdb->prefix}sukna_contracts", array('status' => 'expired'), array('room_id' => $room_id, 'status' => 'active') );
+
+		$room = $wpdb->get_row($wpdb->prepare("SELECT room_number FROM {$wpdb->prefix}sukna_rooms WHERE id = %d", $room_id));
+		Sukna_Audit::log('terminate_contract', sprintf(__('إنهاء التعاقد وإخلاء الوحدة رقم: %s', 'sukna'), $room->room_number ?? $room_id));
 
 		wp_send_json_success();
 	}
@@ -389,7 +414,21 @@ class Sukna_Ajax {
 
 	public function get_report_html() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_logged_in() ) wp_send_json_error( 'Unauthorized' );
+
 		$id = intval( $_POST['id'] );
+
+		// Authorization check: Admin, Owner of property, or Investor in property
+		if ( ! Sukna_Auth::is_admin() ) {
+			$user_id = Sukna_Auth::current_user()->id;
+			$p = Sukna_Properties::get_property($id);
+			$is_investor = $GLOBALS['wpdb']->get_var($GLOBALS['wpdb']->prepare("SELECT id FROM {$GLOBALS['wpdb']->prefix}sukna_investments WHERE property_id = %d AND investor_id = %d", $id, $user_id));
+
+			if ( $p->owner_id != $user_id && !$is_investor ) {
+				wp_send_json_error( 'Access Denied' );
+			}
+		}
+
 		require_once SUKNA_PATH . 'templates/report-pdf-template.php';
 		$html = sukna_get_property_report_html($id);
 		wp_send_json_success($html);

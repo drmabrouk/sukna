@@ -1,5 +1,10 @@
 <div class="sukna-dashboard" id="sukna-system-root">
-    <aside class="sukna-sidebar">
+    <div class="sukna-mobile-header" style="display:none; background:#000; padding:15px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10005;">
+        <h2 style="color:#fff; margin:0; font-size:1.1rem;"><?php echo esc_html($system_name); ?></h2>
+        <button id="sukna-toggle-sidebar" style="background:none; border:none; color:#D4AF37; cursor:pointer;"><span class="dashicons dashicons-menu" style="font-size:24px; width:24px; height:24px;"></span></button>
+    </div>
+
+    <aside class="sukna-sidebar" id="sukna-sidebar-main">
         <div class="sukna-sidebar-logo">
             <?php
                 global $wpdb;
