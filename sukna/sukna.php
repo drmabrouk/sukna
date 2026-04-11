@@ -62,6 +62,7 @@ class Sukna_System {
 	private function init_hooks() {
 		register_activation_hook( __FILE__, array( 'Sukna_Database', 'create_tables' ) );
 		add_action( 'init', array( 'Sukna_Auth', 'init' ) );
+		add_filter( 'cron_schedules', array( $this, 'add_monthly_cron_schedule' ) );
 		add_action( 'init', array( $this, 'schedule_monthly_release' ) );
 		add_action( 'init', array( 'Sukna_PWA', 'init' ) );
 		add_action( 'init', array( $this, 'send_nocache_headers' ) );
@@ -102,6 +103,14 @@ class Sukna_System {
 			'nonce'    => wp_create_nonce( 'sukna_nonce' ),
 			'geo_data' => Sukna_Geo::get_data(),
 		) );
+	}
+
+	public function add_monthly_cron_schedule( $schedules ) {
+		$schedules['monthly'] = array(
+			'interval' => 2635200, // 30.5 days approx
+			'display'  => __( 'Once Monthly', 'sukna' )
+		);
+		return $schedules;
 	}
 
 	public function schedule_monthly_release() {
