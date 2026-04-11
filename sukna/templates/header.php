@@ -1,12 +1,46 @@
 <div class="sukna-dashboard" id="sukna-system-root">
     <div class="sukna-mobile-header" style="display:none; background:#000; padding:10px 15px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10005; border-bottom:1px solid #1a1a1a;">
-        <button id="sukna-toggle-sidebar" style="background:none; border:none; color:#fff; cursor:pointer;"><span class="dashicons dashicons-menu-alt3" style="font-size:26px; width:26px; height:26px;"></span></button>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <button id="sukna-toggle-menu" style="background:none; border:none; color:#fff; cursor:pointer; padding:0;"><span class="dashicons dashicons-menu-alt3" style="font-size:26px; width:26px; height:26px;"></span></button>
+            <button id="sukna-header-logout" class="sukna-pill-logout" style="background:#ef4444; color:#fff; border:none; border-radius:20px; padding:5px 15px; font-size:0.75rem; font-weight:700; cursor:pointer;"><?php _e('خروج', 'sukna'); ?></button>
+        </div>
         <div class="mobile-header-logo">
             <?php if ( $logo_url ) : ?>
-                <img src="<?php echo esc_url($logo_url); ?>" alt="Sukna" style="height:35px; width:auto; object-fit:contain;">
+                <img src="<?php echo esc_url($logo_url); ?>" alt="Sukna" style="height:35px; width:auto; object-fit:contain; display:block;">
             <?php else : ?>
                 <h2 style="color:#D4AF37; margin:0; font-size:1.1rem; letter-spacing:1px;">SUKNA</h2>
             <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Mobile Overlay Menu -->
+    <div id="sukna-mobile-overlay" class="sukna-mobile-overlay">
+        <div class="overlay-content">
+            <button id="sukna-close-menu" style="position:absolute; top:20px; left:20px; background:none; border:none; color:#D4AF37; cursor:pointer;"><span class="dashicons dashicons-no-alt" style="font-size:30px;"></span></button>
+            <nav class="overlay-nav">
+                <a href="<?php echo add_query_arg('sukna_view', 'dashboard'); ?>" class="overlay-item">
+                    <span class="dashicons dashicons-performance"></span> <?php _e('الرئيسية', 'sukna'); ?>
+                </a>
+                <?php if ( Sukna_Auth::is_admin() || Sukna_Auth::is_owner() ) : ?>
+                    <a href="<?php echo add_query_arg('sukna_view', 'properties'); ?>" class="overlay-item">
+                        <span class="dashicons dashicons-admin-home"></span> <?php _e('العقارات', 'sukna'); ?>
+                    </a>
+                <?php endif; ?>
+                <?php if ( Sukna_Auth::is_admin() ) : ?>
+                    <a href="<?php echo add_query_arg('sukna_view', 'users'); ?>" class="overlay-item">
+                        <span class="dashicons dashicons-admin-users"></span> <?php _e('المستخدمين', 'sukna'); ?>
+                    </a>
+                    <a href="<?php echo add_query_arg('sukna_view', 'settings'); ?>" class="overlay-item">
+                        <span class="dashicons dashicons-admin-generic"></span> <?php _e('الإعدادات', 'sukna'); ?>
+                    </a>
+                <?php endif; ?>
+
+                <div style="margin-top:40px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1); width:100%; display:flex; justify-content:center;">
+                    <button id="sukna-menu-refresh" class="sukna-btn" style="background:#D4AF37; color:#000 !important; border:none; border-radius:50px; padding:10px 30px; font-weight:800;">
+                        <span class="dashicons dashicons-update" style="margin-left:8px;"></span> <?php _e('تحديث النظام', 'sukna'); ?>
+                    </button>
+                </div>
+            </nav>
         </div>
     </div>
 

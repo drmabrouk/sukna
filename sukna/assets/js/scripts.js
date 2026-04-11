@@ -638,19 +638,26 @@ jQuery(document).ready(function($) {
         $('#' + tab).fadeIn(200);
     });
 
-    // Mobile Sidebar Toggle
-    $('#sukna-toggle-sidebar').on('click', function() {
-        $('#sukna-sidebar-main').toggleClass('is-open');
+    // Mobile Overlay Menu Toggles
+    $('#sukna-toggle-menu').on('click', function() {
+        $('#sukna-mobile-overlay').addClass('is-active');
+        $('body').css('overflow', 'hidden');
     });
 
-    // Close sidebar when clicking outside on mobile
-    $(document).on('click', function(e) {
-        if ($(window).width() <= 1024) {
-            const sidebar = $('#sukna-sidebar-main');
-            const toggle = $('#sukna-toggle-sidebar');
-            if (!sidebar.is(e.target) && sidebar.has(e.target).length === 0 && !toggle.is(e.target) && toggle.has(e.target).length === 0) {
-                sidebar.removeClass('is-open');
-            }
-        }
+    $('#sukna-close-menu, .overlay-item').on('click', function() {
+        $('#sukna-mobile-overlay').removeClass('is-active');
+        $('body').css('overflow', '');
+    });
+
+    // Mobile Header Logout (Red Pill)
+    $('#sukna-header-logout').on('click', function() {
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_logout', nonce: sukna_ajax.nonce }, () => location.reload());
+    });
+
+    // Mobile Menu Refresh Button
+    $('#sukna-menu-refresh').on('click', function() {
+        $('#sukna-mobile-overlay').removeClass('is-active');
+        $('body').css('overflow', '');
+        $('#sukna-refresh-btn').trigger('click');
     });
 });
