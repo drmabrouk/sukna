@@ -6,22 +6,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Sukna_Ajax {
 
 	public function __construct() {
-		$actions = array(
+		// Private actions (Logged-in only)
+		$private_actions = array(
 			'logout', 'add_user', 'save_user', 'delete_user', 'save_settings',
-			'undo_activity', 'register',
-			'save_property', 'delete_property', 'save_room', 'delete_room', 'save_investment',
-			'get_rooms', 'get_investments', 'save_contract', 'record_expense', 'distribute_revenue',
-			'reset_property_rooms', 'toggle_user_restriction'
+			'undo_activity', 'save_property', 'delete_property', 'save_room',
+			'delete_room', 'save_investment', 'get_rooms', 'get_investments',
+			'save_contract', 'record_expense', 'distribute_revenue',
+			'reset_property_rooms', 'toggle_user_restriction', 'get_setup_items'
 		);
 
-		foreach ( $actions as $action ) {
+		foreach ( $private_actions as $action ) {
+			add_action( 'wp_ajax_sukna_' . $action, array( $this, $action ) );
+		}
+
+		// Public actions (Non-logged-in)
+		$public_actions = array( 'login', 'register' );
+		foreach ( $public_actions as $action ) {
 			add_action( 'wp_ajax_sukna_' . $action, array( $this, $action ) );
 			add_action( 'wp_ajax_nopriv_sukna_' . $action, array( $this, $action ) );
 		}
-
-	add_action( 'wp_ajax_sukna_get_setup_items', array( $this, 'get_setup_items' ) );
-		add_action( 'wp_ajax_nopriv_sukna_login', array( $this, 'login' ) );
-		add_action( 'wp_ajax_sukna_login', array( $this, 'login' ) );
 	}
 
 	public function login() {
@@ -175,15 +178,23 @@ class Sukna_Ajax {
 
 		$id = intval( $_POST['id'] ?? 0 );
 		$data = array(
-			'name'           => sanitize_text_field( $_POST['name'] ),
-			'address'        => sanitize_text_field( $_POST['address'] ),
-			'owner_id'       => intval( $_POST['owner_id'] ),
-			'country'        => sanitize_text_field( $_POST['country'] ),
-			'city'           => sanitize_text_field( $_POST['city'] ),
-			'state_emirate'  => sanitize_text_field( $_POST['state_emirate'] ),
-			'property_type'  => sanitize_text_field( $_POST['property_type'] ),
-			'total_rooms'    => intval( $_POST['total_rooms'] ),
-			'base_value'     => floatval( $_POST['base_value'] ),
+			'name'                     => sanitize_text_field( $_POST['name'] ),
+			'address'                  => sanitize_text_field( $_POST['address'] ),
+			'owner_id'                 => intval( $_POST['owner_id'] ),
+			'country'                  => sanitize_text_field( $_POST['country'] ),
+			'city'                     => sanitize_text_field( $_POST['city'] ),
+			'state_emirate'            => sanitize_text_field( $_POST['state_emirate'] ),
+			'property_type'            => sanitize_text_field( $_POST['property_type'] ),
+			'property_subtype'         => sanitize_text_field( $_POST['property_subtype'] ),
+			'apartment_number'         => sanitize_text_field( $_POST['apartment_number'] ),
+			'floor_number'             => sanitize_text_field( $_POST['floor_number'] ),
+			'total_rooms'              => intval( $_POST['total_rooms'] ),
+			'expected_rent_per_room'   => floatval( $_POST['expected_rent_per_room'] ),
+			'contract_start_date'      => sanitize_text_field( $_POST['contract_start_date'] ),
+			'investment_start_date'    => sanitize_text_field( $_POST['investment_start_date'] ),
+			'contract_duration'        => intval( $_POST['contract_duration'] ),
+			'base_value'               => floatval( $_POST['base_value'] ),
+			'gov_fees'                 => floatval( $_POST['gov_fees'] ),
 		);
 
 		// Handle setup items
@@ -334,6 +345,7 @@ class Sukna_Ajax {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
+		global $wpdb;
 		$data = array(
 			'investor_id' => intval( $_POST['investor_id'] ),
 			'property_id' => intval( $_POST['property_id'] ),

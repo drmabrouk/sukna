@@ -77,6 +77,8 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
         $perf = Sukna_Properties::get_property_performance($p->id);
         $is_leased = ($p->property_type === 'leased');
         $investors_linked = Sukna_Investments::get_property_investments($p->id);
+        $is_fully_funded = ($perf['total_invested'] >= $perf['total_project_cost']);
+        $setup_items = Sukna_Properties::get_setup_items($p->id);
     ?>
         <div class="sukna-card property-dashboard-unit" style="border-top: 6px solid <?php echo $is_leased ? '#000' : '#D4AF37'; ?>; padding:0; overflow:hidden;">
             <!-- Property Header -->
@@ -84,52 +86,77 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 <div>
                     <h3 style="margin:0; font-size:1.3rem; color:#000;"><?php echo esc_html($p->name); ?></h3>
                     <div style="margin-top:5px;">
-                        <span class="sukna-capsule" style="background:#eee; color:#666; font-size:0.7rem;"><?php echo $is_leased ? __('مستأجر (إدارة)', 'sukna') : __('ملك', 'sukna'); ?></span>
+                        <span class="sukna-capsule" style="background:#eee; color:#666; font-size:0.7rem;"><?php
+                            $subtypes = array('building' => 'بناية', 'villa' => 'فيلا', 'apartment' => 'شقة', 'studio' => 'ستوديو', 'commercial' => 'تجاري');
+                            echo $subtypes[$p->property_subtype] ?? 'عقار';
+                        ?> | <?php echo $is_leased ? __('إدارة', 'sukna') : __('ملك', 'sukna'); ?></span>
                         <small style="color:#64748b; margin-right:10px;"><span class="dashicons dashicons-location" style="font-size:14px;"></span> <?php echo esc_html($p->city . ', ' . ($geo_data[$p->country]['states'][$p->state_emirate]['name'] ?? '')); ?></small>
                     </div>
                 </div>
-                <div style="display:flex; gap:5px;">
-                    <button class="sukna-btn sukna-edit-property" data-property='<?php echo json_encode($p); ?>' style="padding:5px; background:none; border:none; color:#000;"><span class="dashicons dashicons-edit"></span></button>
-                    <button class="sukna-btn sukna-delete-property" data-id="<?php echo $p->id; ?>" style="padding:5px; background:none; border:none; color:#ef4444;"><span class="dashicons dashicons-trash"></span></button>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                    <div style="display:flex; gap:5px;">
+                        <button class="sukna-btn sukna-edit-property" data-property='<?php echo json_encode($p); ?>' style="padding:5px; background:none; border:none; color:#000;"><span class="dashicons dashicons-edit"></span></button>
+                        <button class="sukna-btn sukna-delete-property" data-id="<?php echo $p->id; ?>" style="padding:5px; background:none; border:none; color:#ef4444;"><span class="dashicons dashicons-trash"></span></button>
+                    </div>
+                    <?php if(!$is_fully_funded): ?>
+                        <span class="sukna-status-indicator indicator-warning" style="font-size:0.6rem;"><?php _e('قيد التجهيز / تمويل ناقص', 'sukna'); ?></span>
+                    <?php else: ?>
+                        <span class="sukna-status-indicator indicator-success" style="font-size:0.6rem;"><?php _e('تشغيل / استثمار نشط', 'sukna'); ?></span>
+                    <?php endif; ?>
                 </div>
             </div>
 
             <!-- Property Body -->
             <div style="padding:20px;">
-                <!-- Setup and Total Cost -->
+                <!-- Financial Breakdown -->
                 <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #e2e8f0;">
-                    <div style="display:flex; justify-content: space-between; margin-bottom:8px;">
-                        <span style="font-size:0.8rem; color:#64748b;"><?php _e('قيمة العقار:', 'sukna'); ?></span>
-                        <span style="font-weight:700;"><?php echo number_format($p->base_value); ?></span>
+                    <div style="display:flex; justify-content: space-between; margin-bottom:5px;">
+                        <span style="font-size:0.75rem; color:#64748b;"><?php _e('تكلفة المشروع الكلية:', 'sukna'); ?></span>
+                        <span style="font-weight:700; color:#000;"><?php echo number_format($perf['total_project_cost']); ?> <small>EGP</small></span>
                     </div>
-                    <div style="display:flex; justify-content: space-between; margin-bottom:8px;">
-                        <span style="font-size:0.8rem; color:#64748b;"><?php _e('تكاليف التجهيز:', 'sukna'); ?></span>
-                        <span style="font-weight:700; color:#ef4444;"><?php echo number_format($p->total_setup_cost); ?></span>
+                    <div style="max-height: 50px; overflow-y: auto; margin: 5px 0 10px 0; border-right: 2px solid #f1f5f9; padding-right: 10px;">
+                        <?php foreach($setup_items as $si): ?>
+                            <div style="display:flex; justify-content: space-between; font-size:0.65rem; color:#94a3b8; margin-bottom:2px;">
+                                <span>- <?php echo esc_html($si->item_name); ?></span>
+                                <span><?php echo number_format($si->item_cost); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                        <?php if($p->gov_fees > 0): ?>
+                            <div style="display:flex; justify-content: space-between; font-size:0.65rem; color:#94a3b8; margin-bottom:2px;">
+                                <span>- <?php _e('الرسوم والضرائب', 'sukna'); ?></span>
+                                <span><?php echo number_format($p->gov_fees); ?></span>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div style="display:flex; justify-content: space-between; border-top:1px dashed #cbd5e1; padding-top:8px; margin-top:5px;">
-                        <span style="font-size:0.85rem; font-weight:800; color:#000;"><?php _e('إجمالي تكلفة المشروع:', 'sukna'); ?></span>
-                        <span style="font-weight:800; color:#000;"><?php echo number_format($p->base_value + $p->total_setup_cost); ?></span>
+                        <span style="font-size:0.8rem; font-weight:800; color:#D4AF37;"><?php _e('إجمالي التمويل المحصل:', 'sukna'); ?></span>
+                        <span style="font-weight:800; color:#D4AF37;"><?php echo number_format($perf['total_invested']); ?></span>
                     </div>
                 </div>
 
-                <!-- Financial Indicators -->
-                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b; font-size:0.7rem;"><?php _e('إجمالي الاستثمار', 'sukna'); ?></small>
-                        <span style="font-weight:800; font-size:0.9rem; color: #000;"><?php echo number_format($perf['total_invested']); ?></span>
-                    </div>
-                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b; font-size:0.7rem;"><?php _e('الدخل الشهري المتوقع', 'sukna'); ?></small>
-                        <span style="font-weight:800; font-size:0.9rem; color: #059669;"><?php echo number_format($perf['monthly_income']); ?></span>
-                    </div>
+                <!-- Financial Mode Indicators -->
+                <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <small style="font-weight:700; color:#64748b;"><?php _e('مؤشرات الأداء:', 'sukna'); ?></small>
+                    <?php if($perf['mode'] === 'forecast'): ?>
+                        <span class="sukna-status-indicator indicator-accent" style="font-size:0.6rem;"><?php _e('وضع التوقع (Forecast)', 'sukna'); ?></span>
+                    <?php else: ?>
+                        <span class="sukna-status-indicator indicator-success" style="font-size:0.6rem;"><?php _e('وضع التشغيل (Live)', 'sukna'); ?></span>
+                    <?php endif; ?>
                 </div>
-                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:20px;">
                     <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b; font-size:0.7rem;"><?php _e('صافي الربح الكلي', 'sukna'); ?></small>
-                        <span style="font-weight:800; font-size:0.9rem; color: <?php echo ($perf['net'] >= 0) ? '#059669' : '#ef4444'; ?>"><?php echo number_format($perf['net']); ?></span>
+                        <small style="display:block; color:#64748b; font-size:0.65rem;"><?php _e('دخل شهري', 'sukna'); ?></small>
+                        <span style="font-weight:800; font-size:0.9rem; color: #059669;">
+                            <?php echo number_format($perf['mode'] === 'live' ? $perf['monthly_income'] : $perf['forecast_monthly_revenue']); ?>
+                        </span>
                     </div>
                     <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b; font-size:0.7rem;"><?php _e('عائد ROI', 'sukna'); ?></small>
+                        <small style="display:block; color:#64748b; font-size:0.65rem;"><?php _e('ربح شهري (صافي)', 'sukna'); ?></small>
+                        <span style="font-weight:800; font-size:0.9rem; color: #059669;"><?php echo number_format($perf['monthly_net']); ?></span>
+                    </div>
+                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
+                        <small style="display:block; color:#64748b; font-size:0.65rem;"><?php _e('عائد ROI', 'sukna'); ?></small>
                         <span style="font-weight:800; font-size:0.9rem; color: #D4AF37;"><?php echo $perf['roi']; ?>%</span>
                     </div>
                 </div>
@@ -160,10 +187,17 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                         <?php if(empty($investors_linked)): ?>
                             <small style="color:#94a3b8; text-align:center; display:block;"><?php _e('لا يوجد مستثمرون', 'sukna'); ?></small>
                         <?php else: ?>
-                            <?php foreach($investors_linked as $inv): ?>
+                            <?php foreach($investors_linked as $inv):
+                                $total_cost = $perf['total_project_cost'];
+                                $share_pct = $total_cost > 0 ? ($inv->amount / $total_cost) * 100 : 0;
+                                $monthly_profit_share = ($perf['monthly_net'] * ($share_pct / 100));
+                            ?>
                                 <div style="display:flex; justify-content: space-between; font-size:0.75rem; padding:3px 0; border-bottom:1px solid #f9f9f9;">
-                                    <span><?php echo esc_html($inv->investor_name); ?></span>
-                                    <span style="font-weight:700;"><?php echo number_format($inv->amount); ?></span>
+                                    <span><?php echo esc_html($inv->investor_name); ?> <small style="color:#94a3b8;">(<?php echo round($share_pct, 1); ?>%)</small></span>
+                                    <div style="text-align:left;">
+                                        <div style="font-weight:700;"><?php echo number_format($inv->amount); ?></div>
+                                        <small style="color:#059669; display:block; font-size:0.6rem;"><?php echo number_format($monthly_profit_share); ?> / <?php _e('شهرياً', 'sukna'); ?></small>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -203,14 +237,33 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
 
             <!-- Step 1: Basic Information -->
             <div id="prop-step-1" class="prop-wizard-step">
-                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="sukna-grid" style="grid-template-columns: 1.5fr 1fr; gap:15px;">
                     <div class="sukna-form-group">
-                        <input type="text" name="name" id="prop-name" placeholder="<?php _e('اسم العقار', 'sukna'); ?>" required>
+                        <input type="text" name="name" id="prop-name" placeholder="<?php _e('اسم العقار / المشروع', 'sukna'); ?>" required>
+                    </div>
+                    <div class="sukna-form-group">
+                        <select name="property_subtype" id="prop-subtype">
+                            <option value="building"><?php _e('بناية كاملة', 'sukna'); ?></option>
+                            <option value="villa"><?php _e('فيلا', 'sukna'); ?></option>
+                            <option value="apartment"><?php _e('شقة', 'sukna'); ?></option>
+                            <option value="studio"><?php _e('ستوديو', 'sukna'); ?></option>
+                            <option value="commercial"><?php _e('محل / وحدة تجارية', 'sukna'); ?></option>
+                            <option value="other"><?php _e('أخرى', 'sukna'); ?></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px;">
+                    <div class="sukna-form-group">
+                        <input type="text" name="floor_number" id="prop-floor" placeholder="<?php _e('رقم الطابق', 'sukna'); ?>">
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="text" name="apartment_number" id="prop-apt-number" placeholder="<?php _e('رقم الشقة (إن وجد)', 'sukna'); ?>">
                     </div>
                     <div class="sukna-form-group">
                         <select name="property_type" id="prop-type">
-                            <option value="owned"><?php _e('ملك', 'sukna'); ?></option>
-                            <option value="leased"><?php _e('مستأجر (إدارة)', 'sukna'); ?></option>
+                            <option value="owned"><?php _e('نوع التعاقد: ملك', 'sukna'); ?></option>
+                            <option value="leased"><?php _e('نوع التعاقد: إدارة وتشغيل', 'sukna'); ?></option>
                         </select>
                     </div>
                 </div>
@@ -239,11 +292,22 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 </div>
             </div>
 
-            <!-- Step 2: Rooms & Structure -->
+            <!-- Step 2: Structure & Forecasting -->
             <div id="prop-step-2" class="prop-wizard-step" style="display:none;">
-                <div class="sukna-form-group">
-                    <input type="number" name="total_rooms" id="prop-total-rooms" placeholder="<?php _e('إجمالي عدد الوحدات (الغرف)', 'sukna'); ?>" required>
+                <div style="background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.85rem; display:flex; gap:10px; align-items:center;">
+                    <span class="dashicons dashicons-warning" style="color:#d97706;"></span>
+                    <span><?php _e('تنبيه: كافة القيم المدخلة في هذه المرحلة هي قيم تقديرية (Forecast) وستتحدث تلقائياً عند بدء التشغيل الفعلي.', 'sukna'); ?></span>
                 </div>
+
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div class="sukna-form-group">
+                        <input type="number" name="total_rooms" id="prop-total-rooms" placeholder="<?php _e('إجمالي عدد الوحدات (الغرف)', 'sukna'); ?>" required>
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="number" step="0.01" name="expected_rent_per_room" id="prop-expected-rent" placeholder="<?php _e('الإيجار الشهري المتوقع للغرفة', 'sukna'); ?>">
+                    </div>
+                </div>
+
                 <div style="background:#f8fafc; padding:20px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:15px;">
                     <h4 style="margin:0 0 15px 0; font-size:0.9rem;"><?php _e('تكاليف التجهيز والإعداد', 'sukna'); ?></h4>
                     <div id="setup-items-container"></div>
@@ -251,11 +315,36 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 </div>
             </div>
 
-            <!-- Step 3: Financial & Investment -->
+            <!-- Step 3: Financial & Timeline -->
             <div id="prop-step-3" class="prop-wizard-step" style="display:none;">
-                <div class="sukna-form-group">
-                    <input type="number" step="0.01" name="base_value" id="prop-base-value" placeholder="<?php _e('قيمة العقار / العقد الأساسي', 'sukna'); ?>" required>
+                <div class="sukna-grid" style="grid-template-columns: 1.5fr 1fr; gap:15px;">
+                    <div class="sukna-form-group">
+                        <input type="number" step="0.01" name="base_value" id="prop-base-value" placeholder="<?php _e('قيمة العقار / العقد الأساسي', 'sukna'); ?>" required>
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="number" step="0.01" name="gov_fees" id="prop-gov-fees" placeholder="<?php _e('الرسوم الحكومية والتنظيمية', 'sukna'); ?>">
+                    </div>
                 </div>
+
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px;">
+                    <div class="sukna-form-group">
+                        <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:4px;"><?php _e('تاريخ بداية العقد', 'sukna'); ?></label>
+                        <input type="date" name="contract_start_date" id="prop-contract-start">
+                    </div>
+                    <div class="sukna-form-group">
+                        <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:4px;"><?php _e('تاريخ تفعيل الاستثمار', 'sukna'); ?></label>
+                        <input type="date" name="investment_start_date" id="prop-invest-start">
+                    </div>
+                    <div class="sukna-form-group">
+                        <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:4px;"><?php _e('مدة العقد (سنوات)', 'sukna'); ?></label>
+                        <select name="contract_duration" id="prop-duration">
+                            <option value="1">1 <?php _e('سنة', 'sukna'); ?></option>
+                            <option value="2">2 <?php _e('سنة', 'sukna'); ?></option>
+                            <option value="3">3 <?php _e('سنوات', 'sukna'); ?></option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="sukna-form-group">
                     <select name="owner_id" id="prop-owner-id">
                         <option value=""><?php _e('اختر المالك / المدير المسؤول', 'sukna'); ?></option>

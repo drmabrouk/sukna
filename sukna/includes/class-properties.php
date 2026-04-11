@@ -260,26 +260,45 @@ class Sukna_Properties {
 		$current_month_start = date('Y-m-01 00:00:00');
 		$monthly_expenses = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses WHERE property_id = %d AND expense_date >= %s", $property_id, $current_month_start ) ) ?: 0;
 
-		// Total Cost = Expenses + Setup
-		$costs = $expenses + floatval($property->total_setup_cost);
+		// Total Setup/Initial Cost
+		$initial_setup_cost = floatval($property->total_setup_cost) + floatval($property->gov_fees);
 
-		$net = $income - $costs;
+		// Total Project cost (Formula for ownership)
+		$total_project_cost = floatval($property->base_value) + $initial_setup_cost;
+
+		// Total Operational Costs = Expenses recorded
+		$total_operational_costs = $expenses;
+
+		$net = $income - ($total_operational_costs + $initial_setup_cost);
+
+		// Expected Monthly Revenue (Forecast)
+		$forecast_monthly_revenue = floatval($property->expected_rent_per_room) * intval($property->total_rooms);
 
 		// ROI calculation
 		$roi = 0;
-		if ( $property->base_value > 0 ) {
-			$roi = ($net / ($property->base_value + $property->total_setup_cost)) * 100;
+		if ( $total_project_cost > 0 ) {
+			$roi = ($net / $total_project_cost) * 100;
 		}
 
+		// Mode logic: If no income has been recorded, show forecast
+		$mode = ($income > 0) ? 'live' : 'forecast';
+
+		$monthly_gross = ($mode === 'live' ? $monthly_income : $forecast_monthly_revenue);
+		$monthly_net = $monthly_gross - $monthly_expenses;
+
 		return array(
-			'income'           => $income,
-			'expenses'         => $expenses,
-			'monthly_expenses' => $monthly_expenses,
-			'costs'            => $costs,
-			'net'              => $net,
-			'roi'              => round($roi, 2),
-			'monthly_income'   => $monthly_income,
-			'total_invested'   => $total_invested
+			'mode'                     => $mode,
+			'total_project_cost'       => $total_project_cost,
+			'initial_setup_cost'       => $initial_setup_cost,
+			'income'                   => $income,
+			'expenses'                 => $expenses,
+			'monthly_expenses'         => $monthly_expenses,
+			'monthly_net'              => $monthly_net,
+			'net'                      => $net,
+			'roi'                      => round($roi, 2),
+			'monthly_income'           => $monthly_income, // Live monthly
+			'forecast_monthly_revenue' => $forecast_monthly_revenue,
+			'total_invested'           => $total_invested
 		);
 	}
 }

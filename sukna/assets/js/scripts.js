@@ -168,14 +168,15 @@ jQuery(document).ready(function($) {
 
     function updatePropSummary() {
         const base = parseFloat($('#prop-base-value').val()) || 0;
+        const gov = parseFloat($('#prop-gov-fees').val()) || 0;
         let setup = 0;
         $('input[name="setup_item_costs[]"]').each(function() {
             setup += parseFloat($(this).val()) || 0;
         });
 
         $('#sum-base-val').text(base.toLocaleString());
-        $('#sum-setup-val').text(setup.toLocaleString());
-        $('#sum-total-val').text((base + setup).toLocaleString());
+        $('#sum-setup-val').text((setup + gov).toLocaleString());
+        $('#sum-total-val').text((base + setup + gov).toLocaleString());
     }
 
     $('#sukna-add-property-btn').on('click', function() {
@@ -228,6 +229,9 @@ jQuery(document).ready(function($) {
         const p = $(this).data('property');
         $('#prop-id').val(p.id);
         $('#prop-name').val(p.name);
+        $('#prop-subtype').val(p.property_subtype);
+        $('#prop-floor').val(p.floor_number);
+        $('#prop-apt-number').val(p.apartment_number);
         $('#prop-type').val(p.property_type || 'owned');
         $('#prop-country').val(p.country).trigger('change');
         setTimeout(() => {
@@ -235,7 +239,12 @@ jQuery(document).ready(function($) {
         }, 100);
         $('#prop-city').val(p.city);
         $('#prop-total-rooms').val(p.total_rooms);
+        $('#prop-expected-rent').val(p.expected_rent_per_room);
         $('#prop-base-value').val(p.base_value);
+        $('#prop-gov-fees').val(p.gov_fees);
+        $('#prop-contract-start').val(p.contract_start_date);
+        $('#prop-invest-start').val(p.investment_start_date);
+        $('#prop-duration').val(p.contract_duration);
         $('#prop-address').val(p.address);
         $('#prop-owner-id').val(p.owner_id);
 
