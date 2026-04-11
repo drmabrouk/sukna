@@ -1,3 +1,8 @@
+<?php
+    global $wpdb;
+    $logo_url = $wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'company_logo'");
+    $system_name = $wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'system_name'") ?: 'Sukna';
+?>
 <div class="sukna-dashboard" id="sukna-system-root">
     <div class="sukna-mobile-header" style="display:none; background:#000; padding:10px 15px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10005; border-bottom:1px solid #1a1a1a;">
         <div style="display:flex; align-items:center; gap:10px;">
@@ -46,12 +51,7 @@
 
     <aside class="sukna-sidebar" id="sukna-sidebar-main">
         <div class="sukna-sidebar-logo">
-            <?php
-                global $wpdb;
-                $logo_url = $wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'company_logo'");
-                $system_name = $wpdb->get_var("SELECT setting_value FROM {$wpdb->prefix}sukna_settings WHERE setting_key = 'system_name'") ?: 'Sukna';
-
-                if ( $logo_url ) : ?>
+            <?php if ( $logo_url ) : ?>
                     <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($system_name); ?>" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
                 <?php else : ?>
                     <h2><?php echo esc_html($system_name); ?></h2>

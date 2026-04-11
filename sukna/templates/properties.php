@@ -100,8 +100,9 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                     </div>
                 </div>
                 <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-                    <div style="display:flex; gap:5px;">
-                        <button class="sukna-btn sukna-edit-property" data-property='<?php echo json_encode($p); ?>' style="padding:5px; background:none; border:none; color:#000;"><span class="dashicons dashicons-edit"></span></button>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button class="sukna-btn sukna-export-pdf-btn" data-id="<?php echo $p->id; ?>" data-name="<?php echo esc_attr($p->name); ?>" title="<?php _e('تحميل التقرير', 'sukna'); ?>" style="padding:5px; background:none; border:none; color:#000;"><span class="dashicons dashicons-pdf"></span></button>
+                        <button class="sukna-btn sukna-edit-property" data-property='<?php echo json_encode($p); ?>' style="padding:5px; background:none; border:none; color:#D4AF37;"><span class="dashicons dashicons-edit"></span></button>
                         <button class="sukna-btn sukna-delete-property" data-id="<?php echo $p->id; ?>" style="padding:5px; background:none; border:none; color:#ef4444;"><span class="dashicons dashicons-trash"></span></button>
                     </div>
                     <?php if(!$is_fully_funded): ?>
@@ -181,26 +182,49 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                      </div>
                 </div>
 
+                <!-- Investment Health & Status -->
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #fff; border-radius: 8px; border: 1px solid #eee;">
+                    <div>
+                        <small style="display:block; color:#64748b; font-size:0.6rem;"><?php _e('نسبة التمويل', 'sukna'); ?></small>
+                        <div style="font-weight:800; font-size:0.9rem;"><?php echo $perf['funding_completion']; ?>%</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <small style="display:block; color:#64748b; font-size:0.6rem;"><?php _e('صحة الاستثمار', 'sukna'); ?></small>
+                        <?php
+                            $health = ($perf['roi'] > 5 && $perf['funding_completion'] >= 100) ? 'Strong' : (($perf['funding_completion'] >= 50) ? 'Stable' : 'Risk');
+                            $health_map = array('Strong' => array('قوية', 'indicator-success'), 'Stable' => array('مستقرة', 'indicator-accent'), 'Risk' => array('مخاطرة', 'indicator-danger'));
+                        ?>
+                        <span class="sukna-status-indicator <?php echo $health_map[$health][1]; ?>" style="font-size:0.6rem;"><?php echo $health_map[$health][0]; ?></span>
+                    </div>
+                    <div style="text-align: left;">
+                        <small style="display:block; color:#64748b; font-size:0.6rem;"><?php _e('حالة الالتزام', 'sukna'); ?></small>
+                        <span class="sukna-status-indicator indicator-success" style="font-size:0.6rem;"><?php _e('ملتزم', 'sukna'); ?></span>
+                    </div>
+                </div>
+
                 <!-- Investors Section -->
                 <div style="margin-bottom:20px;">
-                    <h4 style="font-size:0.85rem; margin:0 0 10px 0; display:flex; justify-content: space-between; align-items: center;">
-                        <span><?php _e('المستثمرون والشركاء', 'sukna'); ?></span>
-                        <span style="background:#D4AF37; color:#000; padding:2px 8px; border-radius:10px; font-size:0.7rem;"><?php echo count($investors_linked); ?></span>
-                    </h4>
-                    <div style="max-height:80px; overflow-y:auto; border:1px solid #eee; border-radius:6px; padding:5px;">
+                    <button class="sukna-collapse-trigger" style="width:100%; background:#f8fafc; border:1px solid #eee; border-radius:8px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+                        <span style="font-size:0.8rem; font-weight:700;"><span class="dashicons dashicons-groups" style="font-size:16px; margin-left:5px;"></span> <?php _e('قائمة الشركاء والمستثمرين', 'sukna'); ?></span>
+                        <span style="background:#000; color:#fff; padding:2px 8px; border-radius:10px; font-size:0.7rem;"><?php echo count($investors_linked); ?></span>
+                    </button>
+                    <div class="sukna-collapse-content" style="display:none; margin-top:10px; max-height:200px; overflow-y:auto; border:1px solid #eee; border-radius:8px; padding:5px;">
                         <?php if(empty($investors_linked)): ?>
-                            <small style="color:#94a3b8; text-align:center; display:block;"><?php _e('لا يوجد مستثمرون', 'sukna'); ?></small>
+                            <small style="color:#94a3b8; text-align:center; display:block; padding:10px;"><?php _e('لا يوجد مستثمرون', 'sukna'); ?></small>
                         <?php else: ?>
                             <?php foreach($investors_linked as $inv):
                                 $total_cost = $perf['total_project_cost'];
                                 $share_pct = $total_cost > 0 ? ($inv->amount / $total_cost) * 100 : 0;
                                 $monthly_profit_share = ($perf['monthly_net'] * ($share_pct / 100));
                             ?>
-                                <div style="display:flex; justify-content: space-between; font-size:0.75rem; padding:3px 0; border-bottom:1px solid #f9f9f9;">
-                                    <span><?php echo esc_html($inv->investor_name); ?> <small style="color:#94a3b8;">(<?php echo round($share_pct, 1); ?>%)</small></span>
+                                <div style="display:flex; justify-content: space-between; font-size:0.75rem; padding:8px; border-bottom:1px solid #f9f9f9; background:#fff; margin-bottom:5px; border-radius:5px;">
+                                    <div>
+                                        <strong style="display:block;"><?php echo esc_html($inv->investor_name); ?></strong>
+                                        <small style="color:#94a3b8;"><?php echo round($share_pct, 1); ?>% ملكية</small>
+                                    </div>
                                     <div style="text-align:left;">
                                         <div style="font-weight:700;"><?php echo number_format($inv->amount); ?></div>
-                                        <small style="color:#059669; display:block; font-size:0.6rem;"><?php echo number_format($monthly_profit_share); ?> / <?php _e('شهرياً', 'sukna'); ?></small>
+                                        <small style="color:#059669; display:block; font-size:0.6rem;"><?php echo number_format($monthly_profit_share); ?> / ربح</small>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -212,11 +236,6 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 <div style="display:flex; gap:8px;">
                     <button class="sukna-btn sukna-manage-rooms" data-id="<?php echo $p->id; ?>" style="flex:2; font-size:0.8rem; background:#000; border:none;"><?php _e('إدارة الوحدات', 'sukna'); ?></button>
                     <button class="sukna-btn sukna-record-expense-btn" data-id="<?php echo $p->id; ?>" style="flex:1; font-size:0.8rem; background:#333; border:none;"><?php _e('المصاريف', 'sukna'); ?></button>
-                </div>
-                <div style="margin-top:8px;">
-                    <button class="sukna-btn sukna-export-pdf-btn" data-id="<?php echo $p->id; ?>" data-name="<?php echo esc_attr($p->name); ?>" style="width:100%; font-size:0.8rem; background:#fff; color:#000 !important; border:1px solid #000; border-radius:8px;">
-                        <span class="dashicons dashicons-pdf" style="font-size:16px; margin-left:5px;"></span> <?php _e('تحميل التقرير الكامل (PDF)', 'sukna'); ?>
-                    </button>
                 </div>
                 <div style="display:flex; gap:8px; margin-top:8px;">
                     <?php if($is_admin): ?>
@@ -342,6 +361,16 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                             <option value="1">1 <?php _e('سنة', 'sukna'); ?></option>
                             <option value="2">2 <?php _e('سنة', 'sukna'); ?></option>
                             <option value="3">3 <?php _e('سنوات', 'sukna'); ?></option>
+                        </select>
+                    </div>
+                    <div class="sukna-form-group">
+                        <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:4px;"><?php _e('دفعات رأس المال / سنة', 'sukna'); ?></label>
+                        <select name="installments_per_year" id="prop-installments">
+                            <option value="1">1 (<?php _e('سنوي', 'sukna'); ?>)</option>
+                            <option value="2">2 (<?php _e('نصف سنوي', 'sukna'); ?>)</option>
+                            <option value="3">3 (<?php _e('كل 4 أشهر', 'sukna'); ?>)</option>
+                            <option value="4" selected>4 (<?php _e('ربع سنوي', 'sukna'); ?>)</option>
+                            <option value="6">6 (<?php _e('كل شهرين', 'sukna'); ?>)</option>
                         </select>
                     </div>
                 </div>
@@ -529,12 +558,20 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                     <?php foreach($investors as $i): ?>
                         <option value="<?php echo $i->id; ?>"><?php echo esc_html($i->name); ?></option>
                     <?php endforeach; ?>
+                    <?php foreach($owners as $o): ?>
+                        <option value="<?php echo $o->id; ?>"><?php echo esc_html($o->name); ?> (<?php _e('مالك', 'sukna'); ?>)</option>
+                    <?php endforeach; ?>
                 </select>
             </div>
-            <div class="sukna-form-group">
-                <input type="number" step="0.01" name="amount" placeholder="<?php _e('مبلغ المساهمة', 'sukna'); ?>" required>
+            <div class="sukna-grid" style="grid-template-columns: 2fr 1fr; gap: 10px;">
+                <div class="sukna-form-group">
+                    <input type="number" step="0.01" name="amount" placeholder="<?php _e('مبلغ المساهمة النقدية', 'sukna'); ?>" required>
+                </div>
+                <div class="sukna-form-group">
+                    <input type="number" name="installments_paid" placeholder="<?php _e('عدد الدفعات', 'sukna'); ?>" value="1">
+                </div>
             </div>
-            <button type="submit" class="sukna-btn" style="width:100%; background:#000; border:none; border-radius: 8px;"><?php _e('إضافة مساهمة', 'sukna'); ?></button>
+            <button type="submit" class="sukna-btn" style="width:100%; background:#000; border:none; border-radius: 8px;"><?php _e('تسجيل المساهمة الاستثمارية', 'sukna'); ?></button>
         </form>
 
         <div id="sukna-investments-list">

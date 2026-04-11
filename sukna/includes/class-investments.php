@@ -12,7 +12,9 @@ class Sukna_Investments {
 		$investment_id = $wpdb->insert_id;
 
 		// Record transaction for the investor's wallet
-		self::record_transaction( $data['investor_id'], $data['amount'], 'investment', sprintf( __('استثمار في عقار رقم #%d', 'sukna'), $data['property_id'] ) );
+		if ( $data['amount'] > 0 ) {
+			self::record_transaction( $data['investor_id'], $data['amount'], 'investment', sprintf( __('مساهمة في مشروع: %d', 'sukna'), $data['property_id'] ) );
+		}
 
 		return $investment_id;
 	}
@@ -20,7 +22,12 @@ class Sukna_Investments {
 	public static function get_property_investments( $property_id ) {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_investments';
-		return $wpdb->get_results( $wpdb->prepare( "SELECT i.*, s.name as investor_name FROM $table i JOIN {$wpdb->prefix}sukna_staff s ON i.investor_id = s.id WHERE i.property_id = %d", $property_id ) );
+		return $wpdb->get_results( $wpdb->prepare( "
+			SELECT i.*, s.name as investor_name, s.role as investor_role
+			FROM $table i
+			JOIN {$wpdb->prefix}sukna_staff s ON i.investor_id = s.id
+			WHERE i.property_id = %d
+		", $property_id ) );
 	}
 
 	public static function get_investor_properties( $investor_id ) {

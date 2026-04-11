@@ -27,6 +27,36 @@ jQuery(document).ready(function($) {
         });
     });
 
+    $(document).on('click', '.sukna-download-invoice', function() {
+        const invId = $(this).data('id');
+        const $btn = $(this);
+        $btn.prop('disabled', true);
+
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_get_invoice_html', investment_id: invId, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                const element = document.createElement('div');
+                element.innerHTML = res.data;
+                document.body.appendChild(element);
+
+                const opt = {
+                    margin: 10,
+                    filename: `Sukna_Invoice_#${invId}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.removeChild(element);
+                    $btn.prop('disabled', false);
+                });
+            } else {
+                alert('فشل تجهيز الفاتورة');
+                $btn.prop('disabled', false);
+            }
+        });
+    });
+
     $(document).on('click', '.sukna-import-trigger', function() {
         const type = $(this).data('type');
         const input = document.createElement('input');
@@ -298,6 +328,7 @@ jQuery(document).ready(function($) {
         $('#prop-contract-start').val(p.contract_start_date);
         $('#prop-invest-start').val(p.investment_start_date);
         $('#prop-duration').val(p.contract_duration);
+        $('#prop-installments').val(p.installments_per_year);
         $('#prop-address').val(p.address);
         $('#prop-owner-id').val(p.owner_id);
 
@@ -522,12 +553,17 @@ jQuery(document).ready(function($) {
     function loadInvestments(propId) {
         $.post(sukna_ajax.ajax_url, { action: 'sukna_get_investments', property_id: propId, nonce: sukna_ajax.nonce }, function(res) {
             if (res.success) {
-                let html = '<table class="sukna-table"><thead><tr><th>المستثمر</th><th>المبلغ</th><th>التاريخ</th></tr></thead><tbody>';
+                let html = '<table class="sukna-table"><thead><tr><th>المستثمر</th><th>المبلغ</th><th>الحصص</th><th>إجراءات</th></tr></thead><tbody>';
                 res.data.forEach(i => {
                     html += `<tr>
-                        <td><strong>${i.investor_name}</strong></td>
-                        <td>${i.amount} EGP</td>
-                        <td>${i.investment_date}</td>
+                        <td><strong>${i.investor_name}</strong><br><small style="color:#64748b;">${i.investor_role === 'owner' ? 'المالك / المشغل' : 'مستثمر شريك'}</small></td>
+                        <td>${parseFloat(i.amount).toLocaleString()} EGP</td>
+                        <td style="text-align:center;">${i.installments_paid}</td>
+                        <td>
+                            <button class="sukna-btn sukna-download-invoice" data-id="${i.id}" style="padding:4px 8px; font-size:0.7rem; background:#fff; color:#000 !important; border:1px solid #ddd;">
+                                <span class="dashicons dashicons-media-text" style="font-size:14px;"></span>
+                            </button>
+                        </td>
                     </tr>`;
                 });
                 html += '</tbody></table>';
@@ -659,5 +695,10 @@ jQuery(document).ready(function($) {
         $('#sukna-mobile-overlay').removeClass('is-active');
         $('body').css('overflow', '');
         $('#sukna-refresh-btn').trigger('click');
+    });
+
+    // Expandable Panels
+    $(document).on('click', '.sukna-collapse-trigger', function() {
+        $(this).next('.sukna-collapse-content').slideToggle(200);
     });
 });
