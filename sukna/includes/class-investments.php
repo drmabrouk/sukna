@@ -14,8 +14,14 @@ class Sukna_Investments {
 		$perf = Sukna_Properties::get_property_performance($data['property_id']);
 		$remaining = $perf['total_project_cost'] - $perf['total_invested'];
 
-		if ( $data['amount'] > $remaining ) {
+		if ( $data['amount'] > $remaining + 0.01 ) {
 			return new WP_Error('overfunding', sprintf(__('المبلغ يتجاوز التمويل المطلوب. المتبقي: %s AED', 'sukna'), number_format($remaining)));
+		}
+
+		// Validation: Check for partnership contribution consistency (example: 3 investors model)
+		$existing_investments = self::get_property_investments($data['property_id']);
+		if ( count($existing_investments) >= 3 && !in_array($data['investor_id'], wp_list_pluck($existing_investments, 'investor_id')) ) {
+			return new WP_Error('investor_limit', __('تم الوصول للحد الأقصى لعدد الشركاء في هذا المشروع (3 شركاء).', 'sukna'));
 		}
 
 		$wpdb->insert( $table, $data );

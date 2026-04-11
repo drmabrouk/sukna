@@ -342,10 +342,23 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
             <div id="prop-step-3" class="prop-wizard-step" style="display:none;">
                 <div class="sukna-grid" style="grid-template-columns: 1.5fr 1fr; gap:15px;">
                     <div class="sukna-form-group">
-                        <input type="number" step="0.01" name="base_value" id="prop-base-value" placeholder="<?php _e('قيمة العقار / العقد الأساسي', 'sukna'); ?>" required>
+                        <input type="number" step="0.01" name="annual_rent" id="prop-annual-rent" placeholder="<?php _e('الإيجار السنوي للعقار', 'sukna'); ?>" required>
+                        <input type="hidden" name="base_value" id="prop-base-value">
                     </div>
                     <div class="sukna-form-group">
                         <input type="number" step="0.01" name="gov_fees" id="prop-gov-fees" placeholder="<?php _e('الرسوم الحكومية والتنظيمية', 'sukna'); ?>">
+                    </div>
+                </div>
+
+                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:15px;">
+                    <div class="sukna-form-group">
+                        <input type="number" step="0.01" name="monthly_fixed_opex" id="prop-fixed-opex" placeholder="<?php _e('تكاليف التشغيل الشهرية', 'sukna'); ?>">
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="number" step="0.01" name="additional_setup_cost" id="prop-add-setup" placeholder="<?php _e('تجهيزات إضافية (Fit-out)', 'sukna'); ?>">
+                    </div>
+                    <div class="sukna-form-group">
+                        <input type="number" step="0.01" name="projected_rent_per_room" id="prop-proj-rent" placeholder="<?php _e('الإيجار المتوقع للوحدة', 'sukna'); ?>">
                     </div>
                 </div>
 
