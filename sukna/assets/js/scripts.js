@@ -457,6 +457,7 @@ jQuery(document).ready(function($) {
 
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
+        window.suknaInstallPrompt = e;
         $('#sukna-install-banner').fadeIn(300);
     });
 
