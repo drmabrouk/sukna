@@ -81,10 +81,13 @@ if ( Sukna_Auth::is_admin() ) {
         </div>
 
         <div class="sukna-card">
-            <h3><?php _e('سجل العمليات الأخير', 'sukna'); ?></h3>
-            <div style="max-height: 300px; overflow-y: auto;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0;"><?php _e('آخر 5 عمليات', 'sukna'); ?></h3>
+                <a href="<?php echo add_query_arg('sukna_view', 'settings'); ?>#tab-audit" style="font-size:0.7rem; color:#D4AF37; font-weight:700; text-decoration:none;"><?php _e('عرض الكل', 'sukna'); ?></a>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
                 <?php
-                $recent_logs = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}sukna_activity_logs ORDER BY action_date DESC LIMIT 10");
+                $recent_logs = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}sukna_activity_logs ORDER BY action_date DESC LIMIT 5");
                 foreach($recent_logs as $log): ?>
                     <div style="padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
                         <small style="display:block; color:#64748b;"><?php echo date('H:i - Y/m/d', strtotime($log->action_date)); ?></small>
@@ -244,10 +247,10 @@ if ( Sukna_Auth::is_admin() ) {
 
                 <!-- Activity Log -->
                 <div class="sukna-card">
-                    <h3 style="margin-bottom:20px;"><?php _e('سجل العمليات التاريخية', 'sukna'); ?></h3>
+                    <h3 style="margin-bottom:20px;"><?php _e('آخر 5 عمليات للعقار', 'sukna'); ?></h3>
                     <div style="max-height: 400px; overflow-y: auto;">
                         <?php
-                        $logs = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sukna_activity_logs WHERE description LIKE %s ORDER BY action_date DESC LIMIT 50", '%' . $active_property->name . '%'));
+                        $logs = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sukna_activity_logs WHERE description LIKE %s ORDER BY action_date DESC LIMIT 5", '%' . $active_property->name . '%'));
                         if (empty($logs)): ?>
                             <p style="text-align:center; color:#64748b; padding:20px;"><?php _e('لا توجد سجلات حالية لهذا العقار', 'sukna'); ?></p>
                         <?php else: ?>
@@ -438,7 +441,9 @@ if ( Sukna_Auth::is_admin() ) {
                 <p style="margin: 0; font-size: 0.8rem; color: #854d0e;"><?php _e('يرجى إعادة تعيين الوحدات الشاغرة لهذا الشهر لبدء تسجيل العقود الجديدة وتحصيل الإيرادات.', 'sukna'); ?></p>
             </div>
 
-            <h4 style="font-size:0.85rem; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px; color:#000;"><?php _e('آخر النشاطات العقارية', 'sukna'); ?></h4>
+            <div style="display:flex; justify-content: space-between; align-items: center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px;">
+                <h4 style="font-size:0.85rem; margin:0; color:#000;"><?php _e('آخر 5 عمليات', 'sukna'); ?></h4>
+            </div>
             <div style="max-height: 250px; overflow-y: auto;">
                 <?php
                 $owner_logs = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sukna_activity_logs WHERE description LIKE %s OR description LIKE %s ORDER BY action_date DESC LIMIT 5", '%عقار%', '%وحدة%'));

@@ -30,6 +30,7 @@ class Sukna_Database {
 			name varchar(255),
 			email varchar(255),
 			role varchar(50) DEFAULT 'employee',
+			is_restricted tinyint(1) DEFAULT 0,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			UNIQUE KEY phone (phone)

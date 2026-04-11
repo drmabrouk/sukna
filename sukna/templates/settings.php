@@ -91,35 +91,46 @@ $fullscreen_pass = $settings['fullscreen_password']->setting_value ?? '123456789
 
         <!-- Section 3: Activity Audit Log -->
         <div id="tab-audit" class="sukna-tab-content" style="display:none;">
-            <div class="sukna-card" style="border-top: 5px solid #000;">
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:25px;">
-                    <h3 style="margin:0; color:#000;"><?php _e('سجل النشاطات', 'sukna'); ?></h3>
-                    <button id="sukna-export-audit-pdf" class="sukna-btn" style="background:#000; border:none; border-radius: 6px;"><span class="dashicons dashicons-media-document" style="margin-left:5px;"></span><?php _e('تصدير التقرير', 'sukna'); ?></button>
+            <div class="sukna-card" style="border-top: 5px solid #000; padding:15px;">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
+                    <h3 style="margin:0; color:#000; font-size:1rem;"><?php _e('سجل نشاطات النظام وتتبع العمليات', 'sukna'); ?></h3>
+                    <button id="sukna-export-audit-pdf" class="sukna-btn" style="background:#000; border:none; border-radius: 6px; padding:5px 15px; font-size:0.8rem;"><span class="dashicons dashicons-media-document" style="margin-left:5px;"></span><?php _e('تصدير PDF', 'sukna'); ?></button>
                 </div>
-                <div style="max-height:600px; overflow-y:auto;">
-                    <table class="sukna-table">
-                        <thead>
+                <div style="max-height:600px; overflow-y:auto; border:1px solid #eee; border-radius:8px;">
+                    <table class="sukna-table" style="font-size:0.8rem;">
+                        <thead style="background:#f8fafc;">
                             <tr>
-                                <th><?php _e('المستخدم', 'sukna'); ?></th>
-                                <th><?php _e('الإجراء', 'sukna'); ?></th>
-                                <th><?php _e('الوصف', 'sukna'); ?></th>
-                                <th><?php _e('التاريخ', 'sukna'); ?></th>
-                                <th></th>
+                                <th style="padding:10px;"><?php _e('المستخدم', 'sukna'); ?></th>
+                                <th style="padding:10px;"><?php _e('العملية', 'sukna'); ?></th>
+                                <th style="padding:10px;"><?php _e('التفاصيل', 'sukna'); ?></th>
+                                <th style="padding:10px;"><?php _e('التاريخ والوقت', 'sukna'); ?></th>
+                                <th style="padding:10px; text-align:left;"><?php _e('إجراءات', 'sukna'); ?></th>
                             </tr>
                         </thead>
                         <tbody id="sukna-audit-logs-body">
                             <?php
-                            $action_map = array('login' => 'دخول', 'failed_login' => 'فشل دخول', 'add_user' => 'إضافة مستخدم', 'edit_user' => 'تعديل مستخدم', 'add_property' => 'إضافة عقار', 'save_room' => 'إضافة وحدة');
+                            $action_map = array(
+                                'login' => 'تسجيل دخول',
+                                'failed_login' => 'فشل دخول',
+                                'add_user' => 'إضافة مستخدم',
+                                'edit_user' => 'تعديل مستخدم',
+                                'delete_user' => 'حذف مستخدم',
+                                'add_property' => 'إضافة عقار',
+                                'edit_property' => 'تعديل عقار',
+                                'delete_property' => 'حذف عقار',
+                                'save_room' => 'إدارة وحدة',
+                                'toggle_restriction' => 'تقييد حساب'
+                            );
                             $audit_logs = Sukna_Audit::get_logs();
                             foreach($audit_logs as $log): ?>
                                 <tr>
-                                    <td><strong><?php echo esc_html($log->user_id); ?></strong></td>
-                                    <td><span class="sukna-capsule capsule-accent"><?php echo $action_map[$log->action_type] ?? $log->action_type; ?></span></td>
-                                    <td><small><?php echo esc_html($log->description); ?></small></td>
-                                    <td><?php echo date('Y-m-d H:i', strtotime($log->action_date)); ?></td>
-                                    <td>
-                                        <?php if(in_array($log->action_type, array('delete_user'))): ?>
-                                            <button class="sukna-btn undo-action" data-id="<?php echo $log->id; ?>" style="padding:2px 8px; font-size:0.7rem; background:#000; border:none;"><?php _e('تراجع', 'sukna'); ?></button>
+                                    <td style="padding:8px 10px;"><strong><?php echo esc_html($log->user_id); ?></strong></td>
+                                    <td style="padding:8px 10px;"><span class="sukna-status-indicator indicator-accent"><?php echo $action_map[$log->action_type] ?? $log->action_type; ?></span></td>
+                                    <td style="padding:8px 10px;"><small style="color:#475569;"><?php echo esc_html($log->description); ?></small></td>
+                                    <td style="padding:8px 10px; white-space:nowrap; color:#64748b;"><?php echo date('Y-m-d | H:i', strtotime($log->action_date)); ?></td>
+                                    <td style="padding:8px 10px; text-align:left;">
+                                        <?php if(in_array($log->action_type, array('delete_user', 'delete_property'))): ?>
+                                            <button class="sukna-btn undo-action" title="<?php _e('استعادة المحذوف', 'sukna'); ?>" data-id="<?php echo $log->id; ?>" style="padding:4px 8px; font-size:0.7rem; background:#059669; border:none; border-radius:4px;"><span class="dashicons dashicons-undo"></span> <?php _e('استعادة', 'sukna'); ?></button>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
