@@ -1,7 +1,13 @@
 <div class="sukna-dashboard" id="sukna-system-root">
-    <div class="sukna-mobile-header" style="display:none; background:#000; padding:15px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10005;">
-        <h2 style="color:#fff; margin:0; font-size:1.1rem;"><?php echo esc_html($system_name); ?></h2>
-        <button id="sukna-toggle-sidebar" style="background:none; border:none; color:#D4AF37; cursor:pointer;"><span class="dashicons dashicons-menu" style="font-size:24px; width:24px; height:24px;"></span></button>
+    <div class="sukna-mobile-header" style="display:none; background:#000; padding:10px 15px; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10005; border-bottom:1px solid #1a1a1a;">
+        <button id="sukna-toggle-sidebar" style="background:none; border:none; color:#fff; cursor:pointer;"><span class="dashicons dashicons-menu-alt3" style="font-size:26px; width:26px; height:26px;"></span></button>
+        <div class="mobile-header-logo">
+            <?php if ( $logo_url ) : ?>
+                <img src="<?php echo esc_url($logo_url); ?>" alt="Sukna" style="height:35px; width:auto; object-fit:contain;">
+            <?php else : ?>
+                <h2 style="color:#D4AF37; margin:0; font-size:1.1rem; letter-spacing:1px;">SUKNA</h2>
+            <?php endif; ?>
+        </div>
     </div>
 
     <aside class="sukna-sidebar" id="sukna-sidebar-main">
@@ -55,11 +61,27 @@
 
     <!-- Mobile Bottom Bar (Fixed) -->
     <div class="sukna-mobile-bottom-bar" style="display:none;">
-        <button id="sukna-mobile-refresh-btn" class="sidebar-ctrl-icon" title="<?php _e('تحديث', 'sukna'); ?>">
-            <span class="dashicons dashicons-update"></span>
-            <small><?php _e('تحديث', 'sukna'); ?></small>
-        </button>
-        <button id="sukna-mobile-logout-btn" class="sidebar-ctrl-icon logout" title="<?php _e('خروج', 'sukna'); ?>">
+        <a href="<?php echo add_query_arg('sukna_view', 'dashboard'); ?>" class="mobile-nav-item <?php echo (!isset($_GET['sukna_view']) || $_GET['sukna_view'] == 'dashboard') ? 'active' : ''; ?>">
+            <span class="dashicons dashicons-performance"></span>
+            <small><?php _e('الرئيسية', 'sukna'); ?></small>
+        </a>
+        <?php if ( Sukna_Auth::is_admin() || Sukna_Auth::is_owner() ) : ?>
+            <a href="<?php echo add_query_arg('sukna_view', 'properties'); ?>" class="mobile-nav-item <?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'properties') ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-admin-home"></span>
+                <small><?php _e('العقارات', 'sukna'); ?></small>
+            </a>
+        <?php endif; ?>
+        <?php if ( Sukna_Auth::is_admin() ) : ?>
+            <a href="<?php echo add_query_arg('sukna_view', 'users'); ?>" class="mobile-nav-item <?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'users') ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-admin-users"></span>
+                <small><?php _e('المستخدمين', 'sukna'); ?></small>
+            </a>
+            <a href="<?php echo add_query_arg('sukna_view', 'settings'); ?>" class="mobile-nav-item <?php echo (isset($_GET['sukna_view']) && $_GET['sukna_view'] == 'settings') ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-admin-generic"></span>
+                <small><?php _e('الإعدادات', 'sukna'); ?></small>
+            </a>
+        <?php endif; ?>
+        <button id="sukna-mobile-logout-btn" class="mobile-nav-item logout" style="background:none; border:none; color:#ef4444 !important; cursor:pointer;">
             <span class="dashicons dashicons-no-alt"></span>
             <small><?php _e('خروج', 'sukna'); ?></small>
         </button>

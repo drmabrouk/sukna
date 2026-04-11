@@ -80,22 +80,14 @@ class Sukna_Investments {
 		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}sukna_transactions WHERE user_id = %d ORDER BY transaction_date DESC LIMIT 50", $user_id ) );
 	}
 
-	public static function get_system_wide_stats($mode = 'live') {
+	public static function get_system_wide_stats() {
 		global $wpdb;
 
 		$total_invested = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_investments" ) ?: 0;
 		$total_expenses = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses" ) ?: 0;
 
-		if ($mode === 'forecast') {
-			$properties = $wpdb->get_results("SELECT total_rooms, expected_rent_per_room FROM {$wpdb->prefix}sukna_properties");
-			$total_revenue = 0;
-			foreach($properties as $p) {
-				$total_revenue += (floatval($p->total_rooms) * floatval($p->expected_rent_per_room));
-			}
-		} else {
-			// Sum of all paid payments
-			$total_revenue  = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_payments WHERE status = 'paid'" ) ?: 0;
-		}
+		// Sum of all real paid payments
+		$total_revenue  = $wpdb->get_var( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_payments WHERE status = 'paid'" ) ?: 0;
 
 		// Room stats
 		$total_rooms = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}sukna_rooms" ) ?: 0;

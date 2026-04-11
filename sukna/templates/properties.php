@@ -21,7 +21,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
 ?>
 
 <div class="sukna-header-flex" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-    <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('إدارة العقارات والوحدات السكنية', 'sukna'); ?></h2>
+    <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('إدارة العقارات', 'sukna'); ?></h2>
     <div style="display:flex; gap:10px;">
         <?php if($is_admin || $is_owner): ?>
             <button id="sukna-add-property-btn" class="sukna-btn" style="background:#000; border-radius: 8px;">
@@ -137,18 +137,14 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 <!-- Financial Mode Indicators -->
                 <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                     <small style="font-weight:700; color:#64748b;"><?php _e('مؤشرات الأداء:', 'sukna'); ?></small>
-                    <?php if($perf['mode'] === 'forecast'): ?>
-                        <span class="sukna-status-indicator indicator-accent" style="font-size:0.6rem;"><?php _e('وضع التوقع (Forecast)', 'sukna'); ?></span>
-                    <?php else: ?>
-                        <span class="sukna-status-indicator indicator-success" style="font-size:0.6rem;"><?php _e('وضع التشغيل (Live)', 'sukna'); ?></span>
-                    <?php endif; ?>
+                    <span class="sukna-status-indicator indicator-success" style="font-size:0.6rem;"><?php _e('وضع التشغيل (Live)', 'sukna'); ?></span>
                 </div>
 
                 <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:20px;">
                     <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
                         <small style="display:block; color:#64748b; font-size:0.65rem;"><?php _e('دخل شهري', 'sukna'); ?></small>
                         <span style="font-weight:800; font-size:0.9rem; color: #059669;">
-                            <?php echo number_format($perf['mode'] === 'live' ? $perf['monthly_income'] : $perf['forecast_monthly_revenue']); ?>
+                            <?php echo number_format($perf['monthly_income']); ?>
                         </span>
                     </div>
                     <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
@@ -297,19 +293,11 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                 </div>
             </div>
 
-            <!-- Step 2: Structure & Forecasting -->
+            <!-- Step 2: Structure -->
             <div id="prop-step-2" class="prop-wizard-step" style="display:none;">
-                <div style="background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.85rem; display:flex; gap:10px; align-items:center;">
-                    <span class="dashicons dashicons-warning" style="color:#d97706;"></span>
-                    <span><?php _e('تنبيه: كافة القيم المدخلة في هذه المرحلة هي قيم تقديرية (Forecast) وستتحدث تلقائياً عند بدء التشغيل الفعلي.', 'sukna'); ?></span>
-                </div>
-
-                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="sukna-grid" style="grid-template-columns: 1fr; gap:15px;">
                     <div class="sukna-form-group">
                         <input type="number" name="total_rooms" id="prop-total-rooms" placeholder="<?php _e('إجمالي عدد الوحدات (الغرف)', 'sukna'); ?>" required>
-                    </div>
-                    <div class="sukna-form-group">
-                        <input type="number" step="0.01" name="expected_rent_per_room" id="prop-expected-rent" placeholder="<?php _e('الإيجار الشهري المتوقع للغرفة', 'sukna'); ?>">
                     </div>
                 </div>
 
