@@ -7,6 +7,12 @@ $can_manage = Sukna_Auth::is_admin();
     <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('إدارة مستخدمي النظام', 'sukna'); ?></h2>
     <div style="display:flex; gap:10px;">
         <?php if($can_manage): ?>
+            <button class="sukna-btn sukna-export-btn" data-type="users" style="background:#fff; color:#000 !important; border:1px solid #ddd; padding:8px 15px;">
+                <span class="dashicons dashicons-download" style="margin-left:5px;"></span><?php _e('تصدير', 'sukna'); ?>
+            </button>
+            <button class="sukna-btn sukna-import-trigger" data-type="users" style="background:#fff; color:#000 !important; border:1px solid #ddd; padding:8px 15px;">
+                <span class="dashicons dashicons-upload" style="margin-left:5px;"></span><?php _e('استيراد', 'sukna'); ?>
+            </button>
             <button id="sukna-add-user-btn" class="sukna-btn" style="background:#000; border:none; border-radius: 8px;">
                 <span class="dashicons dashicons-plus-alt" style="margin-left:8px;"></span><?php _e('إضافة مستخدم جديد', 'sukna'); ?>
             </button>

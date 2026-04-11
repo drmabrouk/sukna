@@ -24,6 +24,12 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
     <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('إدارة العقارات', 'sukna'); ?></h2>
     <div style="display:flex; gap:10px;">
         <?php if($is_admin || $is_owner): ?>
+            <button class="sukna-btn sukna-export-btn" data-type="properties" style="background:#fff; color:#000 !important; border:1px solid #ddd; padding:8px 15px;">
+                <span class="dashicons dashicons-download" style="margin-left:5px;"></span><?php _e('تصدير', 'sukna'); ?>
+            </button>
+            <button class="sukna-btn sukna-import-trigger" data-type="properties" style="background:#fff; color:#000 !important; border:1px solid #ddd; padding:8px 15px;">
+                <span class="dashicons dashicons-upload" style="margin-left:5px;"></span><?php _e('استيراد', 'sukna'); ?>
+            </button>
             <button id="sukna-add-property-btn" class="sukna-btn" style="background:#000; border-radius: 8px;">
                 <span class="dashicons dashicons-plus-alt" style="margin-left:8px;"></span><?php _e('إضافة عقار جديد', 'sukna'); ?>
             </button>
@@ -70,7 +76,7 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
     </form>
 </div>
 
-<div class="sukna-grid" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px;">
+<div class="sukna-grid" style="grid-template-columns: repeat(auto-fill, minmax(45%, 1fr)); gap: 30px;">
     <?php foreach($properties as $p):
         $rooms = Sukna_Properties::get_rooms($p->id);
         $rented_count = count(array_filter($rooms, function($r){ return $r->status === 'rented'; }));
@@ -140,19 +146,21 @@ $investors = array_filter($users, function($u){ return $u->role === 'investor'; 
                     <span class="sukna-status-indicator indicator-success" style="font-size:0.6rem;"><?php _e('وضع التشغيل (Live)', 'sukna'); ?></span>
                 </div>
 
-                <div class="sukna-grid" style="grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:20px;">
-                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b; font-size:0.65rem;"><?php _e('دخل شهري', 'sukna'); ?></small>
-                        <span style="font-weight:800; font-size:0.9rem; color: #059669;">
-                            <?php echo number_format($perf['monthly_income']); ?>
-                        </span>
+                <div class="sukna-grid sukna-property-kpi-row" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:20px;">
+                    <div class="kpi-indicator" style="background:#f8fafc; padding:12px 5px; border-radius:10px; text-align:center; border:1px solid #eee; cursor:help;" title="<?php _e('نسبة إشغال الوحدات حالياً', 'sukna'); ?>">
+                        <small style="display:block; color:#64748b; font-size:0.6rem; margin-bottom:3px;"><?php _e('الإشغال', 'sukna'); ?></small>
+                        <span style="font-weight:800; font-size:0.9rem; color: #000;"><?php echo count($rooms) > 0 ? round(($rented_count / count($rooms)) * 100) : 0; ?>%</span>
                     </div>
-                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b; font-size:0.65rem;"><?php _e('ربح شهري (صافي)', 'sukna'); ?></small>
+                    <div class="kpi-indicator" style="background:#f8fafc; padding:12px 5px; border-radius:10px; text-align:center; border:1px solid #eee; cursor:help;" title="<?php _e('إجمالي التحصيل الشهري الفعلي', 'sukna'); ?>">
+                        <small style="display:block; color:#64748b; font-size:0.6rem; margin-bottom:3px;"><?php _e('الدخل', 'sukna'); ?></small>
+                        <span style="font-weight:800; font-size:0.9rem; color: #059669;"><?php echo number_format($perf['monthly_income']); ?></span>
+                    </div>
+                    <div class="kpi-indicator" style="background:#f8fafc; padding:12px 5px; border-radius:10px; text-align:center; border:1px solid #eee; cursor:help;" title="<?php _e('صافي الربح بعد خصم المصاريف التشغيلية', 'sukna'); ?>">
+                        <small style="display:block; color:#64748b; font-size:0.6rem; margin-bottom:3px;"><?php _e('الربح', 'sukna'); ?></small>
                         <span style="font-weight:800; font-size:0.9rem; color: #059669;"><?php echo number_format($perf['monthly_net']); ?></span>
                     </div>
-                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
-                        <small style="display:block; color:#64748b; font-size:0.65rem;"><?php _e('عائد ROI', 'sukna'); ?></small>
+                    <div class="kpi-indicator" style="background:#f8fafc; padding:12px 5px; border-radius:10px; text-align:center; border:1px solid #eee; cursor:help;" title="<?php _e('معدل العائد على الاستثمار الكلي للمشروع', 'sukna'); ?>">
+                        <small style="display:block; color:#64748b; font-size:0.6rem; margin-bottom:3px;"><?php _e('العائد', 'sukna'); ?></small>
                         <span style="font-weight:800; font-size:0.9rem; color: #D4AF37;"><?php echo $perf['roi']; ?>%</span>
                     </div>
                 </div>

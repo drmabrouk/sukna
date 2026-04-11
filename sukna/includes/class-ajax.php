@@ -13,7 +13,7 @@ class Sukna_Ajax {
 			'delete_room', 'save_investment', 'get_rooms', 'get_investments',
 			'save_contract', 'record_expense', 'distribute_revenue',
 			'reset_property_rooms', 'toggle_user_restriction', 'get_setup_items',
-			'get_report_html', 'terminate_contract'
+			'get_report_html', 'terminate_contract', 'export_data', 'import_data'
 		);
 
 		foreach ( $private_actions as $action ) {
@@ -431,6 +431,82 @@ class Sukna_Ajax {
 		require_once SUKNA_PATH . 'templates/report-pdf-template.php';
 		$html = sukna_get_property_report_html($id);
 		wp_send_json_success($html);
+	}
+
+	public function export_data() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$type = sanitize_text_field( $_POST['type'] ?? 'users' );
+		global $wpdb;
+		$data = array();
+		$filename = "sukna_{$type}_export_" . date('Y-m-d') . ".csv";
+
+		if ( $type === 'users' ) {
+			$data = $wpdb->get_results( "SELECT username, phone, name, email, role, is_restricted FROM {$wpdb->prefix}sukna_staff", ARRAY_A );
+		} elseif ( $type === 'properties' ) {
+			$data = $wpdb->get_results( "SELECT name, address, country, city, state_emirate, property_type, property_subtype, total_rooms, base_value, gov_fees FROM {$wpdb->prefix}sukna_properties", ARRAY_A );
+		}
+
+		if ( empty($data) ) wp_send_json_error( 'No data found' );
+
+		ob_start();
+		$df = fopen("php://output", 'w');
+		fputcsv($df, array_keys(reset($data)));
+		foreach ($data as $row) {
+			fputcsv($df, $row);
+		}
+		fclose($df);
+		$csv = ob_get_clean();
+
+		wp_send_json_success( array(
+			'csv' => $csv,
+			'filename' => $filename
+		) );
+	}
+
+	public function import_data() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
+
+		$type = sanitize_text_field( $_POST['type'] ?? 'users' );
+		$csv_data = $_POST['csv_data'] ?? '';
+
+		if ( empty($csv_data) ) wp_send_json_error( 'Empty data' );
+
+		$lines = explode( "\n", str_replace( "\r", "", $csv_data ) );
+		$header = str_getcsv( array_shift( $lines ) );
+
+		global $wpdb;
+		$count = 0;
+
+		foreach ( $lines as $line ) {
+			if ( empty($line) ) continue;
+			$row = array_combine( $header, str_getcsv( $line ) );
+			if ( ! $row ) continue;
+
+			if ( $type === 'users' ) {
+				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}sukna_staff WHERE phone = %s", $row['phone'] ) );
+				if ( ! $exists ) {
+					$wpdb->insert( "{$wpdb->prefix}sukna_staff", array(
+						'username' => $row['username'],
+						'phone'    => $row['phone'],
+						'name'     => $row['name'],
+						'email'    => $row['email'],
+						'role'     => $row['role'],
+						'is_restricted' => $row['is_restricted'],
+						'password' => password_hash('12345678', PASSWORD_DEFAULT)
+					) );
+					$count++;
+				}
+			} elseif ( $type === 'properties' ) {
+				$wpdb->insert( "{$wpdb->prefix}sukna_properties", $row );
+				$count++;
+			}
+		}
+
+		Sukna_Audit::log('import_data', sprintf(__('استيراد %d سجل من نوع %s', 'sukna'), $count, $type));
+		wp_send_json_success( sprintf(__('تم استيراد %d سجل بنجاح.', 'sukna'), $count) );
 	}
 
 	public function undo_activity() {
