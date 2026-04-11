@@ -214,7 +214,7 @@ if ( Sukna_Auth::is_admin() ) {
                         <span class="sukna-capsule" style="background:#000; font-size:0.75rem;"><?php echo ($active_property->property_type === 'leased') ? __('إدارة وتشغيل', 'sukna') : __('ملكية عقارية', 'sukna'); ?></span>
                     </h3>
 
-                    <div class="sukna-grid" style="grid-template-columns: repeat(4, 1fr); gap:15px; margin-top:20px;">
+                    <div class="sukna-grid sukna-analytics-grid" style="grid-template-columns: repeat(4, 1fr); gap:15px; margin-top:20px;">
                         <div style="background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0; text-align:center;">
                             <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('مساهمتي', 'sukna'); ?></small>
                             <span style="font-weight:800; font-size:0.95rem; color:#000;"><?php echo number_format($contribution); ?></span>
@@ -256,7 +256,7 @@ if ( Sukna_Auth::is_admin() ) {
                             <h4 style="margin:0 0 15px 0; font-size:0.85rem; color:#ef4444; display:flex; align-items:center; gap:8px;">
                                 <span class="dashicons dashicons-arrow-up-alt" style="font-size:16px;"></span> <?php _e('تكاليف التجهيز والتشغيل', 'sukna'); ?>
                             </h4>
-                            <div style="font-size:1.4rem; font-weight:800;"><?php echo number_format($prop_perf['costs'], 2); ?> <small style="font-size:0.7rem; color:#64748b;">EGP</small></div>
+                            <div style="font-size:1.4rem; font-weight:800;"><?php echo number_format($prop_perf['expenses'], 2); ?> <small style="font-size:0.7rem; color:#64748b;">EGP</small></div>
                         </div>
                     </div>
                 </div>
