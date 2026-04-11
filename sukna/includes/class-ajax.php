@@ -214,7 +214,6 @@ class Sukna_Ajax {
 			'apartment_number'         => sanitize_text_field( $_POST['apartment_number'] ),
 			'floor_number'             => sanitize_text_field( $_POST['floor_number'] ),
 			'total_rooms'              => intval( $_POST['total_rooms'] ),
-			'expected_rent_per_room'   => floatval( $_POST['expected_rent_per_room'] ),
 			'contract_start_date'      => sanitize_text_field( $_POST['contract_start_date'] ),
 			'investment_start_date'    => sanitize_text_field( $_POST['investment_start_date'] ),
 			'contract_duration'        => intval( $_POST['contract_duration'] ),

@@ -271,19 +271,16 @@ class Sukna_Properties {
 
 		$net = $income - ($total_operational_costs + $initial_setup_cost);
 
-		// Expected Monthly Revenue (Forecast)
-		$forecast_monthly_revenue = floatval($property->expected_rent_per_room) * intval($property->total_rooms);
-
 		// ROI calculation
 		$roi = 0;
 		if ( $total_project_cost > 0 ) {
 			$roi = ($net / $total_project_cost) * 100;
 		}
 
-		// Mode logic: If no income has been recorded, show forecast
-		$mode = ($income > 0) ? 'live' : 'forecast';
+		// Forced Live Operational Mode
+		$mode = 'live';
 
-		$monthly_gross = ($mode === 'live' ? $monthly_income : $forecast_monthly_revenue);
+		$monthly_gross = $monthly_income;
 		$monthly_net = $monthly_gross - $monthly_expenses;
 
 		$active_contracts = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}sukna_contracts c JOIN {$wpdb->prefix}sukna_rooms r ON c.room_id = r.id WHERE r.property_id = %d AND c.status = 'active'", $property_id)) ?: 0;
@@ -303,7 +300,6 @@ class Sukna_Properties {
 			'net'                      => $net,
 			'roi'                      => round($roi, 2),
 			'monthly_income'           => $monthly_income, // Live monthly
-			'forecast_monthly_revenue' => $forecast_monthly_revenue,
 			'total_invested'           => $total_invested,
 			'active_contracts'         => $active_contracts,
 			'expired_contracts'        => $expired_contracts,

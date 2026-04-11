@@ -239,7 +239,6 @@ jQuery(document).ready(function($) {
         }, 100);
         $('#prop-city').val(p.city);
         $('#prop-total-rooms').val(p.total_rooms);
-        $('#prop-expected-rent').val(p.expected_rent_per_room);
         $('#prop-base-value').val(p.base_value);
         $('#prop-gov-fees').val(p.gov_fees);
         $('#prop-contract-start').val(p.contract_start_date);

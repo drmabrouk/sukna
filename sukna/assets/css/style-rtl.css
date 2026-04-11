@@ -350,9 +350,11 @@ body, .sukna-dashboard {
     .sukna-metrics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 
     .sukna-card { padding: 15px; }
+    .sukna-card h2, .sukna-card h3 { font-size: 0.95rem !important; }
     .sukna-metric-card { padding: 15px; }
     .sukna-metric-icon { width: 35px; height: 35px; font-size: 1rem; }
     .sukna-metric-value { font-size: 1.1rem; }
+    .sukna-header-flex h2 { font-size: 1.2rem !important; }
 
     /* Disable scroll indicators on mobile */
     ::-webkit-scrollbar {
@@ -372,40 +374,40 @@ body, .sukna-dashboard {
         left: 0 !important;
         right: 0 !important;
         background: #000000 !important;
-        height: 70px !important;
+        height: 65px !important;
         z-index: 10002 !important;
-        border-top: 1px solid #222;
-        padding: 5px 20px;
+        border-top: 1px solid #1a1a1a;
+        padding: 0 10px;
         justify-content: space-around;
         align-items: center;
-        box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+        box-shadow: 0 -10px 20px rgba(0,0,0,0.4);
     }
 
-    .sukna-mobile-bottom-bar .sidebar-ctrl-icon {
+    .mobile-nav-item {
         flex: 1;
-        background: none;
-        border: none;
+        text-decoration: none !important;
         color: #94a3b8;
         display: flex;
         flex-direction: column;
         align-items: center;
-        cursor: pointer;
+        justify-content: center;
+        gap: 4px;
+        transition: 0.2s;
     }
 
-    .sukna-mobile-bottom-bar .sidebar-ctrl-icon span {
+    .mobile-nav-item.active {
+        color: #D4AF37;
+    }
+
+    .mobile-nav-item span {
         font-size: 20px;
         width: 20px;
         height: 20px;
     }
 
-    .sukna-mobile-bottom-bar .sidebar-ctrl-icon small {
-        font-size: 0.65rem;
-        margin-top: 4px;
+    .mobile-nav-item small {
+        font-size: 0.6rem;
         font-weight: 600;
-    }
-
-    .sukna-mobile-bottom-bar .sidebar-ctrl-icon.logout {
-        color: #ef4444 !important;
     }
 }
 

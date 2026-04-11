@@ -96,14 +96,14 @@ function sukna_get_property_report_html($property_id) {
                 </div>
             </div>
 
-            <h4 style="border-right: 4px solid #D4AF37; padding-right: 15px; margin-bottom: 20px;"><?php _e('المستثمرون والشركاء', 'sukna'); ?></h4>
+            <h4 style="border-right: 4px solid #D4AF37; padding-right: 15px; margin-bottom: 20px;"><?php _e('الأداء المالي التشغيلي', 'sukna'); ?></h4>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 0.85rem;">
                 <thead>
                     <tr style="background: #000; color: #fff;">
                         <th style="padding: 12px; text-align: right;"><?php _e('المستثمر', 'sukna'); ?></th>
                         <th style="padding: 12px; text-align: center;"><?php _e('قيمة المساهمة', 'sukna'); ?></th>
                         <th style="padding: 12px; text-align: center;"><?php _e('نسبة الملكية', 'sukna'); ?></th>
-                        <th style="padding: 12px; text-align: left;"><?php _e('الحصة الشهرية التقديرية', 'sukna'); ?></th>
+                        <th style="padding: 12px; text-align: left;"><?php _e('الحصة الشهرية', 'sukna'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
