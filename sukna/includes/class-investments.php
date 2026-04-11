@@ -101,6 +101,26 @@ class Sukna_Investments {
 		$total_rooms = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}sukna_rooms" ) ?: 0;
 		$occupied_rooms = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}sukna_rooms WHERE status = 'rented'" ) ?: 0;
 
+		// Contract stats
+		$active_contracts = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}sukna_contracts WHERE status = 'active'" ) ?: 0;
+		$expired_contracts = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}sukna_contracts WHERE status = 'expired'" ) ?: 0;
+
+		// Historical comparison (Current vs Previous Month)
+		$prev_month_start = date('Y-m-01 00:00:00', strtotime('last month'));
+		$prev_month_end   = date('Y-m-t 23:59:59', strtotime('last month'));
+		$prev_revenue = $wpdb->get_var( $wpdb->prepare("SELECT SUM(amount) FROM {$wpdb->prefix}sukna_payments WHERE status = 'paid' AND payment_date BETWEEN %s AND %s", $prev_month_start, $prev_month_end) ) ?: 0;
+		$growth_rate = ($prev_revenue > 0) ? (($total_revenue - $prev_revenue) / $prev_revenue) * 100 : 0;
+
+		// Top/Bottom performing properties
+		$all_props = $wpdb->get_results("SELECT id, name FROM {$wpdb->prefix}sukna_properties");
+		foreach($all_props as &$p) {
+			$p->perf = Sukna_Properties::get_property_performance($p->id);
+		}
+		usort($all_props, function($a, $b) { return $b->perf['roi'] <=> $a->perf['roi']; });
+
+		$top_props = array_slice($all_props, 0, 3);
+		$bottom_props = array_reverse(array_slice($all_props, -3));
+
 		return array(
 			'total_invested' => $total_invested,
 			'total_revenue'  => $total_revenue,
@@ -110,6 +130,11 @@ class Sukna_Investments {
 			'total_rooms'    => $total_rooms,
 			'occupied_rooms' => $occupied_rooms,
 			'occupancy_rate' => $total_rooms > 0 ? round(($occupied_rooms / $total_rooms) * 100) : 0,
+			'active_contracts' => $active_contracts,
+			'expired_contracts' => $expired_contracts,
+			'growth_rate'      => round($growth_rate, 2),
+			'top_props'        => $top_props,
+			'bottom_props'     => $bottom_props
 		);
 	}
 

@@ -286,6 +286,12 @@ class Sukna_Properties {
 		$monthly_gross = ($mode === 'live' ? $monthly_income : $forecast_monthly_revenue);
 		$monthly_net = $monthly_gross - $monthly_expenses;
 
+		$active_contracts = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}sukna_contracts c JOIN {$wpdb->prefix}sukna_rooms r ON c.room_id = r.id WHERE r.property_id = %d AND c.status = 'active'", $property_id)) ?: 0;
+		$expired_contracts = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}sukna_contracts c JOIN {$wpdb->prefix}sukna_rooms r ON c.room_id = r.id WHERE r.property_id = %d AND c.status = 'expired'", $property_id)) ?: 0;
+
+		$avg_rent = $wpdb->get_var($wpdb->prepare("SELECT AVG(rental_price) FROM {$wpdb->prefix}sukna_rooms WHERE property_id = %d AND rental_price > 0", $property_id)) ?: 0;
+		$op_margin = ($monthly_gross > 0) ? ($monthly_net / $monthly_gross) * 100 : 0;
+
 		return array(
 			'mode'                     => $mode,
 			'total_project_cost'       => $total_project_cost,
@@ -298,7 +304,11 @@ class Sukna_Properties {
 			'roi'                      => round($roi, 2),
 			'monthly_income'           => $monthly_income, // Live monthly
 			'forecast_monthly_revenue' => $forecast_monthly_revenue,
-			'total_invested'           => $total_invested
+			'total_invested'           => $total_invested,
+			'active_contracts'         => $active_contracts,
+			'expired_contracts'        => $expired_contracts,
+			'avg_rent'                 => round($avg_rent, 2),
+			'op_margin'                => round($op_margin, 2)
 		);
 	}
 }
