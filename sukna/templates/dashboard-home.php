@@ -183,7 +183,8 @@ if ( Sukna_Auth::is_admin() ) {
     <?php if ($active_property):
         $rented_rooms = array_filter($rooms, function($r){ return $r->status === 'rented'; });
         $vacant_rooms = array_filter($rooms, function($r){ return $r->status === 'available'; });
-        $share_percent = ($active_property->base_value > 0) ? ($contribution / $active_property->base_value) * 100 : 0;
+        $total_project_cost = floatval($active_property->base_value) + floatval($active_property->total_setup_cost);
+        $share_percent = ($total_project_cost > 0) ? ($contribution / $total_project_cost) * 100 : 0;
     ?>
         <div class="sukna-grid" style="grid-template-columns: 2fr 1fr; gap: 25px;">
             <div class="sukna-column">
@@ -204,12 +205,12 @@ if ( Sukna_Auth::is_admin() ) {
                             <span style="font-weight:800; font-size:1.1rem; color:#D4AF37;"><?php echo round($share_percent, 2); ?>%</span>
                         </div>
                         <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0; text-align:center;">
-                            <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('عائد العقار', 'sukna'); ?></small>
+                            <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('عائد ROI', 'sukna'); ?></small>
                             <span style="font-weight:800; font-size:1.1rem; color:#059669;"><?php echo $prop_perf['roi']; ?>%</span>
                         </div>
                         <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0; text-align:center;">
-                            <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('صافي الربح الكلي', 'sukna'); ?></small>
-                            <span style="font-weight:800; font-size:1.1rem; color:#000;"><?php echo number_format($prop_perf['net'], 2); ?></span>
+                            <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('صافي الربح القابل للتوزيع', 'sukna'); ?></small>
+                            <span style="font-weight:800; font-size:1.1rem; color:#000;"><?php echo number_format($prop_perf['net']); ?></span>
                         </div>
                     </div>
 

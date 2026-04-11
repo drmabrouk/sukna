@@ -105,7 +105,7 @@ class Sukna_Investments {
 		);
 	}
 
-	public static function distribute_revenue( $property_id, $total_revenue ) {
+	public static function distribute_revenue( $property_id, $net_profit ) {
 		global $wpdb;
 
 		$property = Sukna_Properties::get_property($property_id);
@@ -113,25 +113,27 @@ class Sukna_Investments {
 
 		$investments = self::get_property_investments($property_id);
 
-		$base_value = floatval($property->base_value);
-		if ( $base_value <= 0 ) return;
+		$total_project_cost = floatval($property->base_value) + floatval($property->total_setup_cost);
+		if ( $total_project_cost <= 0 ) return;
 
 		$total_investor_contribution = 0;
 
-		// Investor Shares (Proportional)
+		// Investor Shares (Proportional to Total Project Cost)
 		foreach ($investments as $inv) {
-			$share_percent = ($inv->amount / $base_value);
-			$investor_share = $total_revenue * $share_percent;
+			$share_percent = ($inv->amount / $total_project_cost);
+			$investor_share = $net_profit * $share_percent;
 			$total_investor_contribution += $inv->amount;
 
-			self::record_transaction($inv->investor_id, $investor_share, 'dividend', sprintf(__('عائد إيرادات عقار #%d', 'sukna'), $property_id));
+			self::record_transaction( $inv->investor_id, $investor_share, 'dividend', sprintf(__('عائد أرباح عقار #%d (نسبة %s%%)', 'sukna'), $property_id, round($share_percent * 100, 2)));
 		}
 
-		// Owner Share (Remaining profit)
-		$owner_share_percent = ($base_value - $total_investor_contribution) / $base_value;
-		if ( $owner_share_percent < 0 ) $owner_share_percent = 0;
+		// Owner Share (Remaining balance of the project cost)
+		$owner_contribution = $total_project_cost - $total_investor_contribution;
+		if ( $owner_contribution < 0 ) $owner_contribution = 0;
 
-		$owner_profit = $total_revenue * $owner_share_percent;
-		self::record_transaction($property->owner_id, $owner_profit, 'dividend', sprintf(__('عائد إيرادات عقار #%d', 'sukna'), $property_id));
+		$owner_share_percent = ($owner_contribution / $total_project_cost);
+		$owner_profit = $net_profit * $owner_share_percent;
+
+		self::record_transaction($property->owner_id, $owner_profit, 'dividend', sprintf(__('عائد أرباح عقار #%d (نسبة المالك %s%%)', 'sukna'), $property_id, round($owner_share_percent * 100, 2)));
 	}
 }
