@@ -15,6 +15,16 @@ class Sukna_Properties {
 		$wpdb->insert( $table, $data );
 		$id = $wpdb->insert_id;
 
+		// Automatically add creator as an investor if they are master tenant/owner
+		if ( ! empty($data['owner_id']) ) {
+			Sukna_Investments::add_investment( array(
+				'investor_id' => $data['owner_id'],
+				'property_id' => $id,
+				'amount'      => 0, // Initial entry, can be updated later
+				'installments_paid' => 0
+			) );
+		}
+
 		if ( ! empty( $setup_items ) ) {
 			self::save_setup_items( $id, $setup_items );
 		}
@@ -205,13 +215,18 @@ class Sukna_Properties {
 		global $wpdb;
 		$table = $wpdb->prefix . 'sukna_payments';
 
+		// Get property installments setting
+		$room = $wpdb->get_row($wpdb->prepare("SELECT property_id FROM {$wpdb->prefix}sukna_rooms WHERE id = (SELECT room_id FROM {$wpdb->prefix}sukna_contracts WHERE id = %d)", $contract_id));
+		$property = self::get_property($room->property_id);
+		$per_year = $property->installments_per_year ?: 4;
+
 		$total_installments = intval( $count );
 		if ( $total_installments <= 0 ) return;
 
 		$amount_per_installment = $total_value / $total_installments;
 
-		// We default to quarterly (3 months)
-		$months_step = 3;
+		// Calculate step based on installments per year
+		$months_step = round(12 / $per_year);
 
 		for ( $i = 0; $i < $total_installments; $i++ ) {
 			$due_date = date( 'Y-m-d', strtotime( "+ " . ($i * $months_step) . " months", strtotime( $start_date ) ) );
@@ -277,6 +292,11 @@ class Sukna_Properties {
 			$roi = ($net / $total_project_cost) * 100;
 		}
 
+		// Initial funding check (25% of total project cost)
+		$funding_threshold = $total_project_cost * 0.25;
+		$is_activatable = ($total_invested >= $funding_threshold);
+		$funding_completion = ($total_project_cost > 0) ? ($total_invested / $total_project_cost) * 100 : 0;
+
 		// Forced Live Operational Mode
 		$mode = 'live';
 
@@ -301,6 +321,8 @@ class Sukna_Properties {
 			'roi'                      => round($roi, 2),
 			'monthly_income'           => $monthly_income, // Live monthly
 			'total_invested'           => $total_invested,
+			'is_activatable'           => $is_activatable,
+			'funding_completion'       => round($funding_completion, 1),
 			'active_contracts'         => $active_contracts,
 			'expired_contracts'        => $expired_contracts,
 			'avg_rent'                 => round($avg_rent, 2),

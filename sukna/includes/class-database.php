@@ -53,6 +53,7 @@ class Sukna_Database {
 			contract_start_date date,
 			investment_start_date date,
 			contract_duration int DEFAULT 1,
+			installments_per_year int DEFAULT 4,
 			base_value decimal(15,2) DEFAULT '0.00',
 			total_setup_cost decimal(15,2) DEFAULT '0.00',
 			gov_fees decimal(15,2) DEFAULT '0.00',
@@ -102,7 +103,8 @@ class Sukna_Database {
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			investor_id mediumint(9) NOT NULL,
 			property_id mediumint(9) NOT NULL,
-			amount decimal(10,2) NOT NULL,
+			amount decimal(15,2) NOT NULL,
+			installments_paid int DEFAULT 1,
 			investment_date datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id)
 		) $charset_collate;

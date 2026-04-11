@@ -19,6 +19,7 @@ if ( Sukna_Auth::is_admin() ) {
             <div class="sukna-metric-content">
                 <div class="sukna-metric-title"><?php _e('إجمالي العقارات', 'sukna'); ?></div>
                 <div class="sukna-metric-value"><?php echo number_format($total_properties); ?></div>
+                <small style="color:#64748b; font-size:0.6rem;"><?php _e('تحت الإدارة', 'sukna'); ?></small>
             </div>
         </div>
         <div class="sukna-metric-card">
@@ -28,6 +29,7 @@ if ( Sukna_Auth::is_admin() ) {
             <div class="sukna-metric-content">
                 <div class="sukna-metric-title"><?php _e('رأس المال المستثمر', 'sukna'); ?></div>
                 <div class="sukna-metric-value"><?php echo number_format($stats['total_invested']); ?></div>
+                <small style="color:#059669; font-size:0.6rem;"><?php _e('تمويل فعلي', 'sukna'); ?></small>
             </div>
         </div>
         <div class="sukna-metric-card">
@@ -418,8 +420,13 @@ if ( Sukna_Auth::is_admin() ) {
                     ?>
                         <tr>
                             <td>
-                                <strong><?php echo esc_html($p->name); ?></strong><br>
-                                <small style="color:#64748b;"><?php _e('متوسط السعر:', 'sukna'); ?> <?php echo number_format($perf['avg_rent']); ?></small>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                    <div>
+                                        <strong><?php echo esc_html($p->name); ?></strong><br>
+                                        <small style="color:#64748b;"><?php _e('متوسط السعر:', 'sukna'); ?> <?php echo number_format($perf['avg_rent']); ?></small>
+                                    </div>
+                                    <button class="sukna-btn sukna-export-pdf-btn" data-id="<?php echo $p->id; ?>" data-name="<?php echo esc_attr($p->name); ?>" title="<?php _e('تحميل التقرير', 'sukna'); ?>" style="padding:4px; background:none; border:none; color:#000;"><span class="dashicons dashicons-pdf"></span></button>
+                                </div>
                             </td>
                             <td>
                                 <span class="sukna-status-indicator <?php echo ($occ_count == count($rooms)) ? 'indicator-success' : 'indicator-warning'; ?>">

@@ -13,7 +13,7 @@ class Sukna_Ajax {
 			'delete_room', 'save_investment', 'get_rooms', 'get_investments',
 			'save_contract', 'record_expense', 'distribute_revenue',
 			'reset_property_rooms', 'toggle_user_restriction', 'get_setup_items',
-			'get_report_html', 'terminate_contract', 'export_data', 'import_data'
+			'get_report_html', 'terminate_contract', 'export_data', 'import_data', 'get_invoice_html'
 		);
 
 		foreach ( $private_actions as $action ) {
@@ -202,6 +202,13 @@ class Sukna_Ajax {
 		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
 		$id = intval( $_POST['id'] ?? 0 );
+		$current_user = Sukna_Auth::current_user();
+
+		// Ownership check
+		if ( $id && ! Sukna_Auth::is_admin() ) {
+			$p = Sukna_Properties::get_property($id);
+			if ( !$p || $p->owner_id != $current_user->id ) wp_send_json_error( 'Access Denied' );
+		}
 		$data = array(
 			'name'                     => sanitize_text_field( $_POST['name'] ),
 			'address'                  => sanitize_text_field( $_POST['address'] ),
@@ -217,6 +224,7 @@ class Sukna_Ajax {
 			'contract_start_date'      => sanitize_text_field( $_POST['contract_start_date'] ),
 			'investment_start_date'    => sanitize_text_field( $_POST['investment_start_date'] ),
 			'contract_duration'        => intval( $_POST['contract_duration'] ),
+			'installments_per_year'    => intval( $_POST['installments_per_year'] ?? 4 ),
 			'base_value'               => floatval( $_POST['base_value'] ),
 			'gov_fees'                 => floatval( $_POST['gov_fees'] ),
 		);
@@ -262,6 +270,18 @@ class Sukna_Ajax {
 	public function get_rooms() {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		$property_id = intval( $_POST['property_id'] );
+
+		// Authorization check
+		if ( ! Sukna_Auth::is_admin() ) {
+			$current_user = Sukna_Auth::current_user();
+			$p = Sukna_Properties::get_property($property_id);
+			if ( !$p || ($p->owner_id != $current_user->id && !Sukna_Auth::is_investor()) ) {
+				// Investors can see rooms too, but let's be strict for now or allow if they are investor
+				$is_investor = $GLOBALS['wpdb']->get_var($GLOBALS['wpdb']->prepare("SELECT id FROM {$GLOBALS['wpdb']->prefix}sukna_investments WHERE property_id = %d AND investor_id = %d", $property_id, $current_user->id));
+				if ( $p->owner_id != $current_user->id && !$is_investor ) wp_send_json_error( 'Access Denied' );
+			}
+		}
+
 		$rooms = Sukna_Properties::get_rooms($property_id);
 		wp_send_json_success($rooms);
 	}
@@ -270,9 +290,18 @@ class Sukna_Ajax {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
+		$room_id = intval( $_POST['room_id'] );
+
+		// Ownership check via room
+		if ( ! Sukna_Auth::is_admin() ) {
+			$current_user = Sukna_Auth::current_user();
+			$room = $GLOBALS['wpdb']->get_row($GLOBALS['wpdb']->prepare("SELECT p.owner_id FROM {$GLOBALS['wpdb']->prefix}sukna_rooms r JOIN {$GLOBALS['wpdb']->prefix}sukna_properties p ON r.property_id = p.id WHERE r.id = %d", $room_id));
+			if ( !$room || $room->owner_id != $current_user->id ) wp_send_json_error( 'Access Denied' );
+		}
+
 		$duration_years = intval( $_POST['duration_years'] );
 		$data = array(
-			'room_id'           => intval( $_POST['room_id'] ),
+			'room_id'           => $room_id,
 			'tenant_id'         => intval( $_POST['tenant_id'] ?: 0 ) ?: null,
 			'guest_tenant_name' => sanitize_text_field( $_POST['guest_tenant_name'] ?? '' ),
 			'start_date'        => sanitize_text_field( $_POST['start_date'] ),
@@ -294,8 +323,17 @@ class Sukna_Ajax {
 		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
 		$id = intval( $_POST['id'] ?? 0 );
+		$property_id = intval( $_POST['property_id'] );
+
+		// Ownership check
+		if ( ! Sukna_Auth::is_admin() ) {
+			$current_user = Sukna_Auth::current_user();
+			$p = Sukna_Properties::get_property($property_id);
+			if ( !$p || $p->owner_id != $current_user->id ) wp_send_json_error( 'Access Denied' );
+		}
+
 		$data = array(
-			'property_id'       => intval( $_POST['property_id'] ),
+			'property_id'       => $property_id,
 			'room_number'       => sanitize_text_field( $_POST['room_number'] ),
 			'rental_price'      => floatval( $_POST['rental_price'] ),
 			'status'            => sanitize_text_field( $_POST['status'] ),
@@ -319,8 +357,17 @@ class Sukna_Ajax {
 		check_ajax_referer( 'sukna_nonce', 'nonce' );
 		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
+		$property_id = intval( $_POST['property_id'] );
+
+		// Ownership check
+		if ( ! Sukna_Auth::is_admin() ) {
+			$current_user = Sukna_Auth::current_user();
+			$p = Sukna_Properties::get_property($property_id);
+			if ( !$p || $p->owner_id != $current_user->id ) wp_send_json_error( 'Access Denied' );
+		}
+
 		$data = array(
-			'property_id' => intval( $_POST['property_id'] ),
+			'property_id' => $property_id,
 			'category'    => sanitize_text_field( $_POST['category'] ),
 			'amount'      => floatval( $_POST['amount'] ),
 		);
@@ -337,6 +384,14 @@ class Sukna_Ajax {
 		if ( ! Sukna_Auth::is_owner() && ! Sukna_Auth::is_admin() ) wp_send_json_error( 'Unauthorized' );
 
 		$id = intval( $_POST['id'] );
+
+		// Ownership check
+		if ( ! Sukna_Auth::is_admin() ) {
+			$current_user = Sukna_Auth::current_user();
+			$p = Sukna_Properties::get_property($id);
+			if ( !$p || $p->owner_id != $current_user->id ) wp_send_json_error( 'Access Denied' );
+		}
+
 		Sukna_Properties::reset_rooms_occupancy($id);
 		$p = Sukna_Properties::get_property($id);
 		Sukna_Audit::log('reset_rooms', sprintf(__('تصفير كافة وحدات العقار: %s', 'sukna'), $p->name ?? $id));
@@ -374,6 +429,7 @@ class Sukna_Ajax {
 			'investor_id' => intval( $_POST['investor_id'] ),
 			'property_id' => intval( $_POST['property_id'] ),
 			'amount'      => floatval( $_POST['amount'] ),
+			'installments_paid' => intval( $_POST['installments_paid'] ?? 1 )
 		);
 
 		Sukna_Investments::add_investment( $data );
@@ -409,6 +465,71 @@ class Sukna_Ajax {
 		$id = intval( $_POST['id'] );
 		$items = Sukna_Properties::get_setup_items($id);
 		wp_send_json_success($items);
+	}
+
+	public function get_invoice_html() {
+		check_ajax_referer( 'sukna_nonce', 'nonce' );
+		if ( ! Sukna_Auth::is_logged_in() ) wp_send_json_error( 'Unauthorized' );
+
+		$id = intval( $_POST['investment_id'] );
+		global $wpdb;
+		$inv = $wpdb->get_row($wpdb->prepare("
+			SELECT i.*, s.name as investor_name, p.name as property_name, p.base_value, p.total_setup_cost, p.gov_fees
+			FROM {$wpdb->prefix}sukna_investments i
+			JOIN {$wpdb->prefix}sukna_staff s ON i.investor_id = s.id
+			JOIN {$wpdb->prefix}sukna_properties p ON i.property_id = p.id
+			WHERE i.id = %d
+		", $id));
+
+		if ( !$inv ) wp_send_json_error( 'Not found' );
+
+		$total_project_cost = $inv->base_value + $inv->total_setup_cost + $inv->gov_fees;
+		$share_pct = $total_project_cost > 0 ? ($inv->amount / $total_project_cost) * 100 : 0;
+
+		ob_start();
+		?>
+		<div id="sukna-invoice-content" style="direction: rtl; font-family: 'Rubik', sans-serif; padding: 40px; background: #fff; color: #000; border: 1px solid #eee;">
+			<div style="display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
+				<div><h1 style="margin:0;"><?php _e('فاتورة مساهمة استثمارية', 'sukna'); ?></h1></div>
+				<div style="text-align: left;"><strong>SUKNA System</strong></div>
+			</div>
+
+			<table style="width: 100%; margin-bottom: 30px;">
+				<tr>
+					<td><strong><?php _e('اسم المستثمر:', 'sukna'); ?></strong></td>
+					<td><?php echo esc_html($inv->investor_name); ?></td>
+					<td><strong><?php _e('رقم المرجع:', 'sukna'); ?></strong></td>
+					<td>#INV-<?php echo $inv->id; ?></td>
+				</tr>
+				<tr>
+					<td><strong><?php _e('اسم العقار:', 'sukna'); ?></strong></td>
+					<td><?php echo esc_html($inv->property_name); ?></td>
+					<td><strong><?php _e('التاريخ:', 'sukna'); ?></strong></td>
+					<td><?php echo date('Y-m-d', strtotime($inv->investment_date)); ?></td>
+				</tr>
+			</table>
+
+			<div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
+				<h3 style="margin-top: 0;"><?php _e('تفاصيل المساهمة', 'sukna'); ?></h3>
+				<table style="width: 100%;">
+					<tr style="font-size: 1.2rem;">
+						<td style="padding: 10px 0;"><?php _e('إجمالي مبلغ المساهمة:', 'sukna'); ?></td>
+						<td style="padding: 10px 0; text-align: left; font-weight: 800; color: #D4AF37;"><?php echo number_format($inv->amount); ?> EGP</td>
+					</tr>
+					<tr>
+						<td style="padding: 5px 0; color: #64748b;"><?php _e('نسبة الملكية المترتبة:', 'sukna'); ?></td>
+						<td style="padding: 5px 0; text-align: left; font-weight: 700;"><?php echo round($share_pct, 2); ?> %</td>
+					</tr>
+				</table>
+			</div>
+
+			<div style="font-size: 0.8rem; color: #64748b; border-top: 1px dashed #eee; padding-top: 20px; text-align: center;">
+				<?php _e('تم إنشاء هذه الوثيقة تلقائياً بواسطة نظام سكنى الإداري.', 'sukna'); ?>
+			</div>
+		</div>
+		<?php
+		$html = ob_get_clean();
+		wp_send_json_success($html);
 	}
 
 	public function get_report_html() {
