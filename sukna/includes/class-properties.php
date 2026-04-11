@@ -297,7 +297,7 @@ class Sukna_Properties {
 		$monthly_expenses = $wpdb->get_var( $wpdb->prepare( "SELECT SUM(amount) FROM {$wpdb->prefix}sukna_expenses WHERE property_id = %d AND expense_date >= %s", $property_id, $current_month_start ) ) ?: 0;
 
 		// Total Setup/Initial Cost
-		$initial_setup_cost = floatval($property->total_setup_cost) + floatval($property->gov_fees);
+		$initial_setup_cost = floatval($property->total_setup_cost) + floatval($property->gov_fees) + floatval($property->additional_setup_cost);
 
 		// Total Project cost (Formula for ownership)
 		$total_project_cost = floatval($property->base_value) + $initial_setup_cost;
@@ -343,6 +343,32 @@ class Sukna_Properties {
 		$avg_rent = $wpdb->get_var($wpdb->prepare("SELECT AVG(rental_price) FROM {$wpdb->prefix}sukna_rooms WHERE property_id = %d AND rental_price > 0", $property_id)) ?: 0;
 		$op_margin = ($monthly_gross > 0) ? ($monthly_net / $monthly_gross) * 100 : 0;
 
+		// Partnership Model Calculations (Projections)
+		$quarterly_rent = floatval($property->annual_rent) / 4;
+		$quarterly_opex = floatval($property->monthly_fixed_opex) * 3;
+
+		$projected_monthly_revenue = intval($property->total_rooms) * floatval($property->projected_rent_per_room);
+		$projected_quarterly_revenue = $projected_monthly_revenue * 3;
+		$projected_quarterly_net = $projected_quarterly_revenue - $quarterly_rent - $quarterly_opex;
+
+		$investor_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT investor_id) FROM {$wpdb->prefix}sukna_investments WHERE property_id = %d", $property_id)) ?: 3;
+
+		$quarterly_rent_per_investor = $quarterly_rent / $investor_count;
+		$monthly_rent_per_investor = $quarterly_rent_per_investor / 3;
+		$monthly_opex_per_investor = floatval($property->monthly_fixed_opex) / $investor_count;
+
+		$monthly_fixed_cost_per_investor = $monthly_rent_per_investor + $monthly_opex_per_investor;
+
+		// Initial payment calculation: (1st Qtr Rent + Gov Fees + Setup Cost) / Investors
+		$initial_payment_per_investor = ($quarterly_rent + floatval($property->gov_fees) + floatval($property->total_setup_cost)) / $investor_count;
+
+		// Total investment calculation: Initial Payment + (Additional Setup / Investors)
+		$total_investment_per_investor = $initial_payment_per_investor + (floatval($property->additional_setup_cost) / $investor_count);
+
+		// ROI Projection
+		$projected_annual_net = ($projected_monthly_revenue - floatval($property->annual_rent)/12 - floatval($property->monthly_fixed_opex)) * 12;
+		$projected_roi = ($total_investment_per_investor > 0) ? ($projected_annual_net / $investor_count / $total_investment_per_investor) * 100 : 0;
+
 		return array(
 			'mode'                     => $mode,
 			'total_project_cost'       => $total_project_cost,
@@ -362,7 +388,14 @@ class Sukna_Properties {
 			'active_contracts'         => $active_contracts,
 			'expired_contracts'        => $expired_contracts,
 			'avg_rent'                 => round($avg_rent, 2),
-			'op_margin'                => round($op_margin, 2)
+			'op_margin'                => round($op_margin, 2),
+			// Projection Engine Data
+			'quarterly_rent'           => $quarterly_rent,
+			'monthly_fixed_cost_per_investor' => $monthly_fixed_cost_per_investor,
+			'initial_payment_per_investor'    => $initial_payment_per_investor,
+			'total_investment_per_investor'   => $total_investment_per_investor,
+			'projected_monthly_revenue'       => $projected_monthly_revenue,
+			'projected_annual_roi'            => round($projected_roi, 2)
 		);
 	}
 }

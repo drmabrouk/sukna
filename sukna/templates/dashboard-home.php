@@ -273,6 +273,25 @@ if ( Sukna_Auth::is_admin() ) {
                         </div>
                         <span class="dashicons dashicons-chart-bar" style="font-size:40px; width:40px; height:40px; opacity:0.3;"></span>
                     </div>
+
+                    <!-- Projected Performance Section -->
+                    <div style="margin-top:20px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px;">
+                        <h4 style="margin:0 0 15px 0; font-size:0.9rem; color:#000; font-weight:800;"><?php _e('تحليل العائد الاستثماري المتوقع', 'sukna'); ?></h4>
+                        <div class="sukna-grid" style="grid-template-columns: repeat(3, 1fr); gap:15px;">
+                            <div>
+                                <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('إجمالي استثماري', 'sukna'); ?></small>
+                                <span style="font-weight:700; color:#000;"><?php echo number_format($contribution); ?></span>
+                            </div>
+                            <div>
+                                <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('الدخل الشهري المتوقع', 'sukna'); ?></small>
+                                <span style="font-weight:700; color:#059669;"><?php echo number_format($prop_perf['projected_monthly_revenue'] / ($investor_count ?: 3)); ?></span>
+                            </div>
+                            <div>
+                                <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('العائد السنوي ROI %', 'sukna'); ?></small>
+                                <span style="font-weight:800; color:#D4AF37;"><?php echo $prop_perf['projected_annual_roi']; ?>%</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Financial Transparency -->
@@ -290,6 +309,10 @@ if ( Sukna_Auth::is_admin() ) {
                                 <span class="dashicons dashicons-arrow-up-alt" style="font-size:16px;"></span> <?php _e('تكاليف التجهيز والتشغيل', 'sukna'); ?>
                             </h4>
                             <div style="font-size:1.4rem; font-weight:800;"><?php echo number_format($prop_perf['expenses'], 2); ?> <small style="font-size:0.7rem; color:#64748b;">AED</small></div>
+                                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #eee;">
+                                    <small style="display:block; color:#64748b;"><?php _e('حصتي من الثابت الشهري:', 'sukna'); ?></small>
+                                    <span style="font-weight:700; color:#ef4444;"><?php echo number_format($prop_perf['monthly_fixed_cost_per_investor']); ?></span>
+                                </div>
                         </div>
                     </div>
                 </div>

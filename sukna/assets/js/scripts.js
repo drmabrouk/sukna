@@ -251,16 +251,53 @@ jQuery(document).ready(function($) {
     }
 
     function updatePropSummary() {
-        const base = parseFloat($('#prop-base-value').val()) || 0;
+        const annualRent = parseFloat($('#prop-annual-rent').val()) || 0;
+        $('#prop-base-value').val(annualRent); // Use annual rent as base value for legacy logic if needed
+
         const gov = parseFloat($('#prop-gov-fees').val()) || 0;
-        let setup = 0;
+        const addSetup = parseFloat($('#prop-add-setup').val()) || 0;
+        const fixedOpEx = parseFloat($('#prop-fixed-opex').val()) || 0;
+        const projRent = parseFloat($('#prop-proj-rent').val()) || 0;
+        const roomsCount = parseInt($('#prop-total-rooms').val()) || 0;
+
+        let setupCosts = 0;
         $('input[name="setup_item_costs[]"]').each(function() {
-            setup += parseFloat($(this).val()) || 0;
+            setupCosts += parseFloat($(this).val()) || 0;
         });
 
-        $('#sum-base-val').text(base.toLocaleString());
-        $('#sum-setup-val').text((setup + gov).toLocaleString());
-        $('#sum-total-val').text((base + setup + gov).toLocaleString());
+        const qtrRent = annualRent / 4;
+        const investors = 3; // Standard model
+
+        const initialPaymentPerInv = (qtrRent + gov + setupCosts) / investors;
+        const totalInvestmentPerInv = initialPaymentPerInv + (addSetup / investors);
+
+        const monthlyRevenue = roomsCount * projRent;
+        const projectedAnnualNet = (monthlyRevenue - (annualRent / 12) - fixedOpEx) * 12;
+        const projectedROI = totalInvestmentPerInv > 0 ? (projectedAnnualNet / investors / totalInvestmentPerInv) * 100 : 0;
+
+        $('#sum-base-val').html(`${annualRent.toLocaleString()} <small>AED/Year</small>`);
+        $('#sum-setup-val').text((setupCosts + gov + addSetup).toLocaleString());
+
+        let summaryHtml = `
+            <div style="margin-top:15px; border-top:1px solid #333; padding-top:15px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.8rem; opacity:0.8;">
+                    <span>الدفع الابتدائي للشريك (1/3):</span>
+                    <span style="font-weight:700;">~ ${Math.round(initialPaymentPerInv).toLocaleString()} AED</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.8rem; opacity:0.8;">
+                    <span>إجمالي الاستثمار للشريك:</span>
+                    <span style="font-weight:700;">${Math.round(totalInvestmentPerInv).toLocaleString()} AED</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.8rem; opacity:0.8;">
+                    <span>العائد السنوي المتوقع (ROI):</span>
+                    <span style="color:#D4AF37; font-weight:800;">~ ${Math.round(projectedROI)} %</span>
+                </div>
+            </div>
+        `;
+
+        $('#sum-total-val').text((annualRent + setupCosts + gov + addSetup).toLocaleString());
+        $('#prop-summary-final').find('.wizard-custom-summary').remove();
+        $('#prop-summary-final').append(`<div class="wizard-custom-summary">${summaryHtml}</div>`);
     }
 
     $('#sukna-add-property-btn').on('click', function() {
@@ -323,6 +360,10 @@ jQuery(document).ready(function($) {
         }, 100);
         $('#prop-city').val(p.city);
         $('#prop-total-rooms').val(p.total_rooms);
+        $('#prop-annual-rent').val(p.annual_rent);
+        $('#prop-fixed-opex').val(p.monthly_fixed_opex);
+        $('#prop-add-setup').val(p.additional_setup_cost);
+        $('#prop-proj-rent').val(p.projected_rent_per_room);
         $('#prop-base-value').val(p.base_value);
         $('#prop-gov-fees').val(p.gov_fees);
         $('#prop-contract-start').val(p.contract_start_date);
