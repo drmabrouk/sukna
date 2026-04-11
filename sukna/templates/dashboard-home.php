@@ -1,14 +1,33 @@
 <?php
 global $wpdb;
 $current_user = Sukna_Auth::current_user();
+$report_mode = $_GET['report_mode'] ?? 'live';
+
+function sukna_render_mode_toggle($current_mode) {
+    ?>
+    <div style="background:#fff; padding:5px; border-radius:10px; border:1px solid #e2e8f0; display:flex; gap:5px;">
+        <a href="<?php echo add_query_arg('report_mode', 'live'); ?>"
+           class="sukna-btn"
+           style="padding:5px 15px; font-size:0.75rem; background:<?php echo $current_mode === 'live' ? '#000' : 'transparent'; ?>; color:<?php echo $current_mode === 'live' ? '#fff' : '#64748b'; ?>; border:none;">
+            <?php _e('الوضع الفعلي (Live)', 'sukna'); ?>
+        </a>
+        <a href="<?php echo add_query_arg('report_mode', 'forecast'); ?>"
+           class="sukna-btn"
+           style="padding:5px 15px; font-size:0.75rem; background:<?php echo $current_mode === 'forecast' ? '#000' : 'transparent'; ?>; color:<?php echo $current_mode === 'forecast' ? '#fff' : '#64748b'; ?>; border:none;">
+            <?php _e('وضع التوقع (Forecast)', 'sukna'); ?>
+        </a>
+    </div>
+    <?php
+}
 
 if ( Sukna_Auth::is_admin() ) {
     $total_users = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}sukna_staff");
     $total_properties = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}sukna_properties");
-    $stats = Sukna_Investments::get_system_wide_stats();
+    $stats = Sukna_Investments::get_system_wide_stats($report_mode);
     ?>
     <div class="sukna-header-flex" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة تحكم النظام', 'sukna'); ?></h2>
+        <?php sukna_render_mode_toggle($report_mode); ?>
     </div>
 
     <!-- Administrative Overview Metrics -->
@@ -131,16 +150,20 @@ if ( Sukna_Auth::is_admin() ) {
     <div class="sukna-header-flex" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة تحكم المستثمر', 'sukna'); ?></h2>
 
-        <?php if (count($my_properties) > 1): ?>
-            <div style="background:#fff; padding:5px 15px; border-radius:8px; border:1px solid #e2e8f0; display:flex; align-items:center; gap:10px;">
-                <span style="font-size:0.8rem; font-weight:700; color:#64748b;"><?php _e('تغيير العقار:', 'sukna'); ?></span>
-                <select onchange="window.location.href='<?php echo add_query_arg('prop_id', '', add_query_arg('sukna_view', 'dashboard')); ?>' + this.value" style="border:none; font-weight:700; cursor:pointer;">
-                    <?php foreach($my_properties as $p): ?>
-                        <option value="<?php echo $p->id; ?>" <?php selected($active_prop_id, $p->id); ?>><?php echo esc_html($p->name); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        <?php endif; ?>
+        <div style="display:flex; gap:10px;">
+            <?php sukna_render_mode_toggle($report_mode); ?>
+
+            <?php if (count($my_properties) > 1): ?>
+                <div style="background:#fff; padding:5px 15px; border-radius:8px; border:1px solid #e2e8f0; display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:0.8rem; font-weight:700; color:#64748b;"><?php _e('تغيير العقار:', 'sukna'); ?></span>
+                    <select onchange="window.location.href='<?php echo add_query_arg('prop_id', '', add_query_arg('sukna_view', 'dashboard')); ?>' + this.value" style="border:none; font-weight:700; cursor:pointer;">
+                        <?php foreach($my_properties as $p): ?>
+                            <option value="<?php echo $p->id; ?>" <?php selected($active_prop_id, $p->id); ?>><?php echo esc_html($p->name); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Overall Metrics -->
@@ -212,15 +235,17 @@ if ( Sukna_Auth::is_admin() ) {
                             <span style="font-weight:800; font-size:1.1rem; color:#059669;"><?php echo $prop_perf['roi']; ?>%</span>
                         </div>
                         <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0; text-align:center;">
-                            <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('صافي الربح القابل للتوزيع', 'sukna'); ?></small>
-                            <span style="font-weight:800; font-size:1.1rem; color:#000;"><?php echo number_format($prop_perf['net']); ?></span>
+                            <small style="display:block; color:#64748b; margin-bottom:5px;"><?php _e('صافي الربح الشهري (للمشروع)', 'sukna'); ?></small>
+                            <span style="font-weight:800; font-size:1.1rem; color:#000;"><?php echo number_format($prop_perf['monthly_net']); ?></span>
                         </div>
                     </div>
 
                     <div style="margin-top:30px; padding:20px; background:#000; color:#fff; border-radius:12px; display:flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <h4 style="margin:0; font-size:0.9rem; opacity:0.8;"><?php _e('أرباحي المستحقة من هذا العقار', 'sukna'); ?></h4>
-                            <div style="font-size:1.8rem; font-weight:800; margin-top:5px; color:#D4AF37;"><?php echo number_format($prop_perf['net'] * ($share_percent / 100), 2); ?> EGP</div>
+                            <h4 style="margin:0; font-size:0.9rem; opacity:0.8;"><?php
+                                echo ($report_mode === 'live') ? __('أرباحي الشهرية (الواقع الفعلي)', 'sukna') : __('أرباحي الشهرية المتوقعة (Forecast)', 'sukna');
+                            ?></h4>
+                            <div style="font-size:1.8rem; font-weight:800; margin-top:5px; color:#D4AF37;"><?php echo number_format($prop_perf['monthly_net'] * ($share_percent / 100), 2); ?> EGP</div>
                         </div>
                         <span class="dashicons dashicons-chart-bar" style="font-size:40px; width:40px; height:40px; opacity:0.3;"></span>
                     </div>
@@ -355,6 +380,7 @@ if ( Sukna_Auth::is_admin() ) {
     ?>
     <div class="sukna-header-flex" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="font-weight:800; font-size:1.5rem; margin:0; color:#1e293b;"><?php _e('لوحة المالك / مدير العقارات', 'sukna'); ?></h2>
+        <?php sukna_render_mode_toggle($report_mode); ?>
     </div>
 
     <!-- Owner Overview Metrics -->
@@ -423,8 +449,8 @@ if ( Sukna_Auth::is_admin() ) {
                                     <?php echo $occ_count; ?> / <?php echo count($rooms); ?>
                                 </span>
                             </td>
-                            <td><?php echo number_format($perf['monthly_income']); ?></td>
-                            <td style="font-weight:700; color:<?php echo ($perf['net'] >= 0) ? '#059669' : '#ef4444'; ?>"><?php echo number_format($perf['net']); ?></td>
+                            <td><?php echo number_format($report_mode === 'forecast' ? $perf['forecast_monthly_revenue'] : $perf['monthly_income']); ?></td>
+                            <td style="font-weight:700; color:<?php echo ($perf['monthly_net'] >= 0) ? '#059669' : '#ef4444'; ?>"><?php echo number_format($perf['monthly_net']); ?></td>
                             <td><span class="sukna-capsule capsule-accent" style="font-weight:700;"><?php echo $perf['roi']; ?>%</span></td>
                         </tr>
                     <?php endforeach; ?>
