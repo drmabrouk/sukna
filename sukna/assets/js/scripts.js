@@ -1,4 +1,58 @@
 jQuery(document).ready(function($) {
+    // --- CSV Import / Export System ---
+
+    $(document).on('click', '.sukna-export-btn', function() {
+        const type = $(this).data('type');
+        const $btn = $(this);
+        const originalContent = $btn.html();
+
+        $btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span>');
+
+        $.post(sukna_ajax.ajax_url, { action: 'sukna_export_data', type: type, nonce: sukna_ajax.nonce }, function(res) {
+            if (res.success) {
+                const blob = new Blob([res.data.csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", res.data.filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                $btn.prop('disabled', false).html(originalContent);
+            } else {
+                alert('خطأ في التصدير: ' + res.data);
+                $btn.prop('disabled', false).html(originalContent);
+            }
+        });
+    });
+
+    $(document).on('click', '.sukna-import-trigger', function() {
+        const type = $(this).data('type');
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = event => {
+                const csvData = event.target.result;
+                if (confirm('هل أنت متأكد من استيراد هذه البيانات؟ سيتم تجاوز السجلات المكررة.')) {
+                    $.post(sukna_ajax.ajax_url, { action: 'sukna_import_data', type: type, csv_data: csvData, nonce: sukna_ajax.nonce }, function(res) {
+                        if (res.success) {
+                            alert(res.data);
+                            location.reload();
+                        } else {
+                            alert('خطأ في الاستيراد: ' + res.data);
+                        }
+                    });
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    });
+
     // --- Auth Toggling & Multi-step Registration ---
 
     $('#switch-to-register').on('click', function() {
